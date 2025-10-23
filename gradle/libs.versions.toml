@@ -1,0 +1,23 @@
+[versions]
+agp = "8.13.0"
+beanshellAndroidLambdaVersion = "3.0.0.beta3"
+dexkit = "2.0.7"
+androidx-documentfile = "1.1.0"
+androidx-annotation = "1.9.1"
+kotlinxCoroutinesCore = "1.10.2"
+protobufGradlePlugin = "0.9.5"
+protobufJavaUtil = "4.32.1"
+kotinPlugin = "2.2.20"
+
+[libraries]
+beanshell-android-lambda-v300beta3 = { module = "io.github.copylibs:beanshell-android-lambda", version.ref = "beanshellAndroidLambdaVersion" }
+dexkit = { module = "org.luckypray:dexkit", version.ref = "dexkit" }
+androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "androidx-documentfile" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobufJavaUtil" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufGradlePlugin"}
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotinPlugin" }

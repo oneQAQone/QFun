@@ -1,0 +1,86 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.protobuf)
+}
+
+
+android {
+    namespace 'me.yxp.qfun'
+    compileSdk 36
+
+    aaptOptions {
+        additionalParameters "--allow-reserved-package-id", "--package-id", "0x78"
+    }
+
+    defaultConfig {
+        applicationId "me.yxp.qfun"
+        minSdk 30
+        targetSdk 36
+        ndk {
+            //noinspection ChromeOsAbiSupport
+            abiFilters "arm64-v8a", "armeabi-v7a"
+        }
+        versionCode 10
+        versionName "1.1.8"
+
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+
+    signingConfigs {
+
+        main {
+           
+        }
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            signingConfig signingConfigs.main
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled true
+            signingConfig signingConfigs.main
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+        }
+
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_15
+        targetCompatibility JavaVersion.VERSION_15
+    }
+
+}
+
+dependencies {
+    compileOnly fileTree(dir: 'libs/compile_only', include: ['*.jar'])
+    compileOnly(project(":api"))
+    implementation(project(":service"))
+    implementation libs.androidx.documentfile
+    implementation libs.androidx.annotation
+    implementation libs.dexkit
+    implementation libs.protobuf.java
+    implementation libs.beanshell.android.lambda.v300beta3
+    implementation libs.kotlinx.coroutines.core
+}
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:4.32.1' // 编译器版本
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java {} // 生成Java代码
+
+            }
+        }
+    }
+}

@@ -1,0 +1,11 @@
+syntax = "proto3";
+package me.yxp.qfun.proto;
+
+option java_package = "me.yxp.qfun.proto";
+
+
+import "QQMessage.proto";
+
+message MsgPush {
+  QQMessage qqMessage = 1;
+}
