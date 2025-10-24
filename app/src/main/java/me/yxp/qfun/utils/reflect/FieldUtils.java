@@ -2,6 +2,8 @@ package me.yxp.qfun.utils.reflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FieldUtils {
 
@@ -91,6 +93,7 @@ public class FieldUtils {
         private Field findInClass(Class<?> clazz) {
             try {
                 if (mFieldName != null) {
+
                     Field field = clazz.getDeclaredField(mFieldName);
 
                     if (mFieldType != null && !mFieldType.isAssignableFrom(field.getType())) {
@@ -99,10 +102,29 @@ public class FieldUtils {
 
                     return field;
                 } else {
+                    // 按类型查找：优先返回非静态字段
+                    List<Field> instanceFields = new ArrayList<>();
+                    List<Field> staticFields = new ArrayList<>();
+
+                    // 首先收集所有符合条件的字段并按静态/实例分类
                     for (Field field : clazz.getDeclaredFields()) {
                         if (mFieldType.isAssignableFrom(field.getType())) {
-                            return field;
+                            if (Modifier.isStatic(field.getModifiers())) {
+                                staticFields.add(field);
+                            } else {
+                                instanceFields.add(field);
+                            }
                         }
+                    }
+
+                    // 优先返回实例字段（非静态）
+                    if (!instanceFields.isEmpty()) {
+                        return instanceFields.get(0); // 返回第一个实例字段
+                    }
+
+                    // 如果没有实例字段，则返回静态字段
+                    if (!staticFields.isEmpty()) {
+                        return staticFields.get(0); // 返回第一个静态字段
                     }
                 }
             } catch (NoSuchFieldException e) {

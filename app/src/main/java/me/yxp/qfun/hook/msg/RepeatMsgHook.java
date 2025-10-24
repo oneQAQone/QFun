@@ -78,10 +78,9 @@ public final class RepeatMsgHook extends BaseWithDataHookItem {
                     .ofType(ClassUtils._MsgRecord())
                     .inParent(ClassUtils._AIOMsgItem())
                     .getValue();
-            List<Object> msgElements = (List<Object>) FieldUtils.create(msgRecord)
-                    .withName("elements").getValue();
+
             MsgData msgData = new MsgData(msgRecord);
-            MsgTool.sendMsg(msgData.contact, msgElements);
+            MsgTool.repeatByMsgRecord(msgData);
         } catch (Exception e) {
             ErrorOutput.itemHookError(this, e);
         }

@@ -76,6 +76,15 @@ public class MsgTool {
         sendMsg(makeContact(peerUin, type), msg);
     }
 
+    public static void repeatByMsgRecord(MsgData msgData) throws Exception {
+
+        List<Object> elements = (List<Object>) FieldUtils.create(msgData.data).withName("elements").getValue();
+        Map<Integer, Object> msgAttrs = (Map<Integer, Object>) FieldUtils.create(msgData.data).withName("msgAttrs").getValue();
+        long msgId = generateMsgUniqueId(msgData.type);
+        sSendMsg.invoke(QQCurrentEnv.getKernelMsgservice(), msgId, msgData.contact, elements, msgAttrs, null);
+
+    }
+
     public static void sendMsg(Object contact, String msg) throws Exception {
         List<Object> msgElements = processMessageContent(contact, msg);
         if (!msgElements.isEmpty()) sendMsg(contact, msgElements);
