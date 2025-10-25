@@ -15,6 +15,7 @@ public final class AntiInteractivePopHook extends BaseSwitchHookItem {
 
     @Override
     protected boolean initMethod() throws Throwable {
+        if (HostInfo.isTIM) return false;
         Class<?> Fragment = ClassUtils.load("androidx.fragment.app.Fragment");
         Class<?> Function0 = ClassUtils.load(Function0.class.getName());
 

@@ -3,6 +3,6 @@
 
     <string name="app_name">QFun</string>
     <string name="plugin_name">JavaPlugin</string>
-    <string name="xposeddescription">Adapted for QQ9.1.25+</string>
+    <string name="xposeddescription">Adapted for QQ9.1.25+ and TIM</string>
 
 </resources>
