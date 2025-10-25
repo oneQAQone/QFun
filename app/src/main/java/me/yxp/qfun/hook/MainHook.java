@@ -39,6 +39,7 @@ import me.yxp.qfun.hook.msg.RandomFaceHook;
 import me.yxp.qfun.hook.msg.RecordsReplyMsgHook;
 import me.yxp.qfun.hook.msg.RepeatMsgHook;
 import me.yxp.qfun.hook.msg.RevokeMsgHook;
+import me.yxp.qfun.hook.purify.AntiInteractivePopHook;
 import me.yxp.qfun.hook.qrcode.LiftQRCodeLimitHook;
 import me.yxp.qfun.hook.redpacket.RedPacketHook;
 import me.yxp.qfun.hook.social.OneClickLikeHook;
@@ -115,7 +116,8 @@ public class MainHook {
                 RemoveReplyAtHook.class, TabletModeHook.class, SimpleTroopManagement.class,
                 DefaultBubbleAndFontHook.class, EmotionToPicHook.class,
                 AutoSendOriginalPicHook.class, RecordsReplyMsgHook.class,
-                ForwardPttHook.class, DownloadTimesHook.class, CustomDeviceHook.class
+                ForwardPttHook.class, DownloadTimesHook.class, CustomDeviceHook.class,
+                AntiInteractivePopHook.class
         };
 
         for (Class<?> hookClass : hookClasses) {

@@ -63,8 +63,7 @@ public final class CustomDeviceHook extends BaseWithDataHookItem {
 
     @Override
     protected boolean initMethod() throws Throwable {
-        Class<?> deviceInfoMonitor = ClassUtils.load("com.tencent.qmethod.pandoraex.monitor.DeviceInfoMonitor");
-        sGetModelMethod = MethodUtils.create(deviceInfoMonitor)
+        sGetModelMethod = MethodUtils.create(ClassUtils._DeviceInfoMonitor())
                 .withMethodName("getModel")
                 .findOne();
         return true;

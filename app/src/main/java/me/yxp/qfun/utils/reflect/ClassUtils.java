@@ -158,4 +158,12 @@ public class ClassUtils {
     public static Class<?> _TroopOnlinePushHandler() throws Exception {
         return ClassUtils.load("com.tencent.mobileqq.troop.onlinepush.api.impl.TroopOnlinePushHandler");
     }
+
+    public static Class<?> _InteractivePopManager() throws  Exception {
+        return load("com.tencent.mobileqq.springhb.interactive.ui.InteractivePopManager");
+    }
+
+    public static Class<?> _DeviceInfoMonitor() throws Exception {
+        return load("com.tencent.qmethod.pandoraex.monitor.DeviceInfoMonitor");
+    }
 }

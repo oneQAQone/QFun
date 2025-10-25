@@ -21,7 +21,7 @@ public final class OnTroopJoin extends ApiHookItem {
     @Override
     public void loadHook() throws Throwable {
         if (HostInfo.isTIM()) {
-            Method handleMemberJoin = DexKit.getMethod("OnTroopJoin");
+            Method handleMemberJoin = DexKit.getMethod(getClass().getSimpleName());
             HookUtils.hookAlways(handleMemberJoin, null, param -> handleJoin((String) param.args[0], (String) param.args[1]));
         }
 

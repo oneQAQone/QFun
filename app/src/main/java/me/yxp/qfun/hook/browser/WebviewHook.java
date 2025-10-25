@@ -13,7 +13,7 @@ public final class WebviewHook extends BaseSwitchHookItem {
 
     @Override
     protected boolean initMethod() throws Throwable {
-        sLiftLimitMethod = DexKit.getMethod("WebviewHook");
+        sLiftLimitMethod = DexKit.getMethod(getNAME());
         return true;
     }
 

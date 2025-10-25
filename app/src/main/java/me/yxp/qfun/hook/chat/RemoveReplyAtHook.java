@@ -15,7 +15,7 @@ public final class RemoveReplyAtHook extends BaseSwitchHookItem {
 
     @Override
     protected boolean initMethod() throws Throwable {
-        Class<?> reply = DexKit.getClass("RemoveReplyAtHook");
+        Class<?> reply = DexKit.getClass(getNAME());
         sSetTextMethod = MethodUtils.create(reply)
                 .withReturnType(void.class)
                 .withParamTypes(ClassUtils._AIOMsgItem())
