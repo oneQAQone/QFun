@@ -41,7 +41,6 @@ import me.yxp.qfun.hook.msg.RepeatMsgHook;
 import me.yxp.qfun.hook.msg.RevokeMsgHook;
 import me.yxp.qfun.hook.purify.AntiInteractivePopHook;
 import me.yxp.qfun.hook.qrcode.LiftQRCodeLimitHook;
-import me.yxp.qfun.hook.redpacket.RedPacketHook;
 import me.yxp.qfun.hook.social.OneClickLikeHook;
 import me.yxp.qfun.hook.social.PaiYiPaiHook;
 import me.yxp.qfun.hook.troop.AntiAtAllHook;
