@@ -9,7 +9,7 @@ android {
     compileSdk 36
 
     aaptOptions {
-        additionalParameters "--allow-reserved-package-id", "--package-id", "0x78"
+        additionalParameters "--allow-reserved-package-id", "--package-id", "0x13"
     }
 
     defaultConfig {
