@@ -48,7 +48,7 @@ public final class ForwardPttHook extends BaseSwitchHookItem {
                 .withParamTypes()
                 .findOne();
 
-        if (HostInfo.getVersionCode() < 11820) {
+        if (HostInfo.isTIM() || (HostInfo.isQQ() && HostInfo.getVersionCode() < 11820)) {
             sOnActivityResultMethod = MethodUtils.create(ntMsgForwardUtils)
                     .withReturnType(void.class)
                     .withParamTypes(Activity.class, int.class, int.class, Intent.class, null)

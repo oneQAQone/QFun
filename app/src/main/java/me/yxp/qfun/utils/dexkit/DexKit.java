@@ -77,7 +77,7 @@ public class DexKit {
                                 .create();
                         dialog.show();
 
-                        SyncUtils.runOnNewThread("Dexkit", () -> {
+                        SyncUtils.runOnNewThread("DexKit", () -> {
                             try {
                                 doFind();
                                 saveData();
@@ -270,6 +270,17 @@ public class DexKit {
                 sMethodMap.put("QQHomeInjectMethod", methodData.toDexMethod().serialize());
             }
         }
+
+        //RemoveFilteredVideoHook
+        ClassData removeFilteredVideoHook = bridge.findClass(FindClass.create()
+                .searchPackages("com.tencent.mobileqq.aio.shortcurtbar")
+                .matcher(ClassMatcher.create()
+                        .usingStrings("originList")
+                        .usingStrings("filterVideoItem"))
+        ).singleOrNull();
+        if (removeFilteredVideoHook != null) {
+            sClassMap.put("RemoveFilteredVideoHook", removeFilteredVideoHook.toDexType().serialize());
+        }
     }
 
     private static void findMethods(DexKitBridge bridge) throws Throwable {
@@ -314,8 +325,9 @@ public class DexKit {
                         .paramTypes(String.class, String.class, String.class)
                         .usingStrings("handleMemberAdd addMemberUin:"))
         ).singleOrNull();
-        if (onTroopJoin != null)
+        if (onTroopJoin != null) {
             sMethodMap.put("OnTroopJoin", onTroopJoin.toDexMethod().serialize());
+        }
 
     }
 
