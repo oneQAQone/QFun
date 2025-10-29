@@ -47,7 +47,7 @@ public class HostInfo {
     }
 
     private static void setModuleDataPath(Context context) {
-        sModuleDataPath = context.getExternalFilesDir(null).getParent() + "/QFun/";
+        sModuleDataPath = context.getExternalMediaDirs()[0].getAbsolutePath() + "/QFun/";
     }
 
     public static Context getHostContext() {
