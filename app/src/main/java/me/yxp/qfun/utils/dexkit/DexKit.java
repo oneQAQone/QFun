@@ -271,15 +271,15 @@ public class DexKit {
             }
         }
 
-        //RemoveFilteredVideoHook
-        ClassData removeFilteredVideoHook = bridge.findClass(FindClass.create()
+        //RemoveFilterVideoHook
+        ClassData removeFilterVideoHook = bridge.findClass(FindClass.create()
                 .searchPackages("com.tencent.mobileqq.aio.shortcurtbar")
                 .matcher(ClassMatcher.create()
                         .usingStrings("originList")
                         .usingStrings("filterVideoItem"))
         ).singleOrNull();
         if (removeFilteredVideoHook != null) {
-            sClassMap.put("RemoveFilteredVideoHook", removeFilteredVideoHook.toDexType().serialize());
+            sClassMap.put("RemoveFilterVideoHook", removeFilterVideoHook.toDexType().serialize());
         }
     }
 
