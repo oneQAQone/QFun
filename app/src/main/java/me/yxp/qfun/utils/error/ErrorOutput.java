@@ -39,11 +39,11 @@ public class ErrorOutput {
     private static void writeErrorToFile(String errorMessage) {
         try {
             String date = DATE_FORMAT.format(new Date());
-            FileWriter writer = new FileWriter(DataUtils.createFile("log", date + ".txt"), true);
-            writer.write(errorMessage);
+            FileWriter writer = new FileWriter(DataUtils.createFile("log", "error.txt"), true);
+            writer.write(date + "\n" + errorMessage + "\n\n\n");
             writer.close();
         } catch (Exception e) {
-            // 忽略文件写入异常
+           // 忽略文件写入异常
         }
     }
 }
