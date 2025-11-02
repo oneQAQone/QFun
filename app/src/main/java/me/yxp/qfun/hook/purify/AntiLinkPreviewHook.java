@@ -8,7 +8,7 @@ import me.yxp.qfun.utils.hook.HookUtils;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
 
-@HookItemAnnotation(TAG = "屏蔽链接预览", desc = "屏蔽连接文本的预览信息")
+@HookItemAnnotation(TAG = "屏蔽链接预览", desc = "屏蔽链接文本的预览信息")
 public class AntiLinkPreviewHook extends BaseSwitchHookItem {
 
     private static Method addPreview;
@@ -34,3 +34,4 @@ public class AntiLinkPreviewHook extends BaseSwitchHookItem {
 
     }
 }
+
