@@ -166,4 +166,8 @@ public class ClassUtils {
     public static Class<?> _DeviceInfoMonitor() throws Exception {
         return load("com.tencent.qmethod.pandoraex.monitor.DeviceInfoMonitor");
     }
+
+    public static Class<?> _TextMsgContent() throws Exception {
+        return load("com.tencent.mobileqq.aio.msg.TextMsgContent");
+    }
 }
