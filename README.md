@@ -5,7 +5,6 @@
 ![GitHub Stars](https://img.shields.io/github/stars/oneQAQone/QFun?style=social)
 [![Telegram Group](https://img.shields.io/badge/Telegram-Join_Group-2CA5E0?logo=telegram)](https://t.me/QFunChatGroup)
 [![Telegram](https://img.shields.io/static/v1?label=Telegram&message=Channel&color=0088cc)](https://t.me/QFunChannel)
-[![QQ Group](https://img.shields.io/badge/QQGroup-1067198087-12B7F5?style=style=for-the-badge&logo=tencentqq&logoColor=white)](https://qm.qq.com/cgi-bin/qm/qr?k=xLBeceHozik0J5LEpU3pEKH7fLWLqGCG&jump_from=webapi&authKey=3hAlEoISLQecIsNodlHwrmGkz6NupG1KNZ7mOy5E0d/Q8imzXMapXsNSVspPhku0)
 </div>
 
 # 简介
@@ -27,8 +26,8 @@
 ### 脚本功能
 > 目前仅支持本地导入脚本，开发文档中提供了一些API
 # 适配范围
-+ 理论适配QQ9.1.25+，TIM未测试，请尽量更新到最新版本
-> [宿主外部储存私有目录]/QFun/[当前QQ号]或global/log/ 文件夹下可能有按时间输出的log
++ 理论适配QQ9.1.25+，TIM4.0.95+，请尽量更新到最新版本
+> 若需反馈bug，请将[宿主外部储存media目录]/QFun/[当前QQ号]或global/log/error.txt或框架日志反馈给开发者
 # 框架
 + Lsposed (需root,推荐)
 + Lspatch (免root)
