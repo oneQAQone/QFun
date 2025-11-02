@@ -42,14 +42,18 @@ public class MainActivity extends Activity {
     }
 
     public void gotoTelegram(View v) {
-        openBrowser("https://t.me/QFunChatGroup");
+        jump("https://t.me/QFunChannel");
     }
 
     public void gotoGithub(View v) {
-        openBrowser("https://github.com/Xposed-Modules-Repo/me.yxp.qfun");
+        jump("https://github.com/oneQAQone/QFun");
     }
 
-    private void openBrowser(String url) {
+    public void gotoQQGroup(View v) {
+        jump("mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1067198087&card_type=group&source=qrcode");
+    }
+
+    private void jump(String url) {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(intent);
     }
