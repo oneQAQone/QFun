@@ -1,6 +1,7 @@
 package me.yxp.qfun.hook.msg;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 import me.yxp.qfun.hook.base.BaseSwitchHookItem;
 import me.yxp.qfun.hook.base.HookItemAnnotation;
@@ -17,11 +18,11 @@ public final class EmotionToPicHook extends BaseSwitchHookItem {
     protected boolean initMethod() throws Throwable {
         Class<?> picContentViewUtil = ClassUtils.load(
                 "com.tencent.mobileqq.aio.msglist.holder.base.util.PicContentViewUtil");
-        Class<?> msgElement = ClassUtils.load("com.tencent.qqnt.kernel.nativeinterface.MsgElement");
+        Class<?> MsgElement = ClassUtils.load("com.tencent.qqnt.kernel.nativeinterface.MsgElement");
 
         sSendIntentMethod = MethodUtils.create(picContentViewUtil)
                 .withReturnType(void.class)
-                .withParamTypes(null, null, msgElement, null)
+                .withParamTypes(null, MsgElement, null, ArrayList.class, null, Runnable.class)
                 .findOne();
 
         return true;
@@ -30,7 +31,7 @@ public final class EmotionToPicHook extends BaseSwitchHookItem {
     @Override
     protected void initCallback() {
         HookUtils.hookIfEnable(this, sSendIntentMethod, param -> {
-            Object picElement = FieldUtils.create(param.args[2]).withName("picElement").getValue();
+            Object picElement = FieldUtils.create(param.args[1]).withName("picElement").getValue();
             FieldUtils.create(picElement).withName("picSubType").setValue(0);
             FieldUtils.create(picElement).withName("picType").setValue(1000);
         }, null);
