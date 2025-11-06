@@ -1,14 +1,12 @@
 package me.yxp.qfun.hook.api;
 
 import android.content.Context;
-import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
 import me.yxp.qfun.hook.base.ApiHookItem;
 import me.yxp.qfun.utils.hook.HookUtils;
@@ -25,17 +23,16 @@ public final class OnAIOViewUpdate extends ApiHookItem {
     @Override
     public void loadHook() throws Throwable {
         Method onMsgViewUpdate = MethodUtils.create(ClassUtils._AIOBubbleMsgItemVB())
-                .withReturnType(void.class)
-                .withParamTypes(int.class, ClassUtils._AIOMsgItem(), List.class, Bundle.class)
+                .withMethodName("handleUIState")
                 .findOne();
 
         HookUtils.hookAlways(onMsgViewUpdate, param -> {
             ViewGroup msgView = (ViewGroup) FieldUtils.create(param.thisObject)
                     .ofType(View.class)
                     .getValue();
-            Object aIOMsgItem = param.args[1];
+            Object aIOMsgItem = FieldUtils.create(param.args[0]).ofType(ClassUtils._AIOMsgItem().getSuperclass()).getValue();
 
-            if (GRAY_TIPS_MSG_ITEM.equals(aIOMsgItem.getClass().getName())) {
+            if (aIOMsgItem == null || GRAY_TIPS_MSG_ITEM.equals(aIOMsgItem.getClass().getName())) {
                 return;
             }
 
