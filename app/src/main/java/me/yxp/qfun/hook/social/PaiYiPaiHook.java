@@ -25,10 +25,18 @@ public final class PaiYiPaiHook extends BaseSwitchHookItem {
 
     @Override
     protected boolean initMethod() throws Throwable {
-        sSendPaiYiPaiMethod = MethodUtils.create(ClassUtils._PaiYiPaiHandler())
-                .withReturnType(void.class)
-                .withParamTypes(String.class, String.class, int.class, int.class)
-                .findOne();
+
+        try {
+            sSendPaiYiPaiMethod = MethodUtils.create(ClassUtils._PaiYiPaiHandler())
+                    .withReturnType(void.class)
+                    .withParamTypes(String.class, String.class, int.class, int.class)
+                    .findOne();
+        } catch (Exception e) {
+            sSendPaiYiPaiMethod = MethodUtils.create(ClassUtils._PaiYiPaiHandler())
+                    .withReturnType(void.class)
+                    .withParamTypes(int.class, int.class, String.class, String.class)
+                    .findOne();
+        }
 
         sLiftTimeMethod = MethodUtils.create(ClassUtils._PaiYiPaiHandler())
                 .withReturnType(boolean.class)
