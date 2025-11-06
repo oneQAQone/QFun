@@ -14,12 +14,13 @@ import me.yxp.qfun.activity.InjectSettings;
 import me.yxp.qfun.activity.JavaPlugin;
 import me.yxp.qfun.utils.dexkit.DexKit;
 import me.yxp.qfun.utils.hook.HookUtils;
+import me.yxp.qfun.utils.qq.HostInfo;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
 
 public class QQSettingInject {
-    private static final String MODULE_NAME = "模块";
-    private static final String MODULE_DESCRIPTION = "";
+    private static final String TOP_TITLE = "模块";
+    private static final String BOTTOM_TITLE = "";
     private static final int MODULE_ORDER = 10;
 
     public static void hook() throws Throwable {
@@ -27,7 +28,8 @@ public class QQSettingInject {
         HookUtils.hookAlways(getItemList(), null, param -> {
             final Context context = (Context) param.args[0];
             List<Object> result = (List<Object>) param.getResult();
-            Class<?> itemClass = DexKit.getClass("QQSettingInject");
+
+            Class<?> itemClass = DexKit.getClass("QQSettingInjectClass1");
 
             Object settingEntry = createSettingEntry(context, itemClass);
             Object pluginEntry = createPluginEntry(context, itemClass);
@@ -39,23 +41,31 @@ public class QQSettingInject {
             moduleList.add(settingEntry);
             moduleList.add(pluginEntry);
 
-            Object group = ClassUtils.makeDefaultObject(itemGroup, moduleList, MODULE_NAME, MODULE_DESCRIPTION);
+            Object group = ClassUtils.makeDefaultObject(itemGroup, moduleList, TOP_TITLE, BOTTOM_TITLE, 0, null);
+
             result.add(1, group);
         });
     }
 
     private static Method getItemList() throws Throwable {
-        try {
-            return MethodUtils.create(ClassUtils._NewSettingConfigProvider())
-                    .withReturnType(List.class)
-                    .withParamTypes(Context.class)
-                    .findOne();
-        } catch (Throwable throwable) {
-            return MethodUtils.create(ClassUtils._MainSettingConfigProvider())
-                    .withReturnType(List.class)
-                    .withParamTypes(Context.class)
-                    .findOne();
+
+        Class<?> providerClass;
+
+        if (HostInfo.isQQ() && HostInfo.getVersionCode() >= 12288) {
+            providerClass = DexKit.getClass("QQSettingInjectClass2");
+        } else {
+
+            try {
+                providerClass = ClassUtils._NewSettingConfigProvider();
+            } catch (Throwable throwable) {
+                providerClass = ClassUtils._MainSettingConfigProvider();
+            }
         }
+
+        return MethodUtils.create(providerClass)
+                .withReturnType(List.class)
+                .withParamTypes(Context.class)
+                .findOne();
     }
 
     private static Object createSettingEntry(Context context, Class<?> itemClass) {
@@ -87,7 +97,7 @@ public class QQSettingInject {
 
         Class<?> function0Class = setOnClickListener.getParameterTypes()[0];
         ClassLoader hostClassLoader = ClassUtils.getHostClassLoader();
-        final Object unitInstance = function0Class.getClassLoader()
+        final Object unitInstance = hostClassLoader
                 .loadClass("kotlin.Unit")
                 .getField("INSTANCE")
                 .get(null);
@@ -108,9 +118,8 @@ public class QQSettingInject {
                 (proxy, method, args) -> {
                     if ("invoke".equals(method.getName())) {
                         action.run();
-                        return unitInstance;
                     }
-                    return method.invoke(proxy, args);
+                    return unitInstance;
                 });
     }
 }

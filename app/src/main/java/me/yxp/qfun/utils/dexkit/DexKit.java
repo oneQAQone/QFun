@@ -194,15 +194,6 @@ public class DexKit {
             sClassMap.put("CreateElement", createElement.toDexType().serialize());
         }
 
-        // QQSettingInject
-        ClassData qqSettingInject = bridge.findClass(FindClass.create()
-                .searchPackages("com.tencent.mobileqq.setting.processor")
-                .matcher(ClassMatcher.create().usingStrings("context", "leftText"))
-        ).singleOrNull();
-        if (qqSettingInject != null) {
-            sClassMap.put("QQSettingInject", qqSettingInject.toDexType().serialize());
-        }
-
         // CookieTool
         ClassData cookieTool = bridge.findClass(FindClass.create()
                 .searchPackages("com.tencent.mobileqq.pskey")
@@ -249,6 +240,24 @@ public class DexKit {
         ).singleOrNull();
         if (removeFilterVideoHook != null) {
             sClassMap.put("RemoveFilterVideoHook", removeFilterVideoHook.toDexType().serialize());
+        }
+
+        //QQSettingInjectClass1
+        ClassData qQSettingInjectClass1 = bridge.findClass(FindClass.create().searchPackages("com.tencent.mobileqq.setting.processor")
+                .matcher(ClassMatcher.create()
+                        .usingStrings("context", "leftText"))
+        ).singleOrNull();
+        if (qQSettingInjectClass1 != null) {
+            sClassMap.put("QQSettingInjectClass1", qQSettingInjectClass1.toDexType().serialize());
+        }
+
+        //QQSettingInjectClass2
+        ClassData qQSettingInjectClass2 = bridge.findClass(FindClass.create().searchPackages("com.tencent.mobileqq.setting.main")
+                .matcher(ClassMatcher.create()
+                        .superClass("com.tencent.mobileqq.setting.processor.SettingConfigProvider"))
+        ).singleOrNull();
+        if (qQSettingInjectClass2 != null) {
+            sClassMap.put("QQSettingInjectClass2", qQSettingInjectClass2.toDexType().serialize());
         }
     }
 
