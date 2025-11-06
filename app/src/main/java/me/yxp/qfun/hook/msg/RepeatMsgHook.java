@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import kotlin.Lazy;
 import me.yxp.qfun.R;
 import me.yxp.qfun.activity.InjectSettings;
 import me.yxp.qfun.hook.base.BaseWithDataHookItem;
@@ -22,6 +23,7 @@ import me.yxp.qfun.javaplugin.api.MsgData;
 import me.yxp.qfun.utils.data.DataUtils;
 import me.yxp.qfun.utils.error.ErrorOutput;
 import me.yxp.qfun.utils.hook.HookUtils;
+import me.yxp.qfun.utils.hook.xpcompat.XposedHelpers;
 import me.yxp.qfun.utils.qq.MsgTool;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
@@ -30,16 +32,10 @@ import me.yxp.qfun.utils.reflect.MethodUtils;
 @HookItemAnnotation(TAG = "消息复读", desc = "部分特殊消息无法复读，点击可自定义加一图标")
 public final class RepeatMsgHook extends BaseWithDataHookItem {
     public static Bitmap sBitmap;
-    private static Method sGetViewMethod;
     private static Method sGetMsgMethod;
-    private ImageView mImageView;
 
     @Override
     protected boolean initMethod() throws Throwable {
-        sGetViewMethod = MethodUtils.create(ClassUtils._AIOMsgFollowComponent())
-                .withReturnType(ImageView.class)
-                .withParamTypes()
-                .findOne();
 
         sGetMsgMethod = MethodUtils.create(ClassUtils._AIOMsgFollowComponent())
                 .withReturnType(void.class)
@@ -51,24 +47,22 @@ public final class RepeatMsgHook extends BaseWithDataHookItem {
 
     @Override
     protected void initCallback() {
-        HookUtils.hookIfEnable(this, sGetViewMethod, null, param -> {
-            Object result = param.getResult();
-            if (result instanceof ImageView) {
-                mImageView = (ImageView) result;
-                if (sBitmap != null) {
-                    mImageView.setImageDrawable(new BitmapDrawable(sBitmap));
-                } else {
-                    mImageView.setImageResource(R.drawable.repeat);
-                }
-            }
-        });
 
         HookUtils.hookIfEnable(this, sGetMsgMethod, null, param -> {
-            if (mImageView.getContext().getClass().getName().contains("MultiForwardActivity")) {
+
+            Object lazy = FieldUtils.create(param.thisObject).ofType(ClassUtils.load(Lazy.class.getName())).getValue();
+
+            ImageView imageView = (ImageView) XposedHelpers.callMethod(lazy, "getValue");
+            if (sBitmap != null) {
+                imageView.setImageDrawable(new BitmapDrawable(sBitmap));
+            } else {
+                imageView.setImageResource(R.drawable.repeat);
+            }
+            if (imageView.getContext().getClass().getName().contains("MultiForwardActivity")) {
                 return;
             }
-            mImageView.setOnClickListener(v -> sendMsg(param.args[1]));
-            mImageView.setVisibility(View.VISIBLE);
+            imageView.setOnClickListener(v -> sendMsg(param.args[1]));
+            imageView.setVisibility(View.VISIBLE);
         });
     }
 
