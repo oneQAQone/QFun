@@ -174,4 +174,12 @@ public class ClassUtils {
     public static Class<?> _PopupMenuDialog() throws Exception {
         return load("com.tencent.widget.PopupMenuDialog");
     }
+
+    public static Class<?> _QrAgentLoginManager() throws Exception {
+        return load("com.tencent.open.agent.QrAgentLoginManager");
+    }
+
+    public static Class<?> _QrLoginAuthActivity() throws Exception {
+        return load("com.tencent.biz.qrcode.activity.QRLoginAuthActivity");
+    }
 }

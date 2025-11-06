@@ -43,6 +43,7 @@ import me.yxp.qfun.hook.purify.AntiInteractivePopHook;
 import me.yxp.qfun.hook.purify.AntiLinkPreviewHook;
 import me.yxp.qfun.hook.purify.RemoveFilterVideoHook;
 import me.yxp.qfun.hook.qrcode.LiftQRCodeLimitHook;
+import me.yxp.qfun.hook.qrcode.SkipWaitTimeHook;
 import me.yxp.qfun.hook.social.OneClickLikeHook;
 import me.yxp.qfun.hook.social.PaiYiPaiHook;
 import me.yxp.qfun.hook.troop.AntiAtAllHook;
@@ -109,16 +110,16 @@ public class MainHook {
 
     public static void initHookItem() {
         Class<?>[] hookClasses = {
-                TroopClockInHook.class, RevokeMsgHook.class, PaiYiPaiHook.class,
+            TroopClockInHook.class, RevokeMsgHook.class, PaiYiPaiHook.class,
                 RepeatMsgHook.class, MsgTimeHook.class, FlashPicHook.class,
                 PicSummaryHook.class, WebviewHook.class, RandomFaceHook.class,
                 AntiAtAllHook.class, MsgContentHook.class,
-                OneClickLikeHook.class, LiftQRCodeLimitHook.class, AutoRemarkApkHook.class,
-                RemoveReplyAtHook.class, TabletModeHook.class, SimpleTroopManagement.class,
-                DefaultBubbleAndFontHook.class, EmotionToPicHook.class,
+                OneClickLikeHook.class, LiftQRCodeLimitHook.class, SkipWaitTimeHook.class,
+                AutoRemarkApkHook.class, RemoveReplyAtHook.class, TabletModeHook.class,
+                SimpleTroopManagement.class, DefaultBubbleAndFontHook.class, EmotionToPicHook.class,
                 AutoSendOriginalPicHook.class, RecordsReplyMsgHook.class,
                 ForwardPttHook.class, DownloadTimesHook.class, CustomDeviceHook.class,
-                AntiInteractivePopHook.class, RemoveFilterVideoHook.class, AntiLinkPreviewHook.class
+                AntiInteractivePopHook.class, RemoveFilterVideoHook.class, AntiLinkPreviewHooK.class>
         };
 
         for (Class<?> hookClass : hookClasses) {

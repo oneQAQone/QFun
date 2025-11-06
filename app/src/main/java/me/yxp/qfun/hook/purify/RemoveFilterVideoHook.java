@@ -11,7 +11,7 @@ import me.yxp.qfun.utils.qq.HostInfo;
 import me.yxp.qfun.utils.reflect.MethodUtils;
 
 @HookItemAnnotation(TAG = "去除滤镜视频", desc = "去除新版QQ底部选项中的滤镜视频（QQ9.2.10（11310）及以上）")
-public final class RemoveFilteredVideoHook extends BaseSwitchHookItem {
+public final class RemoveFilterVideoHook extends BaseSwitchHookItem {
     private static Method sAddFilterVideoItem;
 
     @Override
