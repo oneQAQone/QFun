@@ -19,7 +19,7 @@ import me.yxp.qfun.hook.api.OnTroopShutUp;
 import me.yxp.qfun.hook.base.ApiHookItem;
 import me.yxp.qfun.hook.base.BaseSwitchHookItem;
 import me.yxp.qfun.hook.base.BaseWithDataHookItem;
-import me.yxp.qfun.hook.browser.WebviewHook;
+import me.yxp.qfun.hook.browser.RemoveRiskWebpageBlockHook;
 import me.yxp.qfun.hook.chat.DefaultBubbleAndFontHook;
 import me.yxp.qfun.hook.chat.ForwardPttHook;
 import me.yxp.qfun.hook.chat.MsgTimeHook;
@@ -112,7 +112,7 @@ public class MainHook {
         Class<?>[] hookClasses = {
             TroopClockInHook.class, RevokeMsgHook.class, PaiYiPaiHook.class,
                 RepeatMsgHook.class, MsgTimeHook.class, FlashPicHook.class,
-                PicSummaryHook.class, WebviewHook.class, RandomFaceHook.class,
+                PicSummaryHook.class, RemoveRiskWebpageBlockHook.class, RandomFaceHook.class,
                 AntiAtAllHook.class, MsgContentHook.class,
                 OneClickLikeHook.class, LiftQRCodeLimitHook.class, SkipWaitTimeHook.class,
                 AutoRemarkApkHook.class, RemoveReplyAtHook.class, TabletModeHook.class,

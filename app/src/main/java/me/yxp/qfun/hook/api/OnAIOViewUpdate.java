@@ -22,11 +22,12 @@ public final class OnAIOViewUpdate extends ApiHookItem {
 
     @Override
     public void loadHook() throws Throwable {
-        Method onMsgViewUpdate = MethodUtils.create(ClassUtils._AIOBubbleMsgItemVB())
-                .withMethodName("handleUIState")
+        sHandleUIState = MethodUtils.create(ClassUtils._AIOBubbleMsgItemVB())
+                .withReturnType(void.class)
+                .withParamTypes(ClassUtils.load("com.tencent.mvi.base.mvi.MviUIState"))
                 .findOne();
 
-        HookUtils.hookAlways(onMsgViewUpdate, param -> {
+        HookUtils.hookAlways(sHandleUIState, param -> {
             ViewGroup msgView = (ViewGroup) FieldUtils.create(param.thisObject)
                     .ofType(View.class)
                     .getValue();

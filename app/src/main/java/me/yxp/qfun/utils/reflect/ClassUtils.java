@@ -107,8 +107,8 @@ public class ClassUtils {
         return load("com.tencent.qqnt.notification.NotificationFacade");
     }
 
-    public static Class<?> _WebSecurityPluginV2() throws Exception {
-        return load("com.tencent.mobileqq.webview.WebSecurityPluginV2");
+    public static Class<?> _CustomWebView() throws Exception {
+        return load("com.tencent.biz.pubaccount.CustomWebView");
     }
 
     public static Class<?> _AIOAvatarContentComponent() throws Exception {

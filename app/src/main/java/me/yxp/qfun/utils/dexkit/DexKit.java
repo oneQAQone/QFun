@@ -13,7 +13,6 @@ import org.luckypray.dexkit.query.matchers.ClassMatcher;
 import org.luckypray.dexkit.query.matchers.MethodMatcher;
 import org.luckypray.dexkit.query.matchers.MethodsMatcher;
 import org.luckypray.dexkit.result.ClassData;
-import org.luckypray.dexkit.result.ClassDataList;
 import org.luckypray.dexkit.result.MethodData;
 import org.luckypray.dexkit.wrap.DexClass;
 import org.luckypray.dexkit.wrap.DexMethod;
@@ -30,7 +29,6 @@ import me.yxp.qfun.utils.hook.xpcompat.XC_MethodHook;
 import me.yxp.qfun.utils.hook.xpcompat.XposedHelpers;
 import me.yxp.qfun.utils.qq.HostInfo;
 import me.yxp.qfun.utils.reflect.ClassUtils;
-import me.yxp.qfun.utils.reflect.MethodUtils;
 import me.yxp.qfun.utils.thread.SyncUtils;
 
 public class DexKit {
@@ -259,20 +257,10 @@ public class DexKit {
         if (qQSettingInjectClass2 != null) {
             sClassMap.put("QQSettingInjectClass2", qQSettingInjectClass2.toDexType().serialize());
         }
+
     }
 
     private static void findMethods(DexKitBridge bridge) throws Throwable {
-        // WebviewHook
-        MethodData webviewHook = bridge.findMethod(FindMethod.create()
-                .matcher(MethodMatcher.create()
-                        .declaredClass(ClassUtils._WebSecurityPluginV2())
-                        .returnType(boolean.class)
-                        .paramTypes(String.class)
-                        .usingStrings("notDisableSecurityCheck url="))
-        ).singleOrNull();
-        if (webviewHook != null) {
-            sMethodMap.put("WebviewHook", webviewHook.toDexMethod().serialize());
-        }
 
         // AntiAtAllHook
         MethodData antiAtAllHook = bridge.findMethod(FindMethod.create()
