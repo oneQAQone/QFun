@@ -170,4 +170,8 @@ public class ClassUtils {
     public static Class<?> _TextMsgContent() throws Exception {
         return load("com.tencent.mobileqq.aio.msg.TextMsgContent");
     }
+
+    public static Class<?> _PopupMenuDialog() throws Exception {
+        return load("com.tencent.widget.PopupMenuDialog");
+    }
 }

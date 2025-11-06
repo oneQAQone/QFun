@@ -221,15 +221,6 @@ public class DexKit {
             sClassMap.put("OnMsgMenuOpen", onMsgMenuOpen.toDexType().serialize());
         }
 
-        // QQHomeInjectClass1
-        ClassData qqHomeInjectClass1 = bridge.findClass(FindClass.create()
-                .searchPackages("com.tencent.mobileqq.activity.recent")
-                .matcher(ClassMatcher.create().addInterface("com.tencent.widget.PopupMenuDialog$OnClickActionListener"))
-        ).singleOrNull();
-        if (qqHomeInjectClass1 != null) {
-            sClassMap.put("QQHomeInjectClass1", qqHomeInjectClass1.toDexType().serialize());
-        }
-
         // RecordsReplyMsgHook
         ClassData recordsReplyMsgHook = bridge.findClass(FindClass.create()
                 .searchPackages("com.tencent.mobileqq.aio.msglist.msgrepo")
@@ -248,28 +239,6 @@ public class DexKit {
             sClassMap.put("ForwardPttHook", forwardPttHook.toDexType().serialize());
         }
 
-        // QQHomeInjectClass2
-        ClassDataList qqHomeInjectClass2List = bridge.findClass(FindClass.create()
-                .searchPackages("com.tencent.mobileqq.activity.recent")
-                .matcher(ClassMatcher.create()
-                        .usingStrings("Conversation")
-                        .addInterface(View.OnClickListener.class.getName()))
-        );
-        if (qqHomeInjectClass2List.singleOrNull() != null) {
-            ClassData qqHomeInjectClass2 = qqHomeInjectClass2List.singleOrNull();
-            sClassMap.put("QQHomeInjectClass2", qqHomeInjectClass2.toDexType().serialize());
-
-            Method conversationPlusBuild = MethodUtils.create(ClassUtils.load("com.tencent.widget.PopupMenuDialog"))
-                    .withMethodName("conversationPlusBuild")
-                    .findOne();
-            MethodData methodData = bridge.findMethod(FindMethod.create()
-                    .searchInClass(qqHomeInjectClass2List)
-                    .matcher(MethodMatcher.create().addInvoke(MethodMatcher.create(conversationPlusBuild)))
-            ).singleOrNull();
-            if (methodData != null) {
-                sMethodMap.put("QQHomeInjectMethod", methodData.toDexMethod().serialize());
-            }
-        }
 
         //RemoveFilterVideoHook
         ClassData removeFilterVideoHook = bridge.findClass(FindClass.create()
@@ -278,7 +247,7 @@ public class DexKit {
                         .usingStrings("originList")
                         .usingStrings("filterVideoItem"))
         ).singleOrNull();
-        if (removeFilteredVideoHook != null) {
+        if (removeFilterVideoHook != null) {
             sClassMap.put("RemoveFilterVideoHook", removeFilterVideoHook.toDexType().serialize());
         }
     }
