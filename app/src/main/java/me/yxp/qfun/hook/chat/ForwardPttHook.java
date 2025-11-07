@@ -116,7 +116,7 @@ public final class ForwardPttHook extends BaseSwitchHookItem {
                         .withName("elements")
                         .getValue();
                 String uin1 = intent.getStringExtra("uin");
-                int uinType1 = intent.getIntExtra("uinType", INVALID_TYPE);
+                int uinType1 = intent.getIntExtra("uintype", INVALID_TYPE);
                 boolean flag = sendMsg(uin1, uinType1, elements);
 
                 List<Parcelable> list = intent.getParcelableArrayListExtra("forward_multi_target");
