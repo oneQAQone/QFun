@@ -6,6 +6,7 @@ import me.yxp.qfun.hook.base.BaseSwitchHookItem;
 import me.yxp.qfun.hook.base.HookItemAnnotation;
 import me.yxp.qfun.utils.dexkit.DexKit;
 import me.yxp.qfun.utils.hook.HookUtils;
+import me.yxp.qfun.utils.hook.xpcompat.XposedBridge;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
@@ -14,8 +15,6 @@ import me.yxp.qfun.utils.reflect.MethodUtils;
 public final class RemoveReplyAtHook extends BaseSwitchHookItem {
     private static final String MsgOnClickReplyEvent = "com.tencent.mobileqq.aio.event.AIOMsgSendEvent$MsgOnClickReplyEvent";
     private static Method sHandleMsgIntent;
-    private static Object msgRecord;
-    private Object senderUid;
 
     @Override
     protected boolean initMethod() throws Throwable {
@@ -29,23 +28,21 @@ public final class RemoveReplyAtHook extends BaseSwitchHookItem {
 
     @Override
     public void initCallback() {
-        HookUtils.hookIfEnable(this, sHandleMsgIntent, param -> {
+        HookUtils.replaceIfEnable(this, sHandleMsgIntent, param -> {
             if (param.args[0] == null || !MsgOnClickReplyEvent.equals(param.args[0].getClass().getName())) {
-                return;
+                return XposedBridge.invokeOriginalMethod(param.method, param.thisObject, param.args);
             }
             Object aIOMsgItem = FieldUtils.create(param.args[0]).ofType(ClassUtils._AIOMsgItem()).getValue();
-            msgRecord = FieldUtils.create(aIOMsgItem)
+            Object msgRecord = FieldUtils.create(aIOMsgItem)
                     .ofType(ClassUtils._MsgRecord())
                     .inParent(ClassUtils._AIOMsgItem())
                     .getValue();
-            senderUid = FieldUtils.create(msgRecord).withName("senderUid").getValue();
+            Object senderUid = FieldUtils.create(msgRecord).withName("senderUid").getValue();
             FieldUtils.create(msgRecord).withName("senderUid").setValue("");
-        }, param -> {
+            XposedBridge.invokeOriginalMethod(param.method, param.thisObject, param.args);
             //长按头像时也会调用此msgRecord，所以调用后还原
-            if (param.args[0] == null || !MsgOnClickReplyEvent.equals(param.args[0].getClass().getName())) {
-                return;
-            }
             FieldUtils.create(msgRecord).withName("senderUid").setValue(senderUid);
+            return null;
         });
 
     }
