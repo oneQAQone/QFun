@@ -1,5 +1,7 @@
 package me.yxp.qfun.utils.qq;
 
+import android.content.Intent;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -8,7 +10,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import me.yxp.qfun.utils.dexkit.DexKit;
 import me.yxp.qfun.utils.error.ErrorOutput;
+import me.yxp.qfun.utils.hook.xpcompat.XposedBridge;
+import me.yxp.qfun.utils.hook.xpcompat.XposedHelpers;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
@@ -49,7 +54,11 @@ public class TroopTool {
     private static void initMethod() throws Throwable {
         sTroopListRepoApiImpl = ClassUtils.load("com.tencent.qqnt.troop.impl.TroopListRepoApiImpl");
         sMemberSettingHandler = ClassUtils.load("com.tencent.mobileqq.troop.membersetting.handler.MemberSettingHandler");
-        sMemberSettingGroupManagePart = ClassUtils.load("com.tencent.mobileqq.troop.membersetting.part.MemberSettingGroupManagePart");
+        try {
+            sMemberSettingGroupManagePart = ClassUtils.load("com.tencent.mobileqq.troop.membersetting.part.MemberSettingGroupManagePart");
+        } catch (Exception e) {
+            sMemberSettingGroupManagePart = DexKit.getClass("TroopTool");
+        }
         sEditUniqueTitleActivity = ClassUtils.load("com.tencent.biz.troop.EditUniqueTitleActivity");
         sTroopMemberCardHandler = ClassUtils.load("com.tencent.mobileqq.troop.handler.TroopMemberCardHandler");
         sTroopMemberCardInfo = ClassUtils.load("com.tencent.mobileqq.data.troop.TroopMemberCardInfo");
@@ -61,23 +70,44 @@ public class TroopTool {
         sGetTroopList = MethodUtils.create(sTroopListRepoApiImpl)
                 .withMethodName("getSortedJoinedTroopInfoFromCache")
                 .findOne();
-        sShutUp = MethodUtils.create(sMemberSettingHandler)
-                .withReturnType(void.class)
-                .withParamTypes(String.class, ArrayList.class)
-                .findOne();
-        sKickGroup = MethodUtils.create(sMemberSettingHandler)
-                .withReturnType(void.class)
-                .withParamTypes(long.class, List.class, boolean.class, boolean.class)
-                .findOne();
+        try {
+            sShutUp = MethodUtils.create(sMemberSettingHandler)
+                    .withReturnType(boolean.class)
+                    .withParamTypes(String.class, String.class, long.class)
+                    .findOne();
+        } catch (Exception e) {
+            sShutUp = MethodUtils.create(sMemberSettingHandler)
+                    .withReturnType(boolean.class)
+                    .withParamTypes(long.class, String.class, String.class)
+                    .findOne();
+        }
+        try {
+            sKickGroup = MethodUtils.create(sMemberSettingHandler)
+                    .withReturnType(void.class)
+                    .withParamTypes(long.class, List.class, boolean.class, boolean.class)
+                    .findOne();
+        } catch (Exception e) {
+            sKickGroup = MethodUtils.create(sMemberSettingHandler)
+                    .withReturnType(void.class)
+                    .withParamTypes(long.class, boolean.class, boolean.class, List.class)
+                    .findOne();
+        }
         sSetGroupAdmin = MethodUtils.create(sMemberSettingGroupManagePart)
                 .withReturnType(void.class)
                 .withParamTypes(byte.class, String.class, String.class)
                 .findOne();
-        sSetGroupMemberTitle = MethodUtils.create(sEditUniqueTitleActivity)
-                .withReturnType(void.class)
-                .withParamTypes(ClassUtils._QQAppInterface(), String.class, String.class, String.class,
-                        ClassUtils.load("mqq.observer.BusinessObserver"))
-                .findOne();
+        try {
+            sSetGroupMemberTitle = MethodUtils.create(sEditUniqueTitleActivity)
+                    .withReturnType(void.class)
+                    .withParamTypes(ClassUtils._QQAppInterface(), String.class, String.class, String.class,
+                            ClassUtils.load("mqq.observer.BusinessObserver"))
+                    .findOne();
+        } catch (Exception e) {
+            sSetGroupMemberTitle = MethodUtils.create(sEditUniqueTitleActivity)
+                    .withReturnType(void.class)
+                    .withParamTypes(String.class, String.class, String.class)
+                    .findOne();
+        }
         sChangeMemberName = MethodUtils.create(sTroopMemberCardHandler)
                 .withReturnType(void.class)
                 .withParamTypes(String.class, ArrayList.class, ArrayList.class)
@@ -227,12 +257,15 @@ public class TroopTool {
     }
 
     public static void shutUp(String troopUin, String uin, long time) throws Exception {
-        List<Object> gagList = new ArrayList<>();
-        Class<?> gagInfo = ClassUtils.load("com.tencent.mobileqq.troop.troopgag.api.a$a");
-        gagList.add(ClassUtils.makeDefaultObject(gagInfo, uin, time));
 
-        sShutUp.invoke(ClassUtils.makeDefaultObject(sMemberSettingHandler, QQCurrentEnv.getQQAppInterface()),
-                troopUin, gagList);
+        Object memberSettingHandler = ClassUtils.makeDefaultObject(sMemberSettingHandler, QQCurrentEnv.getQQAppInterface());
+
+        try {
+            sShutUp.invoke(memberSettingHandler, troopUin, uin, time);
+        } catch (Exception e) {
+            sShutUp.invoke(memberSettingHandler, time, troopUin, uin);
+        }
+
     }
 
     public static void shutUpAll(String troopUin, boolean enable) throws Exception {
@@ -258,13 +291,27 @@ public class TroopTool {
         ArrayList<Long> uinList = new ArrayList<>();
         uinList.add(Long.valueOf(uin));
 
-        sKickGroup.invoke(ClassUtils.makeDefaultObject(sMemberSettingHandler, QQCurrentEnv.getQQAppInterface()),
-                Long.valueOf(troopUin), uinList, block, false);
+        Object memberSettingHandler = ClassUtils.makeDefaultObject(sMemberSettingHandler, QQCurrentEnv.getQQAppInterface());
+
+        try {
+            sKickGroup.invoke(memberSettingHandler, Long.valueOf(troopUin), uinList, block, false);
+        } catch (Exception e) {
+            sKickGroup.invoke(memberSettingHandler, Long.valueOf(troopUin), block, false, uinList);
+        }
     }
 
     public static void setGroupMemberTitle(String troopUin, String uin, String title) throws Exception {
-        sSetGroupMemberTitle.invoke(ClassUtils.makeDefaultObject(sEditUniqueTitleActivity),
-                QQCurrentEnv.getQQAppInterface(), troopUin, uin, title, null);
+
+        Object editUniqueTitleActivity = ClassUtils.makeDefaultObject(sEditUniqueTitleActivity);
+
+        try {
+            sSetGroupMemberTitle.invoke(editUniqueTitleActivity, QQCurrentEnv.getQQAppInterface(), troopUin, uin, title, null);
+        } catch (Exception e) {
+
+            XposedHelpers.setObjectField(editUniqueTitleActivity, "app", QQCurrentEnv.getQQAppInterface());
+            XposedHelpers.callMethod(editUniqueTitleActivity, "setIntent", new Intent());
+            sSetGroupMemberTitle.invoke(editUniqueTitleActivity, troopUin, uin, title);
+        }
     }
 
     public static void changeMemberName(String troopUin, String uin, String name) throws Exception {
