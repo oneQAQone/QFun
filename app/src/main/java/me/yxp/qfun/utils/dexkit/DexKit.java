@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import me.yxp.qfun.hook.MainHook;
@@ -133,9 +134,9 @@ public class DexKit {
                 .matcher(ClassMatcher.create()
                         .methods(MethodsMatcher.create()
                                 .methods(List.of(
-                                        MethodMatcher.create().name("accept"),
-                                        MethodMatcher.create().returnType(void.class)
-                                                .paramTypes(ClassUtils._AIOMsgItem())
+                                        MethodMatcher.create().name("onDestroy"),
+                                        MethodMatcher.create().returnType(Set.class)
+
                                 ))
                         )
                 )
@@ -257,6 +258,16 @@ public class DexKit {
         if (qQSettingInjectClass2 != null) {
             sClassMap.put("QQSettingInjectClass2", qQSettingInjectClass2.toDexType().serialize());
         }
+
+        //TroopTool
+        ClassData troopTool = bridge.findClass(FindClass.create().searchPackages("com.tencent.mobileqq.troop.membersetting.part")
+                .matcher(ClassMatcher.create()
+                        .usingStrings("MemberSettingGroupManagePart"))
+        ).singleOrNull();
+        if (troopTool != null) {
+            sClassMap.put("TroopTool", troopTool.toDexType().serialize());
+        }
+
 
     }
 
