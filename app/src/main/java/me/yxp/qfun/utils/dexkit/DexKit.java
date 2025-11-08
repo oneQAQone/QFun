@@ -268,6 +268,15 @@ public class DexKit {
             sClassMap.put("TroopTool", troopTool.toDexType().serialize());
         }
 
+        //MultiRecallHook
+        ClassData multiRecallHook = bridge.findClass(FindClass.create().searchPackages("com.tencent.mobileqq.aio.msglist.holder.component.multifoward")
+                .matcher(ClassMatcher.create()
+                        .usingStrings("msgList"))
+        ).singleOrNull();
+        if (multiRecallHook != null) {
+            sClassMap.put("MultiRecallHook", multiRecallHook.toDexType().serialize());
+        }
+
 
     }
 

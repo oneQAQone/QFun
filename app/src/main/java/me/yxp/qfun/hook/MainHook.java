@@ -23,6 +23,7 @@ import me.yxp.qfun.hook.browser.RemoveRiskWebpageBlockHook;
 import me.yxp.qfun.hook.chat.DefaultBubbleAndFontHook;
 import me.yxp.qfun.hook.chat.ForwardPttHook;
 import me.yxp.qfun.hook.chat.MsgTimeHook;
+import me.yxp.qfun.hook.chat.MultiRecallHook;
 import me.yxp.qfun.hook.chat.RemoveReplyAtHook;
 import me.yxp.qfun.hook.device.CustomDeviceHook;
 import me.yxp.qfun.hook.device.TabletModeHook;
@@ -119,7 +120,8 @@ public class MainHook {
                 SimpleTroopManagement.class, DefaultBubbleAndFontHook.class, EmotionToPicHook.class,
                 AutoSendOriginalPicHook.class, RecordsReplyMsgHook.class,
                 ForwardPttHook.class, DownloadTimesHook.class, CustomDeviceHook.class,
-                AntiInteractivePopHook.class, RemoveFilterVideoHook.class, AntiLinkPreviewHooK.class>
+                AntiInteractivePopHook.class, RemoveFilterVideoHook.class, AntiLinkPreviewHooK.class,
+                MultiRecallHook.class
         };
 
         for (Class<?> hookClass : hookClasses) {
