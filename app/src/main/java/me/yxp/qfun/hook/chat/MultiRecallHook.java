@@ -20,6 +20,7 @@ import me.yxp.qfun.utils.qq.MsgTool;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
+import me.yxp.qfun.utils.thread.SimpleIntervalExecutor;
 
 @HookItemAnnotation(TAG = "多选撤回", desc = "为多选菜单中添加批量撤回功能")
 public final class MultiRecallHook extends BaseSwitchHookItem {
@@ -30,6 +31,7 @@ public final class MultiRecallHook extends BaseSwitchHookItem {
     private Class<?> sMultiForward;
 
     private Object multiSelectBarVM;
+    private final SimpleIntervalExecutor executor = new SimpleIntervalExecutor(350);
 
     @Override
     protected boolean initMethod() throws Throwable {
@@ -100,8 +102,16 @@ public final class MultiRecallHook extends BaseSwitchHookItem {
                     List<Object> msgList = (List<Object>) getMsgList.invoke(multiForward, mContext);
 
                     for (Object aIOMsgItem : Objects.requireNonNull(msgList)) {
-                        recallByAIOMsgItem(aIOMsgItem);
+                    
+                        if (msgList.size() <= 10) {
+                            executor.addTask(() -> recallByAIOMsgItem(aIOMsgItem));
+                        } else {
+                            recallByAIOMsgItem(aIOMsgItem);
+                        }
+                        
                     }
+
+                    executor.startExecute();
 
                 } catch (Throwable th) {
                     ErrorOutput.itemHookError(MultiRecallHook.this, th);
@@ -113,15 +123,20 @@ public final class MultiRecallHook extends BaseSwitchHookItem {
 
     }
 
-    private void recallByAIOMsgItem(Object aIOMsgItem) throws Throwable {
+    private void recallByAIOMsgItem(Object aIOMsgItem) {
 
-        Object msgRecord = FieldUtils.create(aIOMsgItem)
-                .ofType(ClassUtils._MsgRecord())
-                .inParent(ClassUtils._AIOMsgItem())
-                .getValue();
-        MsgData msgData = new MsgData(msgRecord);
+        try {
 
-        MsgTool.recallMsg(msgData.contact, msgData.msgId);
+            Object msgRecord = FieldUtils.create(aIOMsgItem)
+                    .ofType(ClassUtils._MsgRecord())
+                    .inParent(ClassUtils._AIOMsgItem())
+                    .getValue();
+            MsgData msgData = new MsgData(msgRecord);
+
+            MsgTool.recallMsg(msgData.contact, msgData.msgId);
+        } catch (Throwable th) {
+            ErrorOutput.itemHookError(this, th);
+        }
 
     }
 }
