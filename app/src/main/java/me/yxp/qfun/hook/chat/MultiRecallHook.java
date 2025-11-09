@@ -31,7 +31,7 @@ public final class MultiRecallHook extends BaseSwitchHookItem {
     private Class<?> sMultiForward;
 
     private Object multiSelectBarVM;
-    private final SimpleIntervalExecutor executor = new SimpleIntervalExecutor(350);
+    private final SimpleIntervalExecutor executor = new SimpleIntervalExecutor(300);
 
     @Override
     protected boolean initMethod() throws Throwable {

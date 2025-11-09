@@ -12,6 +12,7 @@ import java.util.Map;
 import me.yxp.qfun.hook.base.BaseSwitchHookItem;
 import me.yxp.qfun.hook.base.HookItemAnnotation;
 import me.yxp.qfun.utils.dexkit.DexKit;
+import me.yxp.qfun.utils.error.ErrorOutput;
 import me.yxp.qfun.utils.hook.HookUtils;
 import me.yxp.qfun.utils.hook.xpcompat.XposedBridge;
 import me.yxp.qfun.utils.qq.HostInfo;
@@ -20,14 +21,13 @@ import me.yxp.qfun.utils.qq.QQCurrentEnv;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
-import me.yxp.qfun.utils.thread.SyncUtils;
+import me.yxp.qfun.utils.thread.SimpleIntervalExecutor;
 
 @HookItemAnnotation(TAG = "转发语音", desc = "语音长按菜单出现转发按钮（支持私聊，群聊，临时会话）")
 public final class ForwardPttHook extends BaseSwitchHookItem {
     private static final int MSG_TYPE_PTT = 6;
     private static final int MSG_TYPE_TEXT = 2;
     private static final int INVALID_TYPE = 114514;
-    private static final long DELAY_INTERVAL = 500L;
 
     private static Class<?> sForwardMenuItem;
     private static Method sSetMenuMethod;
@@ -36,7 +36,8 @@ public final class ForwardPttHook extends BaseSwitchHookItem {
     private static Method sHandleForwardMethod;
 
     private Object mLastAIOMsgItem;
-    private int mDelayTime;
+
+    private final SimpleIntervalExecutor executor = new SimpleIntervalExecutor(500);
 
     @Override
     protected boolean initMethod() throws Throwable {
@@ -98,7 +99,7 @@ public final class ForwardPttHook extends BaseSwitchHookItem {
         if (HostInfo.isTIM() || (HostInfo.isQQ() && HostInfo.getVersionCode() < 11820)) {
             HookUtils.replaceIfEnable(this, sOnActivityResultMethod, param -> {
                 Intent intent = (Intent) param.args[3];
-                mDelayTime = 0;
+
                 if (intent == null) {
                     return XposedBridge.invokeOriginalMethod(param.method, param.thisObject, param.args);
                 }
@@ -132,13 +133,14 @@ public final class ForwardPttHook extends BaseSwitchHookItem {
                 if (!flag) {
                     return XposedBridge.invokeOriginalMethod(param.method, param.thisObject, param.args);
                 }
+                executor.startExecute();
                 return null;
             });
         } else {
             HookUtils.replaceIfEnable(this, sHandleForwardMethod, param -> {
                 Map<String, Object> map = (Map<String, Object>) param.args[0];
                 List<Object> list = (List<Object>) param.args[2];
-                mDelayTime = 0;
+
                 if (map.size() == 1 && mLastAIOMsgItem != null) {
                     Object msgRecord = FieldUtils.create(mLastAIOMsgItem)
                             .ofType(ClassUtils._MsgRecord())
@@ -153,11 +155,18 @@ public final class ForwardPttHook extends BaseSwitchHookItem {
                         int peerType = (int) FieldUtils.create(contact).withName("peerType").getValue();
                         FieldUtils.create(contact).withName("peerType").setValue(INVALID_TYPE);
 
-                        SyncUtils.runOnNewThread(getNAME(), () -> {
-                            Thread.sleep(DELAY_INTERVAL * mDelayTime++);
-                            MsgTool.sendMsg(MsgTool.makeContact(peerUin, peerType), elements);
+                        executor.addTask(() -> {
+                            try {
+                                MsgTool.sendMsg(MsgTool.makeContact(peerUin, peerType), elements);
+                            } catch (Throwable th) {
+                                ErrorOutput.itemHookError(this, th);
+                            }
                         });
+
                     }
+
+                    executor.startExecute();
+
                 }
                 return XposedBridge.invokeOriginalMethod(param.method, param.thisObject, param.args);
             });
@@ -176,10 +185,14 @@ public final class ForwardPttHook extends BaseSwitchHookItem {
             return false;
         }
 
-        SyncUtils.runOnNewThread(getNAME(), () -> {
-            Thread.sleep(DELAY_INTERVAL * mDelayTime++);
-            MsgTool.sendMsg(MsgTool.makeContact(uin, chatType), elements);
+        executor.addTask(() -> {
+            try {
+                MsgTool.sendMsg(MsgTool.makeContact(uin, chatType), elements);
+            } catch (Throwable th) {
+                ErrorOutput.itemHookError(this,th);
+            }
         });
+
         return true;
     }
 }
