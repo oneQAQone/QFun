@@ -134,7 +134,7 @@ public class InjectSettings extends Activity {
             FileUtils.deleteDirectory(mConfigFolder.getAbsolutePath());
             mConfigFolder.mkdirs();
 
-            if (FileUtils.unzip(tempZip, mConfigFolder)) {
+            if (FileUtils.unzip(tempZip, mConfigFolder.getParentFile())) {
                 QQUtils.QQToast(2, "配置导入成功");
             } else {
                 QQUtils.QQToast(1, "解压配置文件失败");
