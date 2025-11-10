@@ -103,7 +103,7 @@ public final class MultiRecallHook extends BaseSwitchHookItem {
 
                     for (Object aIOMsgItem : Objects.requireNonNull(msgList)) {
                     
-                        if (msgList.size() <= 10) {
+                        if (msgList.size() > 10) {
                             executor.addTask(() -> recallByAIOMsgItem(aIOMsgItem));
                         } else {
                             recallByAIOMsgItem(aIOMsgItem);
