@@ -36,7 +36,7 @@
 			android:layout_height="wrap_content"
 			android:layout_weight="1.0"
 			android:gravity="center_vertical"
-			android:onClick="startImport">
+			android:onClick="startImportConfig">
 
 			<TextView
 				android:layout_width="wrap_content"
@@ -57,10 +57,10 @@
 			<TextView
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:text="导出配置"
+				android:text="导出配置（包含日志，反馈时可导出并发送给开发者）"
 				android:padding="10dp"
 				android:textColor="#000000"
-				android:onClick="startExport"/>
+				android:onClick="startExportConfig"/>
 
 		</LinearLayout>
 

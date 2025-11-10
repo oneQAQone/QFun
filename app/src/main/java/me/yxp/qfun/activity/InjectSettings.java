@@ -149,14 +149,14 @@ public class InjectSettings extends Activity {
         }
     }
 
-    public void startImport(View v) {
+    public void startImportConfig(View v) {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("application/zip");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(intent, IMPORT_REQUEST_CODE);
     }
 
-    public void startExport(View v) {
+    public void startExportConfig(View v) {
         MainHook.savaData();
 
         File tempZip;
@@ -179,7 +179,7 @@ public class InjectSettings extends Activity {
         if (FileUtils.copy(tempZip.getAbsolutePath(), exportFile.getAbsolutePath())) {
             QQUtils.QQToast(2, "成功导出配置到Download文件夹");
         } else {
-            QQUtils.QQToast(2, "导出文件失败");
+            QQUtils.QQToast(1, "导出文件失败");
         }
     }
 

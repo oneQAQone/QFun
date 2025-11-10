@@ -28,10 +28,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -56,7 +57,13 @@ public class Xp51HookImpl implements IHookBridge, ILoaderService {
     @NonNull
     @Override
     public String getFrameworkName() {
-        return "Xposed";
+        try {
+            Field TAG = XposedBridge.class.getField("TAG");
+            String FrameworkName = (String) TAG.get(null);
+            return Objects.requireNonNullElse(FrameworkName, "Unknown");
+        } catch (Exception e) {
+            return "Unknown";
+        }
     }
 
     @NonNull
@@ -185,6 +192,6 @@ public class Xp51HookImpl implements IHookBridge, ILoaderService {
     @Override
     public Set<Member> getHookedMethods() {
         // return a read-only set
-        return Collections.unmodifiableSet(Xp51HookWrapper.getHookedMethodsRaw());
+        return Xp51HookWrapper.getHookedMethodsRaw();
     }
 }

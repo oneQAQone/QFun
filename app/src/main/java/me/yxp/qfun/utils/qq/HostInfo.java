@@ -9,12 +9,13 @@ public class HostInfo {
     public static final String PACKAGE_NAME_TIM = "com.tencent.tim";
 
     private static long sVersionCode;
+    private static String sVersionName;
     private static String sModuleDataPath;
     private static Context sHostContext;
 
     public static void setHostInfo(Context context) {
         setHostContext(context);
-        setVersionCode(context);
+        setVersionInfo(context);
         setModuleDataPath(context);
     }
 
@@ -22,10 +23,15 @@ public class HostInfo {
         return sVersionCode;
     }
 
-    private static void setVersionCode(Context context) {
+    public static String getVersionName() {
+        return sVersionName;
+    }
+
+    private static void setVersionInfo(Context context) {
         try {
             PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             sVersionCode = packageInfo.getLongVersionCode();
+            sVersionName = packageInfo.versionName;
         } catch (PackageManager.NameNotFoundException ignored) {
         }
     }

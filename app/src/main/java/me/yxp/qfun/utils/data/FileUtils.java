@@ -89,7 +89,24 @@ public class FileUtils {
         }
     }
 
-    public static boolean zipFolder(File sourceFolder, File outputFile) {
+    public static boolean zipFolders(File outputFile, File... folders) {
+        if (folders == null || folders.length == 0) {
+            return false;
+        }
+
+        // 检查至少有一个文件夹存在
+        boolean atLeastOneExists = false;
+        for (File folder : folders) {
+            if (folder.exists()) {
+                atLeastOneExists = true;
+                break;
+            }
+        }
+
+        if (!atLeastOneExists) {
+            return false;
+        }
+
         File parentDir = outputFile.getParentFile();
         if (!parentDir.exists() && !parentDir.mkdirs()) {
             return false;
@@ -97,11 +114,24 @@ public class FileUtils {
 
         try (FileOutputStream fos = new FileOutputStream(outputFile);
              ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos))) {
-            addFolderToZip(sourceFolder, "", zos);
+
+            for (int i = 0; i < folders.length; i++) {
+                File folder = folders[i];
+                if (folder.exists()) {
+
+                    String basePath = folder.getName();
+                    addFolderToZip(folder, basePath, zos);
+                }
+            }
+
             return true;
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public static boolean zipFolder(File sourceFolder, File outputFile) {
+        return zipFolders(outputFile, sourceFolder);
     }
 
     private static void addFolderToZip(File folder, String parentPath, ZipOutputStream zos) throws IOException {
