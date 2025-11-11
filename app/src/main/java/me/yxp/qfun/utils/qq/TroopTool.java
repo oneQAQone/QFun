@@ -7,12 +7,12 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import me.yxp.qfun.utils.dexkit.DexKit;
 import me.yxp.qfun.utils.error.ErrorOutput;
-import me.yxp.qfun.utils.hook.xpcompat.XposedBridge;
 import me.yxp.qfun.utils.hook.xpcompat.XposedHelpers;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
@@ -134,15 +134,20 @@ public class TroopTool {
         Object troopListRepoApiImpl = ClassUtils.makeDefaultObject(sTroopListRepoApiImpl);
 
         List<Object> troopInfoList = new ArrayList<>();
-        while (troopInfoList.isEmpty()) {
+        while (troopInfoList == null || troopInfoList.isEmpty()) {
             troopInfoList = (List<Object>) sGetTroopList.invoke(troopListRepoApiImpl);
         }
 
         for (Object troopInfo : troopInfoList) {
             HashMap<String, Object> troopMap = new HashMap<>();
-            troopMap.put("group", FieldUtils.create(troopInfo).withName("troopuin").getValue().toString());
-            troopMap.put("groupName", FieldUtils.create(troopInfo).withName("troopNameFromNT").getValue().toString());
-            troopMap.put("groupOwner", FieldUtils.create(troopInfo).withName("troopowneruin").getValue().toString());
+
+            String group = (String) FieldUtils.create(troopInfo).withName("troopuin").getValue();
+            String groupName = (String) FieldUtils.create(troopInfo).withName("troopNameFromNT").getValue();
+            String groupOwner = (String) FieldUtils.create(troopInfo).withName("troopowneruin").getValue();
+
+            troopMap.put("group", group);
+            troopMap.put("groupName", Objects.requireNonNullElse(groupName, group));
+            troopMap.put("groupOwner", groupOwner);
             troopMap.put("groupInfo", troopInfo);
             groupList.add(troopMap);
         }
@@ -174,12 +179,12 @@ public class TroopTool {
             HashMap<String, Object> memberInfoMap = new HashMap<>();
             memberInfoMap.put("joinGroupTime", FieldUtils.create(memberInfo).withName("join_time").getValue());
             memberInfoMap.put("lastActiveTime", FieldUtils.create(memberInfo).withName("last_active_time").getValue());
-            memberInfoMap.put("uin", FieldUtils.create(memberInfo).withName("memberuin").getValue().toString());
+            memberInfoMap.put("uin", FieldUtils.create(memberInfo).withName("memberuin").getValue());
             memberInfoMap.put("uinLevel", FieldUtils.create(memberInfo).withName("realLevel").getValue());
 
-            String uinName = FieldUtils.create(memberInfo).withName("troopnick").getValue().toString();
+            String uinName = (String) FieldUtils.create(memberInfo).withName("troopnick").getValue();
             if (uinName.isEmpty()) {
-                uinName = FieldUtils.create(memberInfo).withName("friendnick").getValue().toString();
+                uinName = (String) FieldUtils.create(memberInfo).withName("friendnick").getValue();
             }
             memberInfoMap.put("uinName", uinName);
             memberInfoMap.put("memberInfo", memberInfo);
@@ -204,13 +209,13 @@ public class TroopTool {
 
             if (gagTimeStamp > currentTime) {
                 HashMap<String, Object> prohibitMap = new HashMap<>();
-                prohibitMap.put("user", FieldUtils.create(memberInfo).withName("memberuin").getValue().toString());
+                prohibitMap.put("user", FieldUtils.create(memberInfo).withName("memberuin").getValue());
                 prohibitMap.put("endTime", gagTimeStamp);
                 prohibitMap.put("time", gagTimeStamp - currentTime);
 
-                String userName = FieldUtils.create(memberInfo).withName("troopnick").getValue().toString();
+                String userName = (String) FieldUtils.create(memberInfo).withName("troopnick").getValue();
                 if (userName.isEmpty()) {
-                    userName = FieldUtils.create(memberInfo).withName("friendnick").getValue().toString();
+                    userName = (String) FieldUtils.create(memberInfo).withName("friendnick").getValue();
                 }
                 prohibitMap.put("userName", userName);
                 prohibitList.add(prohibitMap);

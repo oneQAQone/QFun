@@ -16,10 +16,10 @@ import me.yxp.qfun.utils.qq.TroopEnableInfo;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
 import me.yxp.qfun.utils.thread.LoopHolder;
+import me.yxp.qfun.utils.thread.SyncUtils;
 
 @HookItemAnnotation(TAG = "群打卡", desc = "点击选择你要打卡的群聊")
 public final class TroopClockInHook extends BaseWithDataHookItem {
-    private static boolean sHookStatus = false;
     private static LoopHolder sLoopHolder;
     private static Method sTroopClockIn;
     private TroopEnableInfo mTroopEnableInfo;
@@ -35,51 +35,35 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
 
     @Override
     protected void initCallback() {
-        mTroopEnableInfo = new TroopEnableInfo("TroopClockin");
+        mTroopEnableInfo = new TroopEnableInfo("TroopClockIn");
 
         sLoopHolder = new LoopHolder();
         sLoopHolder.setRunnable(() -> {
-            for (String troopUin : mTroopEnableInfo.dataList.getKeyArray()) {
-                if (mTroopEnableInfo.dataList.getIsAvailable(troopUin)) {
-                    new Thread(() -> {
-                        try {
-                            Object troopClockInHandler = ClassUtils.makeDefaultObject(
-                                    ClassUtils._TroopClockInHandler(), QQCurrentEnv.getQQAppInterface());
-                            sTroopClockIn.invoke(troopClockInHandler, troopUin, QQCurrentEnv.getCurrentUin());
-                        } catch (Exception e) {
-                            ErrorOutput.itemHookError(this, e);
-                        }
-                    }).start();
-                }
-            }
 
             LocalTime now = LocalTime.now();
             LocalTime midnight = LocalTime.MIDNIGHT;
-            LocalTime startRange = midnight.minusMinutes(1);
-            LocalTime endRange = midnight.plusMinutes(1);
+            LocalTime startRange = midnight.plusSeconds(2);
+            LocalTime endRange = midnight.plusSeconds(2);
             boolean isAroundMidnight = (now.isAfter(startRange) || now.equals(startRange))
                     && (now.isBefore(endRange) || now.equals(endRange));
+            if (isAroundMidnight) {
+                sLoopHolder.setSleepTime(50);
+                doClockIn();
+            } else {
+                sLoopHolder.setSleepTime(1000);
+            }
 
-            int sleepTime = isAroundMidnight ? 0 : 1000;
-            sLoopHolder.setSleepTime(sleepTime);
         });
     }
 
     @Override
     public void startHook() {
-        if (sHookStatus) {
-            return;
-        }
-        sHookStatus = true;
+        doClockIn();
         sLoopHolder.start();
     }
 
     @Override
     public void stopHook() {
-        if (!sHookStatus) {
-            return;
-        }
-        sHookStatus = false;
         sLoopHolder.stop();
     }
 
@@ -95,9 +79,10 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
 
     @Override
     public void onClick(View v) {
+
         Context context = v.getContext();
         mTroopEnableInfo.updateInfo();
-
+        
         new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
                 .setTitle("选择群聊")
                 .setMultiChoiceItems(mTroopEnableInfo.getValueArray(), mTroopEnableInfo.getBoolArray(),
@@ -107,5 +92,29 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
                         })
                 .create()
                 .show();
+
+    }
+
+    private void doClockIn() {
+        Object troopClockInHandler;
+        String currentUin = QQCurrentEnv.getCurrentUin();
+        try {
+            troopClockInHandler = ClassUtils.makeDefaultObject(
+                    ClassUtils._TroopClockInHandler(), QQCurrentEnv.getQQAppInterface());
+        } catch (Throwable th) {
+            ErrorOutput.itemHookError(this, th);
+            return;
+        }
+        for (String troopUin : mTroopEnableInfo.dataList.getKeyArray()) {
+            if (mTroopEnableInfo.dataList.getIsAvailable(troopUin)) {
+                SyncUtils.async(() -> {
+                    try {
+                        sTroopClockIn.invoke(troopClockInHandler, troopUin, currentUin);
+                    } catch (Exception e) {
+                        ErrorOutput.itemHookError(this, e);
+                    }
+                });
+            }
+        }
     }
 }
