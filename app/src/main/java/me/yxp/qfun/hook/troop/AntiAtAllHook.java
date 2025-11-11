@@ -1,8 +1,6 @@
 package me.yxp.qfun.hook.troop;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.view.View;
 
 import java.lang.reflect.Method;
@@ -22,6 +20,7 @@ import me.yxp.qfun.utils.qq.TroopEnableInfo;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
+import me.yxp.qfun.utils.ui.TroopEnableDialog;
 
 @HookItemAnnotation(TAG = "屏蔽艾特全体消息", desc = "屏蔽艾特全体和群待办，点击可选择不需要屏蔽的群聊")
 public final class AntiAtAllHook extends BaseWithDataHookItem {
@@ -83,16 +82,7 @@ public final class AntiAtAllHook extends BaseWithDataHookItem {
     public void onClick(View v) {
         Context context = v.getContext();
         mTroopEnableInfo.updateInfo();
-
-        new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
-                .setTitle("选择群聊")
-                .setMultiChoiceItems(mTroopEnableInfo.getValueArray(), mTroopEnableInfo.getBoolArray(),
-                        (DialogInterface dialogInterface, int i, boolean b) -> {
-                            String key = mTroopEnableInfo.dataList.getKeyArray()[i];
-                            mTroopEnableInfo.dataList.setIsAvailable(key, b);
-                        })
-                .create()
-                .show();
+        new TroopEnableDialog(context, mTroopEnableInfo).show();
     }
 
     private String extractUIN(String url) throws Throwable {

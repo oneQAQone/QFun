@@ -1,8 +1,6 @@
 package me.yxp.qfun.hook.troop;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.view.View;
 
 import java.lang.reflect.Method;
@@ -17,6 +15,7 @@ import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
 import me.yxp.qfun.utils.thread.LoopHolder;
 import me.yxp.qfun.utils.thread.SyncUtils;
+import me.yxp.qfun.utils.ui.TroopEnableDialog;
 
 @HookItemAnnotation(TAG = "群打卡", desc = "点击选择你要打卡的群聊")
 public final class TroopClockInHook extends BaseWithDataHookItem {
@@ -43,7 +42,7 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
             LocalTime now = LocalTime.now();
             LocalTime midnight = LocalTime.MIDNIGHT;
             LocalTime startRange = midnight.plusSeconds(2);
-            LocalTime endRange = midnight.plusSeconds(2);
+            LocalTime endRange = midnight.plusSeconds(1);
             boolean isAroundMidnight = (now.isAfter(startRange) || now.equals(startRange))
                     && (now.isBefore(endRange) || now.equals(endRange));
             if (isAroundMidnight) {
@@ -82,16 +81,7 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
 
         Context context = v.getContext();
         mTroopEnableInfo.updateInfo();
-        
-        new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
-                .setTitle("选择群聊")
-                .setMultiChoiceItems(mTroopEnableInfo.getValueArray(), mTroopEnableInfo.getBoolArray(),
-                        (DialogInterface dialogInterface, int i, boolean b) -> {
-                            String key = mTroopEnableInfo.dataList.getKeyArray()[i];
-                            mTroopEnableInfo.dataList.setIsAvailable(key, b);
-                        })
-                .create()
-                .show();
+        new TroopEnableDialog(context, mTroopEnableInfo).show();
 
     }
 
