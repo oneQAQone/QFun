@@ -82,13 +82,13 @@ public final class RepeatMsgHook extends BaseWithDataHookItem {
 
     @Override
     public void initData() {
-        File file = DataUtils.createFile("data", "repeat.png");
+        File file = DataUtils.createFile("data", "repeat");
         sBitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
     }
 
     @Override
     public void savaData() {
-        File file = DataUtils.createFile("data", "repeat.png");
+        File file = DataUtils.createFile("data", "repeat");
 
         try (FileOutputStream fos = new FileOutputStream(file)) {
             if (sBitmap == null) {
