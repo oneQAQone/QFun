@@ -1,7 +1,7 @@
 package me.yxp.qfun.utils.error;
 
-import android.util.Log;
 import android.os.Build;
+import android.util.Log;
 
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
@@ -48,30 +48,30 @@ public class ErrorOutput {
             writer.write(date + "\n" + errorMessage + "\n\n\n");
             writer.close();
         } catch (Exception e) {
-           // 忽略文件写入异常
+            // 忽略文件写入异常
         }
     }
 
     private static StringBuilder buildHeaderInfo() {
         StringBuilder header = new StringBuilder();
         header.append("=== Environment Information ===\n")
-              .append("Record Time: ").append(DATE_FORMAT.format(new Date())).append("\n\n");
+                .append("Record Time: ").append(DATE_FORMAT.format(new Date())).append("\n\n");
         return header;
     }
 
     private static StringBuilder buildDeviceInfo() {
         StringBuilder deviceInfo = new StringBuilder();
         deviceInfo.append("--- Device Information ---\n")
-                  .append("Brand: ").append(Build.BRAND).append("\n")
-                  .append("Model: ").append(Build.MODEL).append("\n")
-                  .append("Device: ").append(Build.DEVICE).append("\n")
-                  .append("Product: ").append(Build.PRODUCT).append("\n")
-                  .append("Manufacturer: ").append(Build.MANUFACTURER).append("\n")
-                  .append("Android Version: ").append(Build.VERSION.RELEASE).append("\n")
-                  .append("API Level: ").append(Build.VERSION.SDK_INT).append("\n")
-                  .append("Build ID: ").append(Build.ID).append("\n")
-                  .append("Fingerprint: ").append(Build.FINGERPRINT).append("\n")
-                  .append("Supported ABIs: ");
+                .append("Brand: ").append(Build.BRAND).append("\n")
+                .append("Model: ").append(Build.MODEL).append("\n")
+                .append("Device: ").append(Build.DEVICE).append("\n")
+                .append("Product: ").append(Build.PRODUCT).append("\n")
+                .append("Manufacturer: ").append(Build.MANUFACTURER).append("\n")
+                .append("Android Version: ").append(Build.VERSION.RELEASE).append("\n")
+                .append("API Level: ").append(Build.VERSION.SDK_INT).append("\n")
+                .append("Build ID: ").append(Build.ID).append("\n")
+                .append("Fingerprint: ").append(Build.FINGERPRINT).append("\n")
+                .append("Supported ABIs: ");
 
         for (int i = 0; i < Build.SUPPORTED_ABIS.length; i++) {
             deviceInfo.append(Build.SUPPORTED_ABIS[i]);
@@ -80,38 +80,38 @@ public class ErrorOutput {
             }
         }
         deviceInfo.append("\n\n");
-        
+
         return deviceInfo;
     }
 
     private static StringBuilder buildXposedInfo(String frameworkName, String frameworkVersion,
-                                                   long frameworkVersionCode, int apiVersion) {
+                                                 long frameworkVersionCode, int apiVersion) {
         StringBuilder xposedInfo = new StringBuilder();
         xposedInfo.append("--- Xposed Framework Information ---\n")
-                   .append("Framework Name: ").append(frameworkName).append("\n")
-                   .append("Framework Version: ").append(frameworkVersion).append("\n")
-                   .append("Framework Version Code: ").append(frameworkVersionCode).append("\n")
-                   .append("API Version: ").append(apiVersion).append("\n\n");
+                .append("Framework Name: ").append(frameworkName).append("\n")
+                .append("Framework Version: ").append(frameworkVersion).append("\n")
+                .append("Framework Version Code: ").append(frameworkVersionCode).append("\n")
+                .append("API Version: ").append(apiVersion).append("\n\n");
         return xposedInfo;
     }
 
-    private static StringBuilder buildHostAppInfo(String hostPackageName, 
-                                                   
-                                                   String hostVersionName, 
-                                                   long hostVersionCode) {
+    private static StringBuilder buildHostAppInfo(String hostPackageName,
+
+                                                  String hostVersionName,
+                                                  long hostVersionCode) {
         StringBuilder hostInfo = new StringBuilder();
         hostInfo.append("--- Host Application Information ---\n")
-                  .append("Package Name: ").append(hostPackageName).append("\n")
-                  .append("Version Name: ").append(hostVersionName).append("\n")
-                  .append("Version Code: ").append(hostVersionCode).append("\n\n");
+                .append("Package Name: ").append(hostPackageName).append("\n")
+                .append("Version Name: ").append(hostVersionName).append("\n")
+                .append("Version Code: ").append(hostVersionCode).append("\n\n");
         return hostInfo;
     }
 
     private static StringBuilder buildModuleInfo() {
         StringBuilder moduleInfo = new StringBuilder();
         moduleInfo.append("--- Module Information ---\n")
-                   .append("Module Version Name: ").append(BuildConfig.VERSION_NAME).append("\n")
-                   .append("Module Version Code: ").append(BuildConfig.VERSION_CODE).append("\n");
+                .append("Module Version Name: ").append(BuildConfig.VERSION_NAME).append("\n")
+                .append("Module Version Code: ").append(BuildConfig.VERSION_CODE).append("\n");
         return moduleInfo;
     }
 
@@ -120,17 +120,17 @@ public class ErrorOutput {
         footer.append("======================================\n\n");
         return footer;
     }
-    
+
     public static void recordEnvironmentInfo() {
-        
+
         try {
 
             IHookBridge hookBridge = ModuleLoader.getHookBridge();
-            
+
             StringBuilder header = buildHeaderInfo();
             StringBuilder deviceInfo = buildDeviceInfo();
             StringBuilder xposedInfo = buildXposedInfo(hookBridge.getFrameworkName(), hookBridge.getFrameworkVersion(),
-                                                       hookBridge.getFrameworkVersionCode(), hookBridge.getApiLevel());
+                    hookBridge.getFrameworkVersionCode(), hookBridge.getApiLevel());
             StringBuilder hostAppInfo = buildHostAppInfo(HostInfo.getPackageName(), HostInfo.getVersionName(), HostInfo.getVersionCode());
             StringBuilder moduleInfo = buildModuleInfo();
             StringBuilder footer = buildFooterInfo();
@@ -141,11 +141,11 @@ public class ErrorOutput {
                     hostAppInfo +
                     moduleInfo +
                     footer;
-            
+
             FileWriter writer = new FileWriter(DataUtils.createFile("log", "environment_info.txt"), false);
             writer.write(completeInfo);
             writer.close();
-            
+
         } catch (Exception e) {
             // 忽略文件写入异常
         }

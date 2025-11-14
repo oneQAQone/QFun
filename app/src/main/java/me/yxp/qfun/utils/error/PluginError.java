@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import me.yxp.qfun.javaplugin.loader.PluginInfo;
-import me.yxp.qfun.utils.qq.QQUtils;
+import me.yxp.qfun.utils.qq.ToastUtils;
 
 public class PluginError {
     private static final SimpleDateFormat DATE_FORMAT =
@@ -45,7 +45,7 @@ public class PluginError {
             String logContent = logBuilder.toString();
 
             // 显示Toast提示
-            QQUtils.Toast(throwable.toString());
+            ToastUtils.Toast(throwable.toString());
 
             // 写入错误文件
             FileWriter writer = new FileWriter(pluginInfo.pluginPath + "/error.txt", true);

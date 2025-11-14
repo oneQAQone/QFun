@@ -195,7 +195,7 @@ public class MsgTool {
                 case "atUin":
                     if (!isPrivateChat(contact)) {
                         int atType = "0".equals(value) ? 1 : 2;
-                        String uid = "0".equals(value) ? "0" : QQUtils.getUidFromUin(value);
+                        String uid = "0".equals(value) ? "0" : FriendTool.getUidFromUin(value);
                         element = CreateElement.createAtTextElement(uid, atType);
                     }
                     break;
@@ -285,7 +285,7 @@ public class MsgTool {
 
     public static Object makeContact(String peerUin, int type) throws Exception {
         Object peerUid = switch (type) {
-            case 1, 100 -> QQUtils.getUidFromUin(peerUin);
+            case 1, 100 -> FriendTool.getUidFromUin(peerUin);
             case 2 -> peerUin;
             default -> null;
         };

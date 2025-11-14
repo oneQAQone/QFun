@@ -36,7 +36,7 @@ import me.yxp.qfun.hook.base.BaseWithDataHookItem;
 import me.yxp.qfun.hook.msg.RepeatMsgHook;
 import me.yxp.qfun.utils.data.FileUtils;
 import me.yxp.qfun.utils.qq.HostInfo;
-import me.yxp.qfun.utils.qq.QQUtils;
+import me.yxp.qfun.utils.qq.ToastUtils;
 
 public class InjectSettings extends Activity {
     public static final int PICK_IMAGE_REQUEST = 1000;
@@ -110,9 +110,9 @@ public class InjectSettings extends Activity {
     private void handleImagePick(Intent data) {
         try {
             RepeatMsgHook.sBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
-            QQUtils.QQToast(2, "加一图标导入成功！");
+            ToastUtils.QQToast(2, "加一图标导入成功！");
         } catch (Exception ignored) {
-            QQUtils.QQToast(1, "加一图标导入失败！");
+            ToastUtils.QQToast(1, "加一图标导入失败！");
         }
     }
 
@@ -127,7 +127,7 @@ public class InjectSettings extends Activity {
             DocumentFile documentFile = DocumentFile.fromSingleUri(this, uri);
 
             if (!FileUtils.copySingleFile(this, documentFile, tempZip)) {
-                QQUtils.QQToast(2, "读取导入文件失败");
+                ToastUtils.QQToast(2, "读取导入文件失败");
                 return;
             }
 
@@ -135,9 +135,9 @@ public class InjectSettings extends Activity {
             mConfigFolder.mkdirs();
 
             if (FileUtils.unzip(tempZip, mConfigFolder.getParentFile())) {
-                QQUtils.QQToast(2, "配置导入成功");
+                ToastUtils.QQToast(2, "配置导入成功");
             } else {
-                QQUtils.QQToast(1, "解压配置文件失败");
+                ToastUtils.QQToast(1, "解压配置文件失败");
             }
 
             tempZip.delete();
@@ -145,7 +145,7 @@ public class InjectSettings extends Activity {
             mAdapter.notifyDataSetChanged();
 
         } catch (Exception e) {
-            QQUtils.QQToast(1, "导入处理失败: " + e.getMessage());
+            ToastUtils.QQToast(1, "导入处理失败: " + e.getMessage());
         }
     }
 
@@ -163,12 +163,12 @@ public class InjectSettings extends Activity {
         try {
             tempZip = File.createTempFile("config_export", ".zip", getCacheDir());
         } catch (IOException e) {
-            QQUtils.QQToast(1, "创建临时文件失败");
+            ToastUtils.QQToast(1, "创建临时文件失败");
             return;
         }
 
         if (!FileUtils.zipFolder(mConfigFolder, tempZip)) {
-            QQUtils.QQToast(1, "压缩配置文件失败");
+            ToastUtils.QQToast(1, "压缩配置文件失败");
             return;
         }
 
@@ -177,9 +177,9 @@ public class InjectSettings extends Activity {
         File exportFile = new File(mExportDir, exportFileName);
 
         if (FileUtils.copy(tempZip.getAbsolutePath(), exportFile.getAbsolutePath())) {
-            QQUtils.QQToast(2, "成功导出配置到Download文件夹");
+            ToastUtils.QQToast(2, "成功导出配置到Download文件夹");
         } else {
-            QQUtils.QQToast(1, "导出文件失败");
+            ToastUtils.QQToast(1, "导出文件失败");
         }
     }
 

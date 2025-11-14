@@ -9,8 +9,8 @@ import kotlin.collections.CollectionsKt;
 import me.yxp.qfun.hook.base.ApiHookItem;
 import me.yxp.qfun.utils.hook.HookUtils;
 import me.yxp.qfun.utils.json.ProtoData;
+import me.yxp.qfun.utils.qq.FriendTool;
 import me.yxp.qfun.utils.qq.HostInfo;
-import me.yxp.qfun.utils.qq.QQUtils;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
 
@@ -42,7 +42,7 @@ public final class OnTroopQuit extends ApiHookItem {
 
                 String troopUin = String.valueOf(json.getJSONObject("1").getLong("1"));
                 String memberUid = json.getJSONObject("3").getJSONObject("2").getString("3");
-                String memberUin = QQUtils.getUinFromUid(memberUid);
+                String memberUin = FriendTool.getUinFromUid(memberUid);
                 handleQuit(troopUin, memberUin);
 
             });

@@ -17,6 +17,7 @@ import me.yxp.qfun.utils.hook.HookUtils;
 import me.yxp.qfun.utils.hook.xpcompat.XposedHelpers;
 import me.yxp.qfun.utils.qq.HostInfo;
 import me.yxp.qfun.utils.qq.MsgTool;
+import me.yxp.qfun.utils.qq.QQCurrentEnv;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
@@ -28,10 +29,9 @@ public final class MultiRecallHook extends BaseSwitchHookItem {
     private static Method sMakeView;
     private static Method getMsgList;
     private static Method sCreateVM;
-    private Class<?> sMultiForward;
-
-    private Object multiSelectBarVM;
     private final SimpleIntervalExecutor executor = new SimpleIntervalExecutor(300);
+    private Class<?> sMultiForward;
+    private Object multiSelectBarVM;
 
     @Override
     protected boolean initMethod() throws Throwable {
@@ -102,16 +102,17 @@ public final class MultiRecallHook extends BaseSwitchHookItem {
                     List<Object> msgList = (List<Object>) getMsgList.invoke(multiForward, mContext);
 
                     for (Object aIOMsgItem : Objects.requireNonNull(msgList)) {
-                    
+
                         if (msgList.size() > 10) {
                             executor.addTask(() -> recallByAIOMsgItem(aIOMsgItem));
                         } else {
                             recallByAIOMsgItem(aIOMsgItem);
                         }
-                        
+
                     }
 
                     executor.startExecute();
+                    Objects.requireNonNull(QQCurrentEnv.getActivity()).onBackPressed();
 
                 } catch (Throwable th) {
                     ErrorOutput.itemHookError(MultiRecallHook.this, th);

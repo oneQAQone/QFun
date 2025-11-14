@@ -159,7 +159,7 @@ public class ClassUtils {
         return ClassUtils.load("com.tencent.mobileqq.troop.onlinepush.api.impl.TroopOnlinePushHandler");
     }
 
-    public static Class<?> _InteractivePopManager() throws  Exception {
+    public static Class<?> _InteractivePopManager() throws Exception {
         return load("com.tencent.mobileqq.springhb.interactive.ui.InteractivePopManager");
     }
 
@@ -182,4 +182,5 @@ public class ClassUtils {
     public static Class<?> _QrLoginAuthActivity() throws Exception {
         return load("com.tencent.biz.qrcode.activity.QRLoginAuthActivity");
     }
+
 }

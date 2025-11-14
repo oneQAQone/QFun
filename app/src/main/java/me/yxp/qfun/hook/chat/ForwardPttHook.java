@@ -34,10 +34,8 @@ public final class ForwardPttHook extends BaseSwitchHookItem {
     private static Method sSendIntentMethod;
     private static Method sOnActivityResultMethod;
     private static Method sHandleForwardMethod;
-
-    private Object mLastAIOMsgItem;
-
     private final SimpleIntervalExecutor executor = new SimpleIntervalExecutor(500);
+    private Object mLastAIOMsgItem;
 
     @Override
     protected boolean initMethod() throws Throwable {
@@ -189,7 +187,7 @@ public final class ForwardPttHook extends BaseSwitchHookItem {
             try {
                 MsgTool.sendMsg(MsgTool.makeContact(uin, chatType), elements);
             } catch (Throwable th) {
-                ErrorOutput.itemHookError(this,th);
+                ErrorOutput.itemHookError(this, th);
             }
         });
 

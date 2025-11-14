@@ -27,7 +27,7 @@ import me.yxp.qfun.utils.data.FileUtils;
 import me.yxp.qfun.utils.error.PluginError;
 import me.yxp.qfun.utils.qq.HostInfo;
 import me.yxp.qfun.utils.qq.QQCurrentEnv;
-import me.yxp.qfun.utils.qq.QQUtils;
+import me.yxp.qfun.utils.qq.ToastUtils;
 
 public class PluginManager {
     public static List<PluginInfo> pluginInfos = new ArrayList<>();
@@ -118,7 +118,7 @@ public class PluginManager {
     public static void importPlugin(Uri uri, Activity activity) {
         DocumentFile directory = DocumentFile.fromTreeUri(activity, uri);
         if (directory == null || !directory.isDirectory()) {
-            QQUtils.QQToast(1, "导入失败");
+            ToastUtils.QQToast(1, "导入失败");
             return;
         }
 
@@ -148,13 +148,13 @@ public class PluginManager {
                 FileUtils.copyDirectoryRecursively(activity, directory, new File(pluginPath));
                 pluginInfos.add(pluginInfo);
                 ((JavaPlugin) activity).notifyDataSetChanged();
-                QQUtils.QQToast(2, "导入成功");
+                ToastUtils.QQToast(2, "导入成功");
                 return;
             } catch (Exception e) {
-                QQUtils.QQToast(1, "导入失败");
+                ToastUtils.QQToast(1, "导入失败");
             }
         }
 
-        QQUtils.QQToast(1, "导入失败");
+        ToastUtils.QQToast(1, "导入失败");
     }
 }

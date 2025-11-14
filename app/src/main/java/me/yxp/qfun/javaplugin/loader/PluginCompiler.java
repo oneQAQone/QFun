@@ -1,5 +1,19 @@
 package me.yxp.qfun.javaplugin.loader;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import bsh.BshMethod;
 import bsh.EvalError;
 import bsh.Interpreter;
@@ -17,20 +31,6 @@ import me.yxp.qfun.utils.hook.xpcompat.XposedBridge;
 import me.yxp.qfun.utils.qq.HostInfo;
 import me.yxp.qfun.utils.qq.QQCurrentEnv;
 import me.yxp.qfun.utils.reflect.ClassUtils;
-
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 public class PluginCompiler {
     public PluginInfo pluginInfo;

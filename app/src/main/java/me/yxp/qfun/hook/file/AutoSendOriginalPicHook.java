@@ -4,9 +4,7 @@ import java.lang.reflect.Method;
 
 import me.yxp.qfun.hook.base.BaseSwitchHookItem;
 import me.yxp.qfun.hook.base.HookItemAnnotation;
-import me.yxp.qfun.utils.dexkit.DexKit;
 import me.yxp.qfun.utils.hook.HookUtils;
-import me.yxp.qfun.utils.qq.HostInfo;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
 

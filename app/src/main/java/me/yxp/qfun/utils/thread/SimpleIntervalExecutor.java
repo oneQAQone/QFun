@@ -13,7 +13,7 @@ public class SimpleIntervalExecutor {
 
     public SimpleIntervalExecutor(long intervalMs) {
         mIntervalMs = intervalMs;
-        
+
         HandlerThread workerThread = new HandlerThread("SimpleIntervalExecutor");
         workerThread.start();
         mHandler = new Handler(workerThread.getLooper());
@@ -29,7 +29,7 @@ public class SimpleIntervalExecutor {
         if (mIsExecuting || mTasks.isEmpty()) {
             return;
         }
-        
+
         mIsExecuting = true;
         executeNextTask(0);
     }
@@ -48,9 +48,9 @@ public class SimpleIntervalExecutor {
             }
 
             if (index + 1 < mTasks.size()) {
-                mHandler.postDelayed(() -> 
-                    executeNextTask(index + 1), 
-                    mIntervalMs
+                mHandler.postDelayed(() ->
+                                executeNextTask(index + 1),
+                        mIntervalMs
                 );
             } else {
                 // 最后一个任务完成，重置状态并清空任务列表

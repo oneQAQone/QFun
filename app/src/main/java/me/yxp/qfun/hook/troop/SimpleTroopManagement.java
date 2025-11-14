@@ -24,7 +24,7 @@ import me.yxp.qfun.utils.hook.xpcompat.XC_MethodHook;
 import me.yxp.qfun.utils.hook.xpcompat.XposedBridge;
 import me.yxp.qfun.utils.qq.MsgTool;
 import me.yxp.qfun.utils.qq.QQCurrentEnv;
-import me.yxp.qfun.utils.qq.QQUtils;
+import me.yxp.qfun.utils.qq.ToastUtils;
 import me.yxp.qfun.utils.qq.TroopTool;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
@@ -157,7 +157,7 @@ public final class SimpleTroopManagement extends BaseSwitchHookItem {
                         int seconds = getInputValue(etSeconds);
 
                         if (days < 0 || hours < 0 || minutes < 0 || seconds < 0) {
-                            QQUtils.QQToast(1, "请输入非负数");
+                            ToastUtils.QQToast(1, "请输入非负数");
                             return;
                         }
 

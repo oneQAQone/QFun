@@ -36,10 +36,10 @@ public final class LiftQRCodeLimitHook extends BaseSwitchHookItem {
     protected void initCallback() {
         HookUtils.hookIfEnable(this, sCheckMethod,
                 param -> {
-                    Object args = param.args;
+                    Object[] args = param.args;
                     for (int i = 0; i < args.length; i++) {
                         if (args[i] instanceof Boolean) {
-                            args[i] = false;
+                            param.args[i] = false;
                         }
                     }
                 }, null);

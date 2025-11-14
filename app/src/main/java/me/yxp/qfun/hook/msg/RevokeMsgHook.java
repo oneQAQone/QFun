@@ -22,9 +22,9 @@ import me.yxp.qfun.proto.QQMessageOuterClass;
 import me.yxp.qfun.utils.data.DataUtils;
 import me.yxp.qfun.utils.hook.HookUtils;
 import me.yxp.qfun.utils.hook.xpcompat.XC_MethodHook;
+import me.yxp.qfun.utils.qq.FriendTool;
 import me.yxp.qfun.utils.qq.NtGrayTipJsonBuilder;
 import me.yxp.qfun.utils.qq.QQCurrentEnv;
-import me.yxp.qfun.utils.qq.QQUtils;
 import me.yxp.qfun.utils.qq.TroopTool;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
@@ -192,7 +192,7 @@ public final class RevokeMsgHook extends BaseSwitchHookItem {
         String operatorUid = operationInfo.getInfo().getOperatorUid();
         String senderUid = operationInfo.getInfo().getMsgInfo().getSenderUid();
         String selfUin = QQCurrentEnv.getCurrentUin();
-        String selfUid = QQUtils.getUidFromUin(selfUin);
+        String selfUid = FriendTool.getUidFromUin(selfUin);
 
         if (operatorUid.equals(selfUid)) {
             return;
@@ -204,13 +204,13 @@ public final class RevokeMsgHook extends BaseSwitchHookItem {
         SyncUtils.runOnNewThread("RevokeMsgHook", () -> {
             NtGrayTipJsonBuilder builder = new NtGrayTipJsonBuilder();
 
-            builder.append(new NtGrayTipJsonBuilder.UserItem(QQUtils.getUinFromUid(operatorUid), operatorUid,
-                    TroopTool.getMemberName(groupPeerId, QQUtils.getUinFromUid(operatorUid))));
+            builder.append(new NtGrayTipJsonBuilder.UserItem(FriendTool.getUinFromUid(operatorUid), operatorUid,
+                    TroopTool.getMemberName(groupPeerId, FriendTool.getUinFromUid(operatorUid))));
 
             builder.appendText("尝试撤回");
             if (!operatorUid.equals(senderUid)) {
-                builder.append(new NtGrayTipJsonBuilder.UserItem(QQUtils.getUinFromUid(senderUid), senderUid,
-                        TroopTool.getMemberName(groupPeerId, QQUtils.getUinFromUid(senderUid))));
+                builder.append(new NtGrayTipJsonBuilder.UserItem(FriendTool.getUinFromUid(senderUid), senderUid,
+                        TroopTool.getMemberName(groupPeerId, FriendTool.getUinFromUid(senderUid))));
 
                 builder.appendText("的");
             }
@@ -233,7 +233,7 @@ public final class RevokeMsgHook extends BaseSwitchHookItem {
         param.args[1] = new byte[0];
 
         String selfUin = QQCurrentEnv.getCurrentUin();
-        String selfUid = QQUtils.getUidFromUin(selfUin);
+        String selfUid = FriendTool.getUidFromUin(selfUin);
         NtGrayTipJsonBuilder builder = new NtGrayTipJsonBuilder();
 
         if (selfUid.equals(operatorUid)) {

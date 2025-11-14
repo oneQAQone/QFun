@@ -22,7 +22,7 @@ public final class OnAIOViewUpdate extends ApiHookItem {
 
     @Override
     public void loadHook() throws Throwable {
-        sHandleUIState = MethodUtils.create(ClassUtils._AIOBubbleMsgItemVB())
+        Method sHandleUIState = MethodUtils.create(ClassUtils._AIOBubbleMsgItemVB())
                 .withReturnType(void.class)
                 .withParamTypes(ClassUtils.load("com.tencent.mvi.base.mvi.MviUIState"))
                 .findOne();

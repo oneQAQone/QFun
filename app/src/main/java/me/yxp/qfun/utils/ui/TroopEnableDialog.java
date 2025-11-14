@@ -27,11 +27,10 @@ import me.yxp.qfun.utils.qq.TroopEnableInfo;
 public class TroopEnableDialog {
     private final TroopEnableInfo mTroopEnableInfo;
     private final Context mContext;
+    private final List<String> mTroopList = new ArrayList<>();
     private AlertDialog mAlertDialog;
     private ArrayAdapter<String> mAdapter;
-
     private TextView statusTextView;
-    private final List<String> mTroopList = new ArrayList<>();
 
     public TroopEnableDialog(Context context, TroopEnableInfo troopEnableInfo) {
 
@@ -78,6 +77,7 @@ public class TroopEnableDialog {
         mAdapter.notifyDataSetChanged();
 
     }
+
     private void setStatus() {
         int i = 0;
         String[] keyArray = mTroopEnableInfo.dataList.getKeyArray();
@@ -97,6 +97,7 @@ public class TroopEnableDialog {
             statusTextView.setTextColor(Color.BLUE);
         }
     }
+
     public void show() {
         if (mAlertDialog != null) {
             mAlertDialog.show();
@@ -117,7 +118,7 @@ public class TroopEnableDialog {
             String uin = getItem(position);
             boolean enable = mTroopEnableInfo.dataList.getIsAvailable(uin);
             textView.setTextColor(enable ? Color.GREEN : Color.BLACK);
-            textView.setText(mTroopEnableInfo.dataList.getValue(uin) + "（" + uin +"）");
+            textView.setText(mTroopEnableInfo.dataList.getValue(uin) + "（" + uin + "）");
             textView.setHeight(200);
             textView.setTextSize(15);
             textView.setGravity(Gravity.CENTER);
@@ -135,10 +136,12 @@ public class TroopEnableDialog {
     private class SearchWatch implements TextWatcher {
 
         @Override
-        public void afterTextChanged(Editable editable) {}
+        public void afterTextChanged(Editable editable) {
+        }
 
         @Override
-        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        }
 
         @Override
         public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {

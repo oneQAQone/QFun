@@ -39,8 +39,7 @@ public class JsonUtil {
                 Object result = searchRecursive(jsonObj.get(key), targetKey);
                 if (result != null) return result;
             }
-        }
-        else if (obj instanceof JSONArray) {
+        } else if (obj instanceof JSONArray) {
             JSONArray array = (JSONArray) obj;
             for (int i = 0; i < array.length(); i++) {
                 Object result = searchRecursive(array.get(i), targetKey);

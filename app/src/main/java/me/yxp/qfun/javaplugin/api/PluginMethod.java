@@ -14,9 +14,10 @@ import me.yxp.qfun.javaplugin.loader.PluginInfo;
 import me.yxp.qfun.utils.error.PluginError;
 import me.yxp.qfun.utils.json.JsonConfigUtils;
 import me.yxp.qfun.utils.qq.CookieTool;
+import me.yxp.qfun.utils.qq.FriendTool;
 import me.yxp.qfun.utils.qq.MsgTool;
 import me.yxp.qfun.utils.qq.QQCurrentEnv;
-import me.yxp.qfun.utils.qq.QQUtils;
+import me.yxp.qfun.utils.qq.ToastUtils;
 import me.yxp.qfun.utils.qq.TroopTool;
 import me.yxp.qfun.utils.thread.SyncUtils;
 
@@ -50,11 +51,11 @@ public class PluginMethod {
 
     // UI相关方法
     public void Toast(Object message) {
-        QQUtils.Toast(message.toString());
+        ToastUtils.Toast(message.toString());
     }
 
     public void QQToast(int icon, Object message) {
-        QQUtils.QQToast(icon, message.toString());
+        ToastUtils.QQToast(icon, message.toString());
     }
 
     public Activity getNowActivity() {
@@ -73,6 +74,27 @@ public class PluginMethod {
     public void addMenuItem(String name, String callback, int[] msgTypes) {
         String types = Arrays.stream(msgTypes).mapToObj(String::valueOf).collect(Collectors.joining(","));
         mPluginCompiler.addMenuItem("[QFun]," + mPluginInfo.pluginId + "," + name + "," + types, callback);
+    }
+
+    // 好友相关方法
+    public List<HashMap<String, Object>> getAllFriend() {
+        return executeWithErrorHandling(FriendTool::getAllFriend, null);
+    }
+
+    public boolean isFriend(String uin) {
+        return executeWithErrorHandling(() -> FriendTool.isFriend(uin), false);
+    }
+
+    public String getUidFromUin(String uin) {
+        return executeWithErrorHandling(() -> FriendTool.getUidFromUin(uin), "");
+    }
+
+    public String getUinFromUid(String uid) {
+        return executeWithErrorHandling(() -> FriendTool.getUidFromUin(uid), "");
+    }
+
+    public void sendZan(String uin, int num) {
+        executeWithErrorHandling(() -> FriendTool.sendZan(uin, num));
     }
 
     // 群组管理方法
@@ -265,11 +287,6 @@ public class PluginMethod {
     public long getLong(String configName, String key, long defaultValue) {
         return executeWithErrorHandling(() ->
                 JsonConfigUtils.getLong(mConfigPath, configName, key, defaultValue), defaultValue);
-    }
-
-    // 其他功能方法
-    public void sendZan(String uin, int num) {
-        executeWithErrorHandling(() -> QQUtils.sendZan(uin, num));
     }
 
     // 统一的错误处理方法

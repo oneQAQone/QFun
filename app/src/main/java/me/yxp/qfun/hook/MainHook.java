@@ -120,7 +120,7 @@ public class MainHook {
                 SimpleTroopManagement.class, DefaultBubbleAndFontHook.class, EmotionToPicHook.class,
                 AutoSendOriginalPicHook.class, RecordsReplyMsgHook.class,
                 ForwardPttHook.class, DownloadTimesHook.class, CustomDeviceHook.class,
-                AntiInteractivePopHook.class, RemoveFilterVideoHook.class, AntiLinkPreviewHooK.class,
+                AntiInteractivePopHook.class, RemoveFilterVideoHook.class, AntiLinkPreviewHook.class,
                 MultiRecallHook.class
         };
 

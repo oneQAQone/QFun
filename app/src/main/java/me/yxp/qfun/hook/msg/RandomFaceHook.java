@@ -15,7 +15,7 @@ import me.yxp.qfun.utils.hook.HookUtils;
 import me.yxp.qfun.utils.hook.xpcompat.XposedBridge;
 import me.yxp.qfun.utils.json.ProtoData;
 import me.yxp.qfun.utils.qq.QQCurrentEnv;
-import me.yxp.qfun.utils.qq.QQUtils;
+import me.yxp.qfun.utils.qq.ToastUtils;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
@@ -147,7 +147,7 @@ public final class RandomFaceHook extends BaseSwitchHookItem {
                     new AlertDialog.Builder(QQCurrentEnv.getActivity(), AlertDialog.THEME_DEVICE_DEFAULT_LIGHT)
                             .setTitle(title)
                             .setSingleChoiceItems(values, -1, (dialog, which) -> {
-                                QQUtils.QQToast(2, values[which]);
+                                ToastUtils.QQToast(2, values[which]);
                                 String peerUid = FieldUtils.create(param.args[1]).withName("peerUid").getValue().toString();
                                 int chatType = (int) FieldUtils.create(param.args[1]).withName("chatType").getValue();
                                 try {

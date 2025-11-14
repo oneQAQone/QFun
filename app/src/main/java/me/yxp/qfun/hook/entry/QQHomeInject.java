@@ -65,7 +65,7 @@ public class QQHomeInject {
 
         }
 
-       return method.invoke(origin, args);
+        return method.invoke(origin, args);
 
 
     }

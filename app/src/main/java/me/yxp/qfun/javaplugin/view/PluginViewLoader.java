@@ -20,8 +20,8 @@ public class PluginViewLoader {
         Class<?> ChatFragment = ClassUtils.load("com.tencent.aio.main.fragment.ChatFragment");
 
         Method onHiddenChanged = MethodUtils.create(ChatFragment)
-                    .withMethodName("onHiddenChanged")
-                    .findOne();
+                .withMethodName("onHiddenChanged")
+                .findOne();
 
         HookUtils.hookAlways(onHiddenChanged, null, param -> {
 

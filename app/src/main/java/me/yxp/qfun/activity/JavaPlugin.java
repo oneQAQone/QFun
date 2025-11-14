@@ -31,7 +31,7 @@ import me.yxp.qfun.utils.data.DataUtils;
 import me.yxp.qfun.utils.error.PluginError;
 import me.yxp.qfun.utils.qq.HostInfo;
 import me.yxp.qfun.utils.qq.QQCurrentEnv;
-import me.yxp.qfun.utils.qq.QQUtils;
+import me.yxp.qfun.utils.qq.ToastUtils;
 import me.yxp.qfun.utils.thread.SyncUtils;
 
 public class JavaPlugin extends Activity {
@@ -112,7 +112,7 @@ public class JavaPlugin extends Activity {
         String currentPath = PLUGIN_PATH.replace("[当前QQ号]", QQCurrentEnv.getCurrentUin());
         ClipData clipData = ClipData.newPlainText("Copied Text", currentPath);
         clipboardManager.setPrimaryClip(clipData);
-        QQUtils.QQToast(2, "复制成功");
+        ToastUtils.QQToast(2, "复制成功");
     }
 
     public void importPlugin(View v) {
@@ -124,7 +124,7 @@ public class JavaPlugin extends Activity {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             startActivityForResult(intent, REQUEST_CODE_PICK_DIR);
         } catch (Exception e) {
-            QQUtils.QQToast(1, "无法打开文件管理器");
+            ToastUtils.QQToast(1, "无法打开文件管理器");
         }
     }
 
@@ -164,7 +164,7 @@ public class JavaPlugin extends Activity {
                             pluginInfo.pluginCompiler.startPlugin();
                         } catch (Exception e) {
                             PluginError.evalError(e, pluginInfo);
-                            QQUtils.QQToast(1, "加载失败");
+                            ToastUtils.QQToast(1, "加载失败");
                             SyncUtils.postDelayed(() -> pluginitemSwitch.setChecked(false), 200);
                         }
                     }).start();
