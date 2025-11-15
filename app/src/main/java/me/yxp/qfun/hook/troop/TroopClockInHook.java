@@ -10,18 +10,18 @@ import me.yxp.qfun.hook.base.BaseWithDataHookItem;
 import me.yxp.qfun.hook.base.HookItemAnnotation;
 import me.yxp.qfun.utils.error.ErrorOutput;
 import me.yxp.qfun.utils.qq.QQCurrentEnv;
-import me.yxp.qfun.utils.qq.TroopEnableInfo;
+import me.yxp.qfun.utils.qq.EnableInfo;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
 import me.yxp.qfun.utils.thread.LoopHolder;
 import me.yxp.qfun.utils.thread.SyncUtils;
-import me.yxp.qfun.utils.ui.TroopEnableDialog;
+import me.yxp.qfun.utils.ui.EnableDialog;
 
 @HookItemAnnotation(TAG = "群打卡", desc = "点击选择你要打卡的群聊")
 public final class TroopClockInHook extends BaseWithDataHookItem {
     private static LoopHolder sLoopHolder;
     private static Method sTroopClockIn;
-    private TroopEnableInfo mTroopEnableInfo;
+    private EnableInfo mTroopEnableInfo;
 
     @Override
     protected boolean initMethod() throws Throwable {
@@ -34,7 +34,7 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
 
     @Override
     protected void initCallback() {
-        mTroopEnableInfo = new TroopEnableInfo("TroopClockIn");
+        mTroopEnableInfo = new EnableInfo.TroopEnableInfo("TroopClockIn");
 
         sLoopHolder = new LoopHolder();
         sLoopHolder.setRunnable(() -> {
@@ -81,7 +81,7 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
 
         Context context = v.getContext();
         mTroopEnableInfo.updateInfo();
-        new TroopEnableDialog(context, mTroopEnableInfo).show();
+        new EnableDialog(context, mTroopEnableInfo).show();
 
     }
 

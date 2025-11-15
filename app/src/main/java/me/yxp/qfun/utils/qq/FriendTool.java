@@ -42,18 +42,21 @@ public class FriendTool {
 
         List<HashMap<String, Object>> friendList = new ArrayList<>();
 
-        List<Object> friendInfoList = (List<Object>) XposedHelpers.callMethod(FriendsInfoServiceImpl, "getAllFriend", "ZPlanCoupleProfileDataProcessor");
+        List<Object> friendInfoList = (List<Object>) XposedHelpers.callMethod(FriendsInfoServiceImpl, "getAllFriend", new Class[]{String.class}, "");
         for (Object friendInfo : friendInfoList) {
             HashMap<String, Object> infoMap = new HashMap<>();
-            String uin = (String) XposedHelpers.getObjectField(friendInfo, "uin");
-            String uid = (String) XposedHelpers.getObjectField(friendInfo, "uid");
-            String name = (String) XposedHelpers.getObjectField(friendInfo, "nick");
-            String remark = (String) XposedHelpers.getObjectField(friendInfo, "remark");
+
+            String[] values = friendInfo.toString().split(" ");
+            String uin = values[2];
+            String uid = values[4];
+            String name = (String) XposedHelpers.callMethod(FriendsInfoServiceImpl, "getNickWithUid", uid, "");
+            String remark = (String) XposedHelpers.callMethod(FriendsInfoServiceImpl, "getRemarkWithUid", uid, "");
+
             infoMap.put("uin", Objects.requireNonNullElse(uin, ""));
             infoMap.put("uid", Objects.requireNonNullElse(uid, ""));
             infoMap.put("name", Objects.requireNonNullElse(name, ""));
             infoMap.put("remark", Objects.requireNonNullElse(remark, ""));
-            infoMap.put("FriendInfo", Objects.requireNonNullElse(friendInfo, ""));
+
             friendList.add(infoMap);
         }
 

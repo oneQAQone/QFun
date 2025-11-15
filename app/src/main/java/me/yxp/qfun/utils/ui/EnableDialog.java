@@ -22,20 +22,28 @@ import java.util.Arrays;
 import java.util.List;
 
 import me.yxp.qfun.R;
-import me.yxp.qfun.utils.qq.TroopEnableInfo;
+import me.yxp.qfun.utils.qq.EnableInfo;
 
-public class TroopEnableDialog {
-    private final TroopEnableInfo mTroopEnableInfo;
+public class EnableDialog {
+    private final EnableInfo mEnableInfo;
     private final Context mContext;
     private final List<String> mTroopList = new ArrayList<>();
+    private final String mType;
     private AlertDialog mAlertDialog;
     private ArrayAdapter<String> mAdapter;
     private TextView statusTextView;
 
-    public TroopEnableDialog(Context context, TroopEnableInfo troopEnableInfo) {
+    public EnableDialog(Context context, EnableInfo EnableInfo) {
 
-        mTroopEnableInfo = troopEnableInfo;
+        mEnableInfo = EnableInfo;
         mContext = context;
+        if (EnableInfo instanceof EnableInfo.TroopEnableInfo) {
+            mType = "群组";
+        } else if (EnableInfo instanceof EnableInfo.FriendEnableInfo) {
+            mType = "好友";
+        } else {
+            mType = "";
+        }
 
         initView();
 
@@ -44,12 +52,12 @@ public class TroopEnableDialog {
     private void initView() {
 
         mAlertDialog = new AlertDialog.Builder(mContext, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT).create();
-        mAlertDialog.setTitle("选择群聊");
+        mAlertDialog.setTitle("选择" + mType);
         View view = LayoutInflater.from(mContext).inflate(R.layout.dialog_troop_enable, null);
         mAlertDialog.setView(view);
 
         ListView listView = view.findViewById(R.id.lv_troops);
-        mTroopList.addAll(Arrays.asList(mTroopEnableInfo.dataList.getKeyArray()));
+        mTroopList.addAll(Arrays.asList(mEnableInfo.dataList.getKeyArray()));
         mAdapter = new TroopAdapter(mTroopList);
         listView.setAdapter(mAdapter);
 
@@ -63,8 +71,8 @@ public class TroopEnableDialog {
 
     private void search(String text) {
         mTroopList.clear();
-        List<String> keyList = Arrays.asList(mTroopEnableInfo.dataList.getKeyArray());
-        List<String> valueList = Arrays.asList(mTroopEnableInfo.getValueArray());
+        List<String> keyList = Arrays.asList(mEnableInfo.dataList.getKeyArray());
+        List<String> valueList = Arrays.asList(mEnableInfo.getValueArray());
         if (text.isEmpty()) {
             mTroopList.addAll(keyList);
         } else {
@@ -80,20 +88,20 @@ public class TroopEnableDialog {
 
     private void setStatus() {
         int i = 0;
-        String[] keyArray = mTroopEnableInfo.dataList.getKeyArray();
+        String[] keyArray = mEnableInfo.dataList.getKeyArray();
         for (String key : keyArray) {
-            if (mTroopEnableInfo.dataList.getIsAvailable(key)) {
+            if (mEnableInfo.dataList.getIsAvailable(key)) {
                 i++;
             }
         }
         if (i == 0) {
-            statusTextView.setText("未选择任何群组");
+            statusTextView.setText("未选择任何" + mType);
             statusTextView.setTextColor(Color.GRAY);
         } else if (i == keyArray.length) {
-            statusTextView.setText("已选择所有群组");
+            statusTextView.setText("已选择所有" + mType);
             statusTextView.setTextColor(Color.BLUE);
         } else {
-            statusTextView.setText("已选择" + i + "/" + keyArray.length + "个群组");
+            statusTextView.setText("已选择" + i + "/" + keyArray.length + "个" + mType);
             statusTextView.setTextColor(Color.BLUE);
         }
     }
@@ -116,15 +124,15 @@ public class TroopEnableDialog {
 
             TextView textView = new TextView(mContext);
             String uin = getItem(position);
-            boolean enable = mTroopEnableInfo.dataList.getIsAvailable(uin);
+            boolean enable = mEnableInfo.dataList.getIsAvailable(uin);
             textView.setTextColor(enable ? Color.GREEN : Color.BLACK);
-            textView.setText(mTroopEnableInfo.dataList.getValue(uin) + "（" + uin + "）");
+            textView.setText(mEnableInfo.dataList.getValue(uin) + "（" + uin + "）");
             textView.setHeight(200);
             textView.setTextSize(15);
             textView.setGravity(Gravity.CENTER);
             textView.setOnClickListener(v -> {
-                boolean b = mTroopEnableInfo.dataList.getIsAvailable(uin);
-                mTroopEnableInfo.dataList.setIsAvailable(uin, !b);
+                boolean b = mEnableInfo.dataList.getIsAvailable(uin);
+                mEnableInfo.dataList.setIsAvailable(uin, !b);
                 textView.setTextColor(!b ? Color.GREEN : Color.BLACK);
                 setStatus();
             });

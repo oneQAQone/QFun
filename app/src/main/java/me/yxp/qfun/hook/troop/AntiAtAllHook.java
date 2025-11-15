@@ -16,17 +16,17 @@ import me.yxp.qfun.utils.dexkit.DexKit;
 import me.yxp.qfun.utils.hook.HookUtils;
 import me.yxp.qfun.utils.hook.xpcompat.XposedBridge;
 import me.yxp.qfun.utils.json.ProtoData;
-import me.yxp.qfun.utils.qq.TroopEnableInfo;
+import me.yxp.qfun.utils.qq.EnableInfo;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
-import me.yxp.qfun.utils.ui.TroopEnableDialog;
+import me.yxp.qfun.utils.ui.EnableDialog;
 
 @HookItemAnnotation(TAG = "屏蔽艾特全体消息", desc = "屏蔽艾特全体和群待办，点击可选择不需要屏蔽的群聊")
 public final class AntiAtAllHook extends BaseWithDataHookItem {
     private static Method sAtAllMethod;
     private static Method sTroopToDoMethod;
-    private TroopEnableInfo mTroopEnableInfo;
+    private EnableInfo mTroopEnableInfo;
 
     @Override
     protected boolean initMethod() throws Throwable {
@@ -44,7 +44,7 @@ public final class AntiAtAllHook extends BaseWithDataHookItem {
 
     @Override
     protected void initCallback() {
-        mTroopEnableInfo = new TroopEnableInfo("AntiAtAll");
+        mTroopEnableInfo = new EnableInfo.TroopEnableInfo("AntiAtAll");
 
         HookUtils.replaceIfEnable(this, sAtAllMethod, param -> {
             String troopUin = FieldUtils.create(param.args[1]).withName("peerUin").getValue().toString();
@@ -82,7 +82,7 @@ public final class AntiAtAllHook extends BaseWithDataHookItem {
     public void onClick(View v) {
         Context context = v.getContext();
         mTroopEnableInfo.updateInfo();
-        new TroopEnableDialog(context, mTroopEnableInfo).show();
+        new EnableDialog(context, mTroopEnableInfo).show();
     }
 
     private String extractUIN(String url) throws Throwable {
