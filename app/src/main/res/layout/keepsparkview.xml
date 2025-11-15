@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:ems="10"
+        android:layout_height="wrap_content"
+        android:hint="请输入消息"
+        android:gravity="center"
+        android:id="@+id/keepspark_msg"
+        android:layout_margin="20dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/round"
+        android:text="设置续火好友"
+        android:gravity="center"
+        android:layout_margin="20dp"
+        android:id="@+id/keepspark_friend"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/round"
+        android:text="设置续火群聊"
+        android:gravity="center"
+        android:layout_margin="20dp"
+        android:id="@+id/keepspark_troop"/>
+
+</LinearLayout>

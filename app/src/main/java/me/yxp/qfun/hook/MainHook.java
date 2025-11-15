@@ -45,6 +45,7 @@ import me.yxp.qfun.hook.purify.AntiLinkPreviewHook;
 import me.yxp.qfun.hook.purify.RemoveFilterVideoHook;
 import me.yxp.qfun.hook.qrcode.LiftQRCodeLimitHook;
 import me.yxp.qfun.hook.qrcode.SkipWaitTimeHook;
+import me.yxp.qfun.hook.social.AutoKeepSparkHook;
 import me.yxp.qfun.hook.social.OneClickLikeHook;
 import me.yxp.qfun.hook.social.PaiYiPaiHook;
 import me.yxp.qfun.hook.troop.AntiAtAllHook;
@@ -111,7 +112,7 @@ public class MainHook {
 
     public static void initHookItem() {
         Class<?>[] hookClasses = {
-            TroopClockInHook.class, RevokeMsgHook.class, PaiYiPaiHook.class,
+            TroopClockInHook.class, AutoKeepSparkHook, RevokeMsgHook.class, PaiYiPaiHook.class,
                 RepeatMsgHook.class, MsgTimeHook.class, FlashPicHook.class,
                 PicSummaryHook.class, RemoveRiskWebpageBlockHook.class, RandomFaceHook.class,
                 AntiAtAllHook.class, MsgContentHook.class,
