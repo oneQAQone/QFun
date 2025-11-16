@@ -42,6 +42,7 @@ import me.yxp.qfun.hook.msg.RepeatMsgHook;
 import me.yxp.qfun.hook.msg.RevokeMsgHook;
 import me.yxp.qfun.hook.purify.AntiInteractivePopHook;
 import me.yxp.qfun.hook.purify.AntiLinkPreviewHook;
+import me.yxp.qfun.hook.purify.RemoveEmoReplyHook;
 import me.yxp.qfun.hook.purify.RemoveFilterVideoHook;
 import me.yxp.qfun.hook.qrcode.LiftQRCodeLimitHook;
 import me.yxp.qfun.hook.qrcode.SkipWaitTimeHook;
@@ -122,7 +123,7 @@ public class MainHook {
                 AutoSendOriginalPicHook.class, RecordsReplyMsgHook.class,
                 ForwardPttHook.class, DownloadTimesHook.class, CustomDeviceHook.class,
                 AntiInteractivePopHook.class, RemoveFilterVideoHook.class, AntiLinkPreviewHook.class,
-                MultiRecallHook.class
+                MultiRecallHook.class, RemoveEmoReplyHook.class
         };
 
         for (Class<?> hookClass : hookClasses) {

@@ -315,6 +315,14 @@ public class DexKit {
             sMethodMap.put("OnTroopJoin", onTroopJoin.toDexMethod().serialize());
         }
 
+        // RemoveEmoReplyHook
+        MethodData removeEmoReplyHook = bridge.findMethod(FindMethod.create().searchPackages("com.tencent.mobileqq.aio.msglist.holder.component.msgtail")
+                .matcher(MethodMatcher.create().usingStrings("chatType is not group"))
+        ).singleOrNull();
+        if (removeEmoReplyHook != null) {
+            sMethodMap.put("RemoveEmoReplyHook", removeEmoReplyHook.toDexMethod().serialize());
+        }
+
     }
 
     public static Class<?> getClass(String key) throws Throwable {
