@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,7 +66,9 @@ public class PluginCompiler {
         PluginMethod pluginMethod = new PluginMethod(this);
         try {
             for (Method method : PluginMethod.class.getDeclaredMethods()) {
-                nameSpace.setMethod(new BshMethod(method, pluginMethod));
+                if (Modifier.isPublic(method.getModifiers()) && !method.getName().contains("lambda")) {
+                    nameSpace.setMethod(new BshMethod(method, pluginMethod));
+                }
             }
         } catch (Exception e) {
             // 忽略方法注册异常

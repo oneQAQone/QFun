@@ -15,6 +15,7 @@ import me.yxp.qfun.utils.reflect.MethodUtils;
 public class FriendTool {
     private static Class<?> sCardHandler;
 
+    private static Object RelationNTUinAndUidApiImpl;
     private static Object FriendsInfoServiceImpl;
 
     private static Method sSendZan;
@@ -29,7 +30,9 @@ public class FriendTool {
 
     private static void initMethod() throws Throwable {
         Class<?> FriendsInfoService = ClassUtils.load("com.tencent.qqnt.ntrelation.friendsinfo.api.impl.FriendsInfoServiceImpl");
+        Class<?> RelationNTUinAndUidApi = ClassUtils.load("com.tencent.relation.common.api.impl.RelationNTUinAndUidApiImpl");
         FriendsInfoServiceImpl = ClassUtils.makeDefaultObject(FriendsInfoService);
+        RelationNTUinAndUidApiImpl = ClassUtils.makeDefaultObject(RelationNTUinAndUidApi);
         sCardHandler = ClassUtils._CardHandler();
 
         sSendZan = MethodUtils.create(sCardHandler)
@@ -66,15 +69,15 @@ public class FriendTool {
 
     public static boolean isFriend(String uin) throws Exception {
         String uid = getUidFromUin(uin);
-        return (boolean) XposedHelpers.callMethod(FriendsInfoServiceImpl, "isFriend", uid, null);
+        return (boolean) XposedHelpers.callMethod(FriendsInfoServiceImpl, "isFriend", uid, "");
     }
 
     public static String getUidFromUin(String uin) throws Exception {
-        return (String) XposedHelpers.callMethod(FriendsInfoServiceImpl, "getUidFromUin", uin);
+        return (String) XposedHelpers.callMethod(RelationNTUinAndUidApiImpl, "getUidFromUin", uin);
     }
 
     public static String getUinFromUid(String uid) throws Exception {
-        return (String) XposedHelpers.callMethod(FriendsInfoServiceImpl, "getUinFromUid", uid);
+        return (String) XposedHelpers.callMethod(RelationNTUinAndUidApiImpl, "getUinFromUid", uid);
     }
 
     public static void sendZan(String uin, int num) throws Exception {
@@ -105,7 +108,7 @@ public class FriendTool {
         data[7] = (byte) 22;
         data[8] = (byte) 1;
 
-        if (FriendTool.isFriend(uin)) {
+        if (isFriend(uin)) {
             data[9] = (byte) 49; // 好友类型
         } else {
             data[9] = (byte) 53; // 非好友类型
@@ -115,7 +118,7 @@ public class FriendTool {
     }
 
     private static int determineZanType(String uin) throws Exception {
-        return FriendTool.isFriend(uin) ? 1 : 5;
+        return isFriend(uin) ? 1 : 5;
     }
 
 
