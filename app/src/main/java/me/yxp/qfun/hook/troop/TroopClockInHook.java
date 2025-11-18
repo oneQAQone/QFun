@@ -1,21 +1,17 @@
 package me.yxp.qfun.hook.troop;
 
-import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Objects;
 
 import me.yxp.qfun.hook.base.BaseWithDataHookItem;
 import me.yxp.qfun.hook.base.HookItemAnnotation;
 import me.yxp.qfun.utils.alarm.DailyAlarmHelper;
 import me.yxp.qfun.utils.error.ErrorOutput;
 import me.yxp.qfun.utils.qq.EnableInfo;
-import me.yxp.qfun.utils.qq.HostInfo;
 import me.yxp.qfun.utils.qq.QQCurrentEnv;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
@@ -26,7 +22,6 @@ import me.yxp.qfun.utils.ui.EnableDialog;
 @HookItemAnnotation(TAG = "群打卡", desc = "点击选择你要打卡的群聊", TargetProcess = "All")
 public final class TroopClockInHook extends BaseWithDataHookItem {
     public static final int CLOCK_PREPARE = 1001;
-    public static final int CLOCK_COMPLETED = 1002;
     private static Method sTroopClockIn;
     public LoopHolder mLoopHolder;
     private BroadcastReceiver receiver;
@@ -47,44 +42,28 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                int resultCode = intent.getIntExtra("result_code", 0);
-                if (resultCode == CLOCK_PREPARE) {
-                    mLoopHolder.start();
-                    DailyAlarmHelper.setupDailyAlarm(23, 55, 0, CLOCK_PREPARE, receiver);
-                } else if (resultCode == CLOCK_COMPLETED) {
-                    mLoopHolder.stop();
-                    DailyAlarmHelper.cancelDailyAlarm(CLOCK_COMPLETED);
-                }
+                if (intent.getIntExtra("result_code", 0) != CLOCK_PREPARE) return;
+                startLoop();
+                setAlarm();
             }
         };
 
         mLoopHolder = new LoopHolder();
-        mLoopHolder.setSleepTime(0);
-        mLoopHolder.setRunnable(() -> {
-
-            if (isAroundMidnight(100, 200)) {
-                doClockIn();
-                Thread.sleep(40);
-            }
-
-            if (!isInForeground()) {
-                if (isAroundMidnight(2500,  1000)) {
-                    doClockIn();
-                    Thread.sleep(100);
-                }
-            }
-
-        });
+        mLoopHolder.setRunnable(this::doClockIn);
     }
 
     @Override
     public void startHook() {
-        doClockIn();
+        doClockInImmediately();
+        if (DailyAlarmHelper.isAroundMidnight(180000, 0)) {
+            startLoop();
+        }
         setAlarm();
     }
 
     @Override
     public void stopHook() {
+        mLoopHolder.stop();
         cancelAlarm();
     }
 
@@ -100,7 +79,6 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
 
     @Override
     public void onClick(View v) {
-
         Context context = v.getContext();
         mTroopEnableInfo.updateInfo();
         new EnableDialog(context, mTroopEnableInfo).show();
@@ -109,38 +87,28 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
 
     public void setAlarm() {
         if (!DailyAlarmHelper.isAlarmSet(CLOCK_PREPARE)) {
-            DailyAlarmHelper.setupDailyAlarm(23, 55, 0, CLOCK_PREPARE, receiver);
+            DailyAlarmHelper.setupDailyAlarm(23, 57, 0, CLOCK_PREPARE, receiver);
         }
-        if (!DailyAlarmHelper.isAlarmSet(CLOCK_COMPLETED)) {
-            DailyAlarmHelper.setupDailyAlarm(0, 5, 0, CLOCK_COMPLETED, receiver);
-        }
-
     }
 
     public void cancelAlarm() {
         if (DailyAlarmHelper.isAlarmSet(CLOCK_PREPARE)) {
             DailyAlarmHelper.cancelDailyAlarm(CLOCK_PREPARE);
         }
-        if (DailyAlarmHelper.isAlarmSet(CLOCK_COMPLETED)) {
-            DailyAlarmHelper.cancelDailyAlarm(CLOCK_COMPLETED);
-        }
-
     }
 
-    private boolean isAroundMidnight(long before, long after) {
-        long now = System.currentTimeMillis() + 28800000;
-        long remain = now % 86400000;
-        return remain <= after || remain >= 86400000 - before;
+    private void startLoop() {
+        long stopTime = ((System.currentTimeMillis() + 28800000) / 86400000 + 1) * 86400000 + 60000;
+        mLoopHolder.setStopTime(stopTime);
+        mLoopHolder.start();
     }
 
-    private void doClockIn() {
-
+    private void doClockInImmediately() {
         try {
             String currentUin = QQCurrentEnv.getCurrentUin();
 
             Object troopClockInHandler = ClassUtils.makeDefaultObject(
                     ClassUtils._TroopClockInHandler(), QQCurrentEnv.getQQAppInterface());
-
 
             for (String troopUin : mTroopEnableInfo.dataList.getKeyArray()) {
                 if (mTroopEnableInfo.dataList.getIsAvailable(troopUin)) {
@@ -156,17 +124,14 @@ public final class TroopClockInHook extends BaseWithDataHookItem {
         } catch (Throwable th) {
             ErrorOutput.itemHookError(this, th);
         }
+    }
+
+    private void doClockIn() {
+
+        if (!DailyAlarmHelper.isAroundMidnight(0, 60000)) return;
+        doClockInImmediately();
+        mLoopHolder.stop();
 
     }
 
-    private boolean isInForeground() {
-        ActivityManager activityManager = (ActivityManager) HostInfo.getHostContext().getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningAppProcessInfo> processes = activityManager.getRunningAppProcesses();
-        for (ActivityManager.RunningAppProcessInfo process : processes) {
-            if (process.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND && Objects.equals(process.processName, HostInfo.getPackageName())) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

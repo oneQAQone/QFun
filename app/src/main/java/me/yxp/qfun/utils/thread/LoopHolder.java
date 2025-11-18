@@ -3,19 +3,19 @@ package me.yxp.qfun.utils.thread;
 public class LoopHolder {
     private boolean mIsRunning;
     private Runnable mRunnable;
-    private int mSleepTime;
+    private long mStopTime;
 
     public LoopHolder() {
         mIsRunning = false;
-        mSleepTime = 1000;
+        mStopTime = 0;
     }
 
     public void setRunnable(SyncUtils.MyRunnable myRunnable) {
         mRunnable = () -> {
-            while (mIsRunning) {
+
+            while (mIsRunning && System.currentTimeMillis() < mStopTime) {
                 try {
                     myRunnable.run();
-                    Thread.sleep(mSleepTime);
                 } catch (Throwable th) {
                     // 忽略异常，保持循环运行
                 }
@@ -31,12 +31,8 @@ public class LoopHolder {
         new Thread(mRunnable).start();
     }
 
-    public void stop() {
-        mIsRunning = false;
-    }
+    public void stop() { mIsRunning = false; }
 
-    public void setSleepTime(int sleepTime) {
-        mSleepTime = sleepTime;
-    }
+    public void setStopTime(long time) { mStopTime = time; }
 
 }

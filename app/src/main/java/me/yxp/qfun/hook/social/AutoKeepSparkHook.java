@@ -23,11 +23,9 @@ import me.yxp.qfun.utils.ui.EnableDialog;
 @HookItemAnnotation(TAG = "自动续火", desc = "点击选择聊天和设置消息，支持图文消息（见脚本开发文档）")
 public class AutoKeepSparkHook extends BaseWithDataHookItem {
     private static final int SEND_PREPARE = 1003;
-    private static final int SEND_COMPLETED = 1004;
 
     private LoopHolder mLoopHolder;
     private BroadcastReceiver receiver;
-    private boolean isSend = true;
     private EnableInfo mTroopEnableInfo;
     private EnableInfo mFriendEnableInfo;
     private String msg;
@@ -41,32 +39,33 @@ public class AutoKeepSparkHook extends BaseWithDataHookItem {
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                int resultCode = intent.getIntExtra("result_code", 0);
-                handleAlarm(resultCode);
+                if (intent.getIntExtra("result_code", 0) != SEND_PREPARE) return;
+                startLoop();
+                setAlarm();
             }
         };
 
         mLoopHolder = new LoopHolder();
-        mLoopHolder.setSleepTime(300);
         mLoopHolder.setRunnable(this::sendMsg);
     }
 
     @Override
     public void startHook() {
+        if (DailyAlarmHelper.isAroundMidnight(180000, 1)) {
+            startLoop();
+        }
         setAlarm();
     }
 
     @Override
     public void stopHook() {
+        mLoopHolder.stop();
         cancelAlarm();
     }
 
     public void setAlarm() {
         if (!DailyAlarmHelper.isAlarmSet(SEND_PREPARE)) {
-            DailyAlarmHelper.setupDailyAlarm(23, 55, 0, SEND_PREPARE, receiver);
-        }
-        if (!DailyAlarmHelper.isAlarmSet(SEND_COMPLETED)) {
-            DailyAlarmHelper.setupDailyAlarm(0, 1, 0, SEND_COMPLETED, receiver);
+            DailyAlarmHelper.setupDailyAlarm(23, 57, 0, SEND_PREPARE, receiver);
         }
 
     }
@@ -74,9 +73,6 @@ public class AutoKeepSparkHook extends BaseWithDataHookItem {
     public void cancelAlarm() {
         if (DailyAlarmHelper.isAlarmSet(SEND_PREPARE)) {
             DailyAlarmHelper.cancelDailyAlarm(SEND_PREPARE);
-        }
-        if (DailyAlarmHelper.isAlarmSet(SEND_COMPLETED)) {
-            DailyAlarmHelper.cancelDailyAlarm(SEND_COMPLETED);
         }
 
     }
@@ -98,6 +94,7 @@ public class AutoKeepSparkHook extends BaseWithDataHookItem {
     @Override
     public void onClick(View v) {
         Context context = v.getContext();
+
         mTroopEnableInfo.updateInfo();
         mFriendEnableInfo.updateInfo();
         LinearLayout parent = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.keepsparkview, null);
@@ -114,32 +111,25 @@ public class AutoKeepSparkHook extends BaseWithDataHookItem {
                 .show();
     }
 
-    private void sendMsg() throws Throwable {
-        if (!isSend && (System.currentTimeMillis() + 28800000) % 86400000 < 15000) {
-            for (String uin : mFriendEnableInfo.dataList.getKeyArray()) {
-                if (mFriendEnableInfo.dataList.getIsAvailable(uin)) {
-                    MsgTool.sendMsg(uin, msg, 1);
-                }
-            }
-            for (String troopUin : mTroopEnableInfo.dataList.getKeyArray()) {
-                if (mTroopEnableInfo.dataList.getIsAvailable(troopUin)) {
-                    MsgTool.sendMsg(troopUin, msg, 2);
-                }
-            }
-            isSend = true;
-        }
+    private void startLoop() {
+        long stopTime = ((System.currentTimeMillis() + 2880000) / 86400000 + 1) * 86400000 + 60000;
+        mLoopHolder.setStopTime(stopTime);
+        mLoopHolder.start();
     }
 
-    private void handleAlarm(int resultCode) {
-        if (resultCode == SEND_PREPARE) {
-            isSend = false;
-            mLoopHolder.start();
-            DailyAlarmHelper.setupDailyAlarm(23, 55, 0, SEND_PREPARE, receiver);
-        } else if (resultCode == SEND_COMPLETED) {
-            isSend = true;
-            mLoopHolder.stop();
-            DailyAlarmHelper.setupDailyAlarm(0, 2, 0, SEND_COMPLETED, receiver);
+    private void sendMsg() throws Throwable {
+        if (!DailyAlarmHelper.isAroundMidnight(0, 60000)) return;
+        for (String uin : mFriendEnableInfo.dataList.getKeyArray()) {
+            if (mFriendEnableInfo.dataList.getIsAvailable(uin)) {
+                MsgTool.sendMsg(uin, msg, 1);
+            }
         }
+        for (String troopUin : mTroopEnableInfo.dataList.getKeyArray()) {
+            if (mTroopEnableInfo.dataList.getIsAvailable(troopUin)) {
+                MsgTool.sendMsg(troopUin, msg, 2);
+            }
+        }
+        mLoopHolder.stop();
     }
 
 }

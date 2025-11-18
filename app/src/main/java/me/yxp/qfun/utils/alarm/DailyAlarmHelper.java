@@ -1,12 +1,14 @@
 package me.yxp.qfun.utils.alarm;
 
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 
 import java.util.Calendar;
 
@@ -15,9 +17,19 @@ import me.yxp.qfun.utils.qq.HostInfo;
 public class DailyAlarmHelper {
     private static final String ALARM_ACTION = "ALARM_ACTION";
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private static void registerReceiver(BroadcastReceiver receiver) {
-        HostInfo.getHostContext().registerReceiver(receiver, new IntentFilter(ALARM_ACTION));
+
+        Context hostContext = HostInfo.getHostContext();
+        IntentFilter filter = new IntentFilter(ALARM_ACTION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            hostContext.registerReceiver(receiver, filter, null, null, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            hostContext.registerReceiver(receiver, filter);
+        }
+
     }
+
     public static void setupDailyAlarm(int hour, int minute, int second, int requestCode, BroadcastReceiver receiver) {
         Context context = HostInfo.getHostContext();
         registerReceiver(receiver);
@@ -68,4 +80,11 @@ public class DailyAlarmHelper {
                 context, requestCode, intent, PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
         return pendingIntent != null;
     }
+
+    public static boolean isAroundMidnight(long before, long after) {
+        long now = System.currentTimeMillis() + 28800000;
+        long remain = now % 86400000;
+        return remain <= after || remain >= 86400000 - before;
+    }
+
 }
