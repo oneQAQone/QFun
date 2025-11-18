@@ -25,7 +25,7 @@ import me.yxp.qfun.utils.json.JsonUtil;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 import me.yxp.qfun.utils.thread.SyncUtils;
 
-@HookItemAnnotation(TAG = "修改图片外显", desc = "若返回值为Json格式可读取嵌套的key，若返回值为纯文本长度需小于30")
+@HookItemAnnotation(TAG = "修改图片外显", desc = "返回值为Json格式时支持读取嵌套的key，为纯文本长度需小于30")
 public final class PicSummaryHook extends BaseWithDataHookItem {
     private Map<String, String> dataMap = new HashMap<>();
     private String mPicSummary;
@@ -36,11 +36,10 @@ public final class PicSummaryHook extends BaseWithDataHookItem {
 
         mChangeSummaryListener = msgElements -> {
 
-            setNextPicSummary();
-
             if (mPicSummary.isEmpty()) {
                 return;
             }
+            boolean hasPic = false;
 
             for (Object msgElement : msgElements) {
                 Object picElement = FieldUtils.create(msgElement).withName("picElement").getValue();
@@ -48,10 +47,13 @@ public final class PicSummaryHook extends BaseWithDataHookItem {
 
                 if (picElement != null) {
                     FieldUtils.create(picElement).withName("summary").setValue(mPicSummary);
+                    hasPic = true;
                 }
                 if (marketFaceElement != null) {
                     FieldUtils.create(marketFaceElement).withName("faceName").setValue(mPicSummary);
+                    hasPic = true;
                 }
+                if (hasPic) setNextPicSummary();
             }
         };
     }
