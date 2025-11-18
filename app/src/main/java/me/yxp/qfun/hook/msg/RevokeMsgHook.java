@@ -187,8 +187,12 @@ public final class RevokeMsgHook extends BaseSwitchHookItem {
                                         XC_MethodHook.MethodHookParam param) throws Throwable {
         byte[] secondPart = Arrays.copyOfRange(operationInfoByteArray, 7, operationInfoByteArray.length);
         QQMessageOuterClass.QQMessage.MessageBody.GroupRecallOperationInfo operationInfo = QQMessageOuterClass.QQMessage.MessageBody.GroupRecallOperationInfo.parseFrom(secondPart);
+        long msgTime = operationInfo.getInfo().getMsgInfo().getMsgTime();
+        if (System.currentTimeMillis() / 1000 - msgTime > 3600) return;
         int recallMsgSeq = operationInfo.getInfo().getMsgInfo().getMsgSeq();
         String groupPeerId = String.valueOf(operationInfo.getPeerId());
+        List<String> msgseqList = mRetractMessageMap.get(groupPeerId);
+        if (msgseqList != null && msgseqList.contains(String.valueOf(recallMsgSeq))) return;
         String operatorUid = operationInfo.getInfo().getOperatorUid();
         String senderUid = operationInfo.getInfo().getMsgInfo().getSenderUid();
         String selfUin = QQCurrentEnv.getCurrentUin();
@@ -226,8 +230,12 @@ public final class RevokeMsgHook extends BaseSwitchHookItem {
     private void onC2CRecallByMsgPush(byte[] operationInfoByteArray,
                                       XC_MethodHook.MethodHookParam param) throws Throwable {
         QQMessageOuterClass.QQMessage.MessageBody.C2CRecallOperationInfo operationInfo = QQMessageOuterClass.QQMessage.MessageBody.C2CRecallOperationInfo.parseFrom(operationInfoByteArray);
+        long msgTime = operationInfo.getInfo().getMsgTime();
+        if (System.currentTimeMillis() / 1000 - msgTime > 3600) return;
         int recallMsgSeq = operationInfo.getInfo().getMsgSeq();
         String operatorUid = operationInfo.getInfo().getOperatorUid();
+        List<String> msgseqList = mRetractMessageMap.get(operatorUid);
+        if (msgseqList != null && msgseqList.contains(String.valueOf(recallMsgSeq))) return;
         writeAndRefresh(operatorUid, recallMsgSeq);
 
         param.args[1] = new byte[0];
