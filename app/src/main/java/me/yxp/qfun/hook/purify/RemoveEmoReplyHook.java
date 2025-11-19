@@ -8,7 +8,7 @@ import me.yxp.qfun.utils.dexkit.DexKit;
 import me.yxp.qfun.utils.hook.HookUtils;
 
 @HookItemAnnotation(TAG = "移除表情回应", desc = "长按消息时不再显示回应表情的菜单")
-public class RemoveEmoReplyHook extends BaseSwitchHookItem {
+public final class RemoveEmoReplyHook extends BaseSwitchHookItem {
 
     private static Method needShow;
 

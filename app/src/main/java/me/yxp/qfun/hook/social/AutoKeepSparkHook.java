@@ -21,7 +21,7 @@ import me.yxp.qfun.utils.thread.LoopHolder;
 import me.yxp.qfun.utils.ui.EnableDialog;
 
 @HookItemAnnotation(TAG = "自动续火", desc = "点击选择聊天和设置消息，支持图文消息（见脚本开发文档）")
-public class AutoKeepSparkHook extends BaseWithDataHookItem {
+public final class AutoKeepSparkHook extends BaseWithDataHookItem {
     private static final int SEND_PREPARE = 1003;
 
     private LoopHolder mLoopHolder;

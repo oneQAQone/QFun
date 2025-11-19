@@ -26,7 +26,7 @@ import me.yxp.qfun.utils.qq.QQCurrentEnv;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 
 @HookItemAnnotation(TAG = "显示艾特对象", desc = "点击消息中的艾特部分可直接跳转其主页（此功能可能导致滑动掉帧）")
-public class ShowAtTargetHook extends BaseSwitchHookItem {
+public final class ShowAtTargetHook extends BaseSwitchHookItem {
     private static Class<?> SelectableLinearLayout;
 
     private OnAIOViewUpdate.AIOViewUpdateListener onGetView;
