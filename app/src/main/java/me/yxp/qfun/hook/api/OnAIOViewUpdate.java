@@ -27,7 +27,7 @@ public final class OnAIOViewUpdate extends ApiHookItem {
                 .withParamTypes(ClassUtils.load("com.tencent.mvi.base.mvi.MviUIState"))
                 .findOne();
 
-        HookUtils.hookAlways(sHandleUIState, param -> {
+        HookUtils.hookAlways(sHandleUIState, null, param -> {
             ViewGroup msgView = (ViewGroup) FieldUtils.create(param.thisObject)
                     .ofType(View.class)
                     .getValue();
@@ -53,7 +53,7 @@ public final class OnAIOViewUpdate extends ApiHookItem {
                     ((AIOViewUpdateListener) listener).onUpdate(frameLayout, msgRecord);
                 }
             }
-        }, null);
+        });
     }
 
     private LinearLayout findMsgLayout(ViewGroup msgView) {

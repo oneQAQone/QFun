@@ -2,10 +2,13 @@ package me.yxp.qfun.javaplugin.api;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import me.yxp.qfun.utils.qq.CookieTool;
+import me.yxp.qfun.utils.qq.FriendTool;
 import me.yxp.qfun.utils.qq.MsgTool;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 
@@ -20,6 +23,7 @@ public class MsgData {
     public String msg;
     public Object data;
     public ArrayList<String> atList;
+    public Map<String, String> atMap;
     public String path;
     public long msgId;
     public Object contact;
@@ -34,6 +38,7 @@ public class MsgData {
         msg = "";
         data = msgRecord;
         atList = new ArrayList<>();
+        atMap = new HashMap<>();
         path = "";
         msgId = (long) Objects.requireNonNullElse(FieldUtils.create(msgRecord).withName("msgId").getValue(), 0);
         contact = MsgTool.makeContact(peerUin, type);
@@ -48,12 +53,20 @@ public class MsgData {
         for (Object msgElement : msgElements) {
             if (1 == (int) Objects.requireNonNullElse(FieldUtils.create(msgElement).withName("elementType").getValue(), 0)) {
                 Object textElement = FieldUtils.create(msgElement).withName("textElement").getValue();
-                String atUin = String.valueOf(Objects.requireNonNullElse(FieldUtils.create(textElement).withName("atUid").getValue(), "0"));
+                int atType = (int) Objects.requireNonNullElse(FieldUtils.create(textElement).withName("atType").getValue(), 0);
+                String atNtUid = String.valueOf(Objects.requireNonNullElse(FieldUtils.create(textElement).withName("atNtUid").getValue(), "0"));
+                String atUid = String.valueOf(Objects.requireNonNullElse(FieldUtils.create(textElement).withName("atUid").getValue(), "0"));
                 String content = (String) Objects.requireNonNullElse(FieldUtils.create(textElement).withName("content").getValue(), "");
                 messageBuilder.append(content);
 
-                if (!atUin.equals("0")) {
-                    atList.add(atUin);
+                if (atType == 2) {
+                    try {
+                        String atUin = FriendTool.getUinFromUid(atNtUid);
+                        if (atUin.isEmpty()) atUin = atUid;
+                        atList.add(atUin);
+                        atMap.put(atUin, content);
+                    } catch (Exception ignored) {
+                    }
                 }
             }
         }

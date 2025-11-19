@@ -25,6 +25,7 @@ import me.yxp.qfun.hook.chat.ForwardPttHook;
 import me.yxp.qfun.hook.chat.MsgTimeHook;
 import me.yxp.qfun.hook.chat.MultiRecallHook;
 import me.yxp.qfun.hook.chat.RemoveReplyAtHook;
+import me.yxp.qfun.hook.chat.ShowAtTargetHook;
 import me.yxp.qfun.hook.device.CustomDeviceHook;
 import me.yxp.qfun.hook.device.TabletModeHook;
 import me.yxp.qfun.hook.entry.QQHomeInject;
@@ -123,7 +124,7 @@ public class MainHook {
                 AutoSendOriginalPicHook.class, RecordsReplyMsgHook.class,
                 ForwardPttHook.class, DownloadTimesHook.class, CustomDeviceHook.class,
                 AntiInteractivePopHook.class, RemoveFilterVideoHook.class, AntiLinkPreviewHook.class,
-                MultiRecallHook.class, RemoveEmoReplyHook.class
+                MultiRecallHook.class, RemoveEmoReplyHook.class, ShowAtTargetHook.class
         };
 
         for (Class<?> hookClass : hookClasses) {

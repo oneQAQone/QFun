@@ -183,4 +183,7 @@ public class ClassUtils {
         return load("com.tencent.biz.qrcode.activity.QRLoginAuthActivity");
     }
 
+    public static Class<?> _SelectableLinearLayout() throws Exception {
+        return load("com.tencent.qqnt.aio.widget.SelectableLinearLayout");
+    }
 }
