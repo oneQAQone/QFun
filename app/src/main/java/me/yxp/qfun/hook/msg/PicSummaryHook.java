@@ -52,9 +52,9 @@ public final class PicSummaryHook extends BaseWithDataHookItem {
                 if (marketFaceElement != null) {
                     FieldUtils.create(marketFaceElement).withName("faceName").setValue(mPicSummary);
                     hasPic = true;
-                }
-                if (hasPic) setNextPicSummary();
+                }                
             }
+            if (hasPic) setNextPicSummary();
         };
     }
 

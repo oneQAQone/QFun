@@ -14,173 +14,176 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+
 public class ProtoData {
-    private static final int WIRETYPE_VARINT = 0;
-    private static final int WIRETYPE_FIXED64 = 1;
-    private static final int WIRETYPE_LENGTH_DELIMITED = 2;
-    private static final int WIRETYPE_FIXED32 = 5;
+    private final HashMap<Integer, List<Object>> values = new HashMap<>();
 
-    private final HashMap<Integer, List<Object>> mValues = new HashMap<>();
-
-    public void fromJSON(JSONObject json) {
-        try {
-            Iterator<String> keyIterator = json.keys();
-            while (keyIterator.hasNext()) {
-                String key = keyIterator.next();
-                int fieldNumber = Integer.parseInt(key);
-                Object value = json.get(key);
-                processJsonValue(fieldNumber, value);
-            }
-        } catch (Exception ignored) {
-            // 忽略解析异常
+    private byte[] getUnpPackage(byte[] b) {
+        if (b == null) {
+            return null;
         }
-    }
-
-    private void processJsonValue(int fieldNumber, Object value) {
-        if (value instanceof JSONObject) {
-            ProtoData newProto = new ProtoData();
-            newProto.fromJSON((JSONObject) value);
-            putValue(fieldNumber, newProto);
-        } else if (value instanceof JSONArray) {
-            processJsonArray(fieldNumber, (JSONArray) value);
+        if (b.length < 4) {
+            return b;
+        }
+        if ((b[0] & 0xFF) == 0) {
+            return Arrays.copyOfRange(b, 4, b.length);
         } else {
-            putValue(fieldNumber, value);
+            return b;
         }
     }
 
-    private void processJsonArray(int fieldNumber, JSONArray array) {
-        for (int i = 0; i < array.length(); i++) {
-            try {
-                Object arrayObj = array.get(i);
-                if (arrayObj instanceof JSONObject) {
+    public void fromJSON(JSONObject json){
+        try {
+            Iterator<String> key_it = json.keys();
+            while (key_it.hasNext()){
+                String key = key_it.next();
+                int k = Integer.parseInt(key);
+                Object value = json.get(key);
+                if (value instanceof JSONObject){
                     ProtoData newProto = new ProtoData();
-                    newProto.fromJSON((JSONObject) arrayObj);
-                    putValue(fieldNumber, newProto);
-                } else {
-                    putValue(fieldNumber, arrayObj);
+                    newProto.fromJSON((JSONObject) value);
+                    putValue(k, newProto);
+                }else if (value instanceof JSONArray){
+                    JSONArray arr = (JSONArray) value;
+                    for (int i = 0;i < arr.length(); i++){
+                        Object arr_obj = arr.get(i);
+                        if (arr_obj instanceof JSONObject){
+                            ProtoData newProto = new ProtoData();
+                            newProto.fromJSON((JSONObject) arr_obj);
+                            putValue(k, newProto);
+                        }else {
+                            putValue(k, arr_obj);
+                        }
+                    }
+                }else {
+                    putValue(k, value);
                 }
-            } catch (Exception e) {
-                // 忽略数组元素解析异常
             }
-        }
+        }catch (Exception ignored){ }
     }
-
-    private void putValue(int key, Object value) {
-        List<Object> list = mValues.computeIfAbsent(key, k -> new ArrayList<>());
+    private void putValue(int key, Object value){
+        List<Object> list = values.computeIfAbsent(key, k -> new ArrayList<>());
         list.add(value);
     }
-
-    public void fromBytes(byte[] data) throws IOException {
-        byte[] processedData = getUnpPackage(data);
-        CodedInputStream input = CodedInputStream.newInstance(processedData);
-
-        while (input.getBytesUntilLimit() > 0) {
-            int tag = input.readTag();
+    public void fromBytes(byte[] b) throws IOException {
+        b = getUnpPackage(b);
+        CodedInputStream in = CodedInputStream.newInstance(b);
+        while (in.getBytesUntilLimit() > 0) {
+            int tag = in.readTag();
             int fieldNumber = tag >>> 3;
             int wireType = tag & 7;
-
-            processWireType(fieldNumber, wireType, input);
-        }
-    }
-
-    private void processWireType(int fieldNumber, int wireType, CodedInputStream input) throws IOException {
-        switch (wireType) {
-            case WIRETYPE_VARINT:
-                putValue(fieldNumber, input.readInt64());
-                break;
-            case WIRETYPE_FIXED64:
-                putValue(fieldNumber, input.readRawVarint64());
-                break;
-            case WIRETYPE_LENGTH_DELIMITED:
-                processLengthDelimited(fieldNumber, input);
-                break;
-            case WIRETYPE_FIXED32:
-                putValue(fieldNumber, input.readFixed32());
-                break;
-            default:
-                putValue(fieldNumber, "Unknown wireType: " + wireType);
-                break;
-        }
-    }
-
-    private void processLengthDelimited(int fieldNumber, CodedInputStream input) throws IOException {
-        byte[] subBytes = input.readByteArray();
-        try {
-            ProtoData subData = new ProtoData();
-            subData.fromBytes(subBytes);
-            putValue(fieldNumber, subData);
-        } catch (Exception e) {
-            putValue(fieldNumber, new String(subBytes));
-        }
-    }
-
-    public JSONObject toJSON() throws Exception {
-        JSONObject result = new JSONObject();
-        for (Integer fieldNumber : mValues.keySet()) {
-            List<?> valueList = mValues.get(fieldNumber);
-            if (valueList.size() > 1) {
-                JSONArray array = new JSONArray();
-                for (Object value : valueList) {
-                    array.put(valueToJsonObject(value));
+            if (wireType == 4 || wireType == 3 || wireType > 5) throw new IOException("Unexpected wireType: " + wireType);
+            switch (wireType) {
+                case 0:
+                    putValue(fieldNumber, in.readInt64());
+                    break;
+                case 1:
+                    putValue(fieldNumber, in.readRawVarint64());
+                    break;
+                case 2: {
+                    byte[] subBytes = in.readByteArray();
+                    try {
+                        ProtoData sub_data = new ProtoData();
+                        sub_data.fromBytes(subBytes);
+                        putValue(fieldNumber, sub_data);
+                    } catch (Exception e) {
+                        try {
+                            String decoded = new String(subBytes, "UTF-8");
+                            byte[] reEncoded = decoded.getBytes("UTF-8");
+                            if (arraysEqual(subBytes, reEncoded)) {
+                                putValue(fieldNumber, decoded);
+                            } else {
+                                putValue(fieldNumber, "hex->" + bytesToHex(subBytes));
+                            }
+                        } catch (Exception e2) {
+                            putValue(fieldNumber, "hex->" + bytesToHex(subBytes));
+                        }
+                    }
+                    break;
                 }
-                result.put(String.valueOf(fieldNumber), array);
-            } else {
-                Object value = valueList.get(0);
-                result.put(String.valueOf(fieldNumber), valueToJsonObject(value));
+                case 5:
+                    putValue(fieldNumber, in.readFixed32());
+                    break;
+                default:
+                    putValue(fieldNumber, "Unknown wireType: " + wireType);
+                    break;
             }
         }
-        return result;
     }
 
-    private Object valueToJsonObject(Object value) throws Exception {
-        if (value instanceof ProtoData) {
-            return ((ProtoData) value).toJSON();
-        } else {
+    private static boolean arraysEqual(byte[] a1, byte[] a2) {
+        if (a1.length != a2.length) return false;
+        for (int i = 0; i < a1.length; i++) {
+            if (a1[i] != a2[i]) return false;
+        }
+        return true;
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X", b & 0xFF));
+        }
+        return sb.toString();
+    }
+
+    public JSONObject toJSON()throws Exception{
+        JSONObject obj = new JSONObject();
+        for (Integer k_index : values.keySet()){
+            List<?> list = values.get(k_index);
+            
+            if (list.size() > 1){
+                JSONArray arr = new JSONArray();
+                for (Object o : list){
+                    arr.put(valueToText(o));
+                }
+                obj.put(String.valueOf(k_index), arr);
+            }else {
+                for (Object o : list){
+                    obj.put(String.valueOf(k_index), valueToText(o));
+                }
+            }
+        }
+        return obj;
+    }
+    
+    private Object valueToText(Object value) throws Exception {
+        if (value instanceof ProtoData){
+            ProtoData data = (ProtoData) value;
+            return data.toJSON();
+        }else {
             return value;
         }
     }
-
-    public byte[] toBytes() {
-        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        CodedOutputStream output = CodedOutputStream.newInstance(byteStream);
-
+    
+    public byte[] toBytes(){
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        CodedOutputStream out = CodedOutputStream.newInstance(bos);
         try {
-            for (Integer fieldNumber : mValues.keySet()) {
-                List<?> valueList = mValues.get(fieldNumber);
-                for (Object value : valueList) {
-                    encodeValue(fieldNumber, value, output);
+            for (Integer k_index : values.keySet()){
+                List<?> list = values.get(k_index);
+                
+                for (Object o : list){
+                    if (o instanceof Long){
+                        long l = (Long) o;
+                        out.writeInt64(k_index , l);
+                    }else if (o instanceof String){
+                        String s = (String) o;
+                        out.writeByteArray(k_index , s.getBytes());
+                    }else if (o instanceof ProtoData){
+                        ProtoData data = (ProtoData) o;
+                        byte[] subBytes = data.toBytes();
+                        out.writeByteArray(k_index , subBytes);
+                    }else if (o instanceof Integer){
+                        int i = (Integer) o;
+                        out.writeInt32(k_index, i);
+                    }
                 }
             }
-            output.flush();
-            return byteStream.toByteArray();
-        } catch (Exception e) {
+            out.flush();
+            return bos.toByteArray();
+        }catch (Exception e) {
             return new byte[0];
-        }
-    }
-
-    private void encodeValue(int fieldNumber, Object value, CodedOutputStream output) throws IOException {
-        if (value instanceof Long) {
-            output.writeInt64(fieldNumber, (Long) value);
-        } else if (value instanceof String) {
-            output.writeByteArray(fieldNumber, ((String) value).getBytes());
-        } else if (value instanceof ProtoData) {
-            byte[] subBytes = ((ProtoData) value).toBytes();
-            output.writeByteArray(fieldNumber, subBytes);
-        } else if (value instanceof Integer) {
-            output.writeInt32(fieldNumber, (Integer) value);
-        }
-        // 其他类型暂时忽略
-    }
-
-    private byte[] getUnpPackage(byte[] data) {
-        if (data == null || data.length < 4) {
-            return data;
-        }
-
-        if (data[0] == 0) {
-            return Arrays.copyOfRange(data, 4, data.length);
-        } else {
-            return data;
         }
     }
 }
