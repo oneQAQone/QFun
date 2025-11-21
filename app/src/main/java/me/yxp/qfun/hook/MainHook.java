@@ -114,7 +114,7 @@ public class MainHook {
 
     public static void initHookItem() {
         Class<?>[] hookClasses = {
-            TroopClockInHook.class, AutoKeepSparkHook, RevokeMsgHook.class, PaiYiPaiHook.class,
+            TroopClockInHook.class, AutoKeepSparkHook.class, RevokeMsgHook.class, PaiYiPaiHook.class,
                 RepeatMsgHook.class, MsgTimeHook.class, FlashPicHook.class,
                 PicSummaryHook.class, RemoveRiskWebpageBlockHook.class, RandomFaceHook.class,
                 AntiAtAllHook.class, MsgContentHook.class,
