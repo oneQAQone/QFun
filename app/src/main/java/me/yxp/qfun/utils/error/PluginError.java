@@ -26,9 +26,22 @@ public class PluginError {
         logPluginError("findError", throwable, pluginInfo, "回调(" + callback + ")未找到");
     }
 
+    public static void log(PluginInfo pluginInfo, String fileName, String text) {
+        try {
+
+            // 写入错误文件
+            FileWriter writer = new FileWriter(pluginInfo.pluginPath + "/" + fileName, true);
+            writer.write(text);
+            writer.close();
+
+        } catch (Exception e) {
+            // 忽略文件写入异常
+        }
+    }
+
     private static void logPluginError(String errorType, Throwable throwable,
                                        PluginInfo pluginInfo, String additionalInfo) {
-        try {
+
             String time = DATE_FORMAT.format(new Date());
             String stackTrace = Log.getStackTraceString(throwable);
 
@@ -48,12 +61,6 @@ public class PluginError {
             ToastUtils.Toast(throwable.toString());
 
             // 写入错误文件
-            FileWriter writer = new FileWriter(pluginInfo.pluginPath + "/error.txt", true);
-            writer.write(logContent);
-            writer.close();
-
-        } catch (Exception e) {
-            // 忽略文件写入异常
-        }
+            log(pluginInfo, "error.txt", logContent);
     }
 }

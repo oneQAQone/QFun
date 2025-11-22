@@ -19,6 +19,7 @@ import me.yxp.qfun.javaplugin.api.MsgData;
 import me.yxp.qfun.utils.data.DataUtils;
 import me.yxp.qfun.utils.dexkit.DexKit;
 import me.yxp.qfun.utils.error.ErrorOutput;
+import me.yxp.qfun.utils.hook.xpcompat.XposedBridge;
 import me.yxp.qfun.utils.reflect.ClassUtils;
 import me.yxp.qfun.utils.reflect.FieldUtils;
 import me.yxp.qfun.utils.reflect.MethodUtils;
@@ -28,6 +29,7 @@ public class MsgTool {
     private static Method sSendMsg;
     private static Method sGenerateMsgUniqueId;
     private static Method sGetMsgsByMsgId;
+    private static Method sSendPai;
 
     static {
         try {
@@ -48,6 +50,17 @@ public class MsgTool {
                 .withMethodName("generateMsgUniqueId").findOne();
         sGetMsgsByMsgId = MethodUtils.create(ClassUtils._IKernelMsgService$CppProxy())
                 .withMethodName("getMsgsByMsgId").findOne();
+        try {
+            sSendPai = MethodUtils.create(ClassUtils._PaiYiPaiHandler())
+                    .withReturnType(void.class)
+                    .withParamTypes(String.class, String.class, int.class, int.class)
+                    .findOne();
+        } catch (Exception e) {
+            sSendPai = MethodUtils.create(ClassUtils._PaiYiPaiHandler())
+                    .withReturnType(void.class)
+                    .withParamTypes(int.class, int.class, String.class, String.class)
+                    .findOne();
+        }
     }
 
     // 撤回消息相关方法
@@ -88,6 +101,15 @@ public class MsgTool {
     public static void sendMsg(Object contact, String msg) throws Exception {
         List<Object> msgElements = processMessageContent(contact, msg);
         if (!msgElements.isEmpty()) sendMsg(contact, msgElements);
+    }
+
+    public static void sendPai(String toUin, String peerUin, int chatType) throws Exception {
+        Object paiYiPaiHandler = ClassUtils.makeDefaultObject(ClassUtils._PaiYiPaiHandler(), QQCurrentEnv.getQQAppInterface());
+        try {
+            XposedBridge.invokeOriginalMethod(sSendPai, paiYiPaiHandler, new Object[]{toUin, peerUin, chatType, 1});
+        } catch (Exception e) {
+            XposedBridge.invokeOriginalMethod(sSendPai, paiYiPaiHandler, new Object[]{chatType, 1, toUin, peerUin});
+        }
     }
 
     // 特殊消息发送方法

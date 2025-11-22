@@ -151,6 +151,9 @@ public class PluginMethod {
     }
 
     // 消息管理方法
+    public void sendPai(String toUin, String peerUin, int chatType) {
+        executeWithErrorHandling(() -> MsgTool.sendPai(toUin, peerUin, chatType));
+    }
     public void recallMsg(int type, String peer, ArrayList<Long> list) {
         executeWithErrorHandling(() -> MsgTool.recallMsg(type, peer, list));
     }
@@ -290,6 +293,11 @@ public class PluginMethod {
     }
 
     // 统一的错误处理方法
+
+    public void log(String fileName, String text) {
+        PluginError.log(mPluginInfo, fileName, text);
+    }
+
     private void executeWithErrorHandling(SyncUtils.MyRunnable action) {
         try {
             action.run();
