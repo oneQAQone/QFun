@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import bsh.classpath.BshLoaderManager;
 import me.yxp.qfun.javaplugin.loader.LoadJarHelper;
 import me.yxp.qfun.javaplugin.loader.PluginCompiler;
 import me.yxp.qfun.javaplugin.loader.PluginInfo;
@@ -36,6 +37,14 @@ public class PluginMethod {
     public void loadJar(String jarPath) {
         try {
             mPluginCompiler.fixClassLoader.addClassLoader(LoadJarHelper.loadJar(jarPath));
+        } catch (Exception e) {
+            PluginError.callError(e, mPluginInfo);
+        }
+    }
+
+    public void loadDex(String dexPath) {
+        try {
+            BshLoaderManager.addLoader(BshLoaderManager.getDexLoader(dexPath, mPluginCompiler.fixClassLoader));
         } catch (Exception e) {
             PluginError.callError(e, mPluginInfo);
         }
@@ -154,6 +163,7 @@ public class PluginMethod {
     public void sendPai(String toUin, String peerUin, int chatType) {
         executeWithErrorHandling(() -> MsgTool.sendPai(toUin, peerUin, chatType));
     }
+
     public void recallMsg(int type, String peer, ArrayList<Long> list) {
         executeWithErrorHandling(() -> MsgTool.recallMsg(type, peer, list));
     }
