@@ -6,7 +6,7 @@ androidx-documentfile = "1.1.0"
 androidx-annotation = "1.9.1"
 kotlinxCoroutinesCore = "1.10.2"
 protobufGradlePlugin = "0.9.5"
-protobufJavaUtil = "4.32.1"
+protobufJavaUtil = "4.33.1"
 kotinPlugin = "2.2.20"
 
 [libraries]
