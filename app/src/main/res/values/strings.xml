@@ -4,5 +4,8 @@
     <string name="app_name">QFun</string>
     <string name="plugin_name">JavaPlugin</string>
     <string name="xposeddescription">Adapted for QQ9.1.25+ and TIM</string>
+    <string name="more_settings">更多设置</string>
+    <string name="talkandbb">交流讨论</string>
+    <string name="firstaidkit">使用帮助</string>
 
 </resources>

@@ -41,12 +41,12 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            signingConfig signingConfigs.main
+            //signingConfig signingConfigs.main
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            minifyEnabled true
-            signingConfig signingConfigs.main
+            minifyEnabled false
+            //signingConfig signingConfigs.main
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
         }
@@ -65,6 +65,8 @@ dependencies {
     implementation(project(":service"))
     implementation libs.androidx.documentfile
     implementation libs.androidx.annotation
+    implementation libs.androidx.cardview
+    implementation libs.androidx.constraintlayout
     implementation libs.dexkit
     implementation libs.protobuf.java
     implementation libs.beanshell.android.lambda.v300beta3
