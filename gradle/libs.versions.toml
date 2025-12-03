@@ -8,7 +8,8 @@ kotlinxCoroutinesCore = "1.10.2"
 protobufGradlePlugin = "0.9.5"
 protobufJavaUtil = "4.32.1"
 kotinPlugin = "2.2.20"
-
+androidx-cardview = "+"
+androidx-constraintlayout = "+"
 [libraries]
 beanshell-android-lambda-v300beta3 = { module = "io.github.copylibs:beanshell-android-lambda", version.ref = "beanshellAndroidLambdaVersion" }
 dexkit = { module = "org.luckypray:dexkit", version.ref = "dexkit" }
@@ -16,7 +17,8 @@ androidx-documentfile = { module = "androidx.documentfile:documentfile", version
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobufJavaUtil" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
-
+androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "androidx-cardview"}
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidx-constraintlayout" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobufGradlePlugin"}

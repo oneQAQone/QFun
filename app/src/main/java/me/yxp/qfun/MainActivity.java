@@ -1,12 +1,14 @@
 package me.yxp.qfun;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,10 +17,12 @@ import io.github.libxposed.service.XposedService;
 import me.yxp.qfun.utils.hook.hookstatus.HookStatus;
 import me.yxp.qfun.utils.qq.HostInfo;
 
-public class MainActivity extends Activity {
-    private ImageView mIvActivationStatus;
-    private TextView mTvHookStatus;
-    private TextView mTvFramework;
+public class MainActivity extends Activity implements View.OnClickListener {
+    private TextView customText;
+    private Button btnUsage;
+    private Button btnDiscussion;
+    private Button btnChangelog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,26 +35,30 @@ public class MainActivity extends Activity {
     }
 
     private void initView() {
-        TextView tvVersion = findViewById(R.id.main_version);
-        tvVersion.setText(String.format("%s(%s)",
-                BuildConfig.VERSION_NAME,
-                BuildConfig.VERSION_CODE));
+        this.customText = findViewById(R.id.custom_text);
+        this.btnUsage = findViewById(R.id.btn_usage);
+        this.btnDiscussion = findViewById(R.id.btn_discussion);
+        this.btnChangelog = findViewById(R.id.btn_changelog);
 
-        mIvActivationStatus = findViewById(R.id.main_isChecked);
-        mTvHookStatus = findViewById(R.id.main_hookstatus);
-        mTvFramework = findViewById(R.id.main_framework);
+        btnUsage.setOnClickListener(this);
+        btnDiscussion.setOnClickListener(this);
+        btnChangelog.setOnClickListener(this);
     }
 
-    public void gotoTelegram(View v) {
+    public void gotoTelegram() {
         jump("https://t.me/QFunChannel");
     }
 
-    public void gotoGithub(View v) {
+    public void gotoGithub() {
         jump("https://github.com/oneQAQone/QFun");
     }
 
-    public void gotoQQGroup(View v) {
+    public void gotoQQGroup() {
         jump("mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1067198087&card_type=group&source=qrcode");
+    }
+
+    public void gotoTelegramChat() {
+        jump("https://t.me/QFunChatGroup");
     }
 
     private void jump(String url) {
@@ -60,11 +68,7 @@ public class MainActivity extends Activity {
 
     private void updateActivationStatus() {
         boolean isHookEnabled = checkHookStatus();
-
-        mIvActivationStatus.setImageResource(isHookEnabled ?
-                R.drawable.checked : R.drawable.unchecked);
-        mTvHookStatus.setText(isHookEnabled ? "已激活" : "未激活");
-        updateFrameworkInfo(isHookEnabled);
+        customText.setText(isHookEnabled ? "状态：已激活" : "状态：未激活");
     }
 
     private boolean checkHookStatus() {
@@ -85,22 +89,29 @@ public class MainActivity extends Activity {
         return !scope.isEmpty();
     }
 
-    private void updateFrameworkInfo(boolean isHookEnabled) {
-        if (!isHookEnabled) {
-            mTvFramework.setText(HookStatus.getHookProviderNameForLegacyApi());
-            return;
-        }
+    @Override
+    public void onClick(View v) {
+        // 有点懵了这里，原本想用switch
+        // 结果R.id的final被砍了，我还不记得恢复的配置是哪个了
+        if (v.getId() == R.id.btn_usage)
+            gotoGithub();
+        else if (v.getId() == R.id.btn_discussion)
+            startDiscussionDialog();
+        else if (v.getId() == R.id.btn_changelog)
+            Toast.makeText(this, "暂时没有更多哦！", Toast.LENGTH_SHORT).show();
+    }
 
-        XposedService xposedService = HookStatus.getXposedService().getValue();
-        if (xposedService != null) {
-            String frameworkInfo = String.format("%s %s (%s), API %s",
-                    xposedService.getFrameworkName(),
-                    xposedService.getFrameworkVersion(),
-                    xposedService.getFrameworkVersionCode(),
-                    xposedService.getAPIVersion());
-            mTvFramework.setText(frameworkInfo);
-        } else {
-            mTvFramework.setText(HookStatus.getHookProviderNameForLegacyApi());
-        }
+
+    public void startDiscussionDialog() {
+        var builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Light_Dialog_Alert);
+        var items = new CharSequence[]{
+                "Telegram Channel",
+                "Telegram Chat Group",
+        };
+        builder.setTitle("交流讨论")
+        .setItems(items, (dialog, which) -> {
+            if (which == 0) gotoTelegram();
+            if (which == 1) gotoTelegramChat();
+        }).show();
     }
 }

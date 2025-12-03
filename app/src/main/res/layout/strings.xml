@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <string name="app_name">QFun</string>
-    <string name="plugin_name">JavaPlugin</string>
-    <string name="xposeddescription">Adapted for QQ9.1.25+ and TIM4.0.95+</string>
-
-</resources>
