@@ -1,0 +1,144 @@
+package bsh.security;
+
+import bsh.CallStack;
+import bsh.EvalError;
+import bsh.Node;
+import bsh.Reflect;
+import bsh.UtilEvalError;
+
+/**
+ * It's a specific error that is throwed when try to execute something that mustn't be executed
+ */
+public class SecurityError extends UtilEvalError {
+
+    SecurityError(String msg) {
+        super("SecurityError: " + msg);
+    }
+
+    /**
+     * This method basically return the types of args at a concatened String by ", "
+     */
+    private static String argsTypesString(Object[] args) {
+        String[] argTypeNames = new String[args.length];
+        for (int i = 0; i < args.length; i++) {
+            final Class<?> _class = Reflect.getType(args[i]);
+            argTypeNames[i] = _class != null ? _class.getTypeName() : "null";
+        }
+        return String.join(", ", argTypeNames);
+    }
+
+    /**
+     * Create a error for when can't construct a instance
+     */
+    static SecurityError cantConstruct(Class<?> _class, Object[] args) {
+        String msg = String.format("Can't call this construct: new %s(%s)", _class.getName(), argsTypesString(args));
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when can't construct a instance using reflection
+     */
+    static SecurityError reflectCantConstruct(Class<?> _class, Object[] args) {
+        String msg = String.format("Can't call this construct using reflection: new %s(%s)", _class.getName(), argsTypesString(args));
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when can't invoke a static method
+     */
+    static SecurityError cantInvokeStaticMethod(Class<?> _class, String methodName, Object[] args) {
+        String msg = String.format("Can't invoke this static method: %s.%s(%s)", _class.getTypeName(), methodName, argsTypesString(args));
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when can't invoke a static method using reflection
+     */
+    static SecurityError reflectCantInvokeStaticMethod(Class<?> _class, String methodName, Object[] args) {
+        String msg = String.format("Can't invoke this static method using reflection: %s.%s(%s)", _class.getTypeName(), methodName, argsTypesString(args));
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when can't invoke a method
+     */
+    static SecurityError cantInvokeMethod(Object thisArg, String methodName, Object[] args) {
+        String msg = String.format("Can't invoke this method: %s.%s(%s)", thisArg.getClass().getTypeName(), methodName, argsTypesString(args));
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when can't invoke a method using reflection
+     */
+    static SecurityError reflectCantInvokeMethod(Object thisArg, String methodName, Object[] args) {
+        String msg = String.format("Can't invoke this method using reflection: %s.%s(%s)", thisArg.getClass().getTypeName(), methodName, argsTypesString(args));
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when can't invoke a local method ( aka commands )
+     */
+    static SecurityError cantInvokeLocalMethod(String methodName, Object[] args) {
+        String msg = String.format("Can't invoke this local method: %s(%s)", methodName, argsTypesString(args));
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when can't get a field
+     */
+    static SecurityError cantGetField(Object thisArg, String fieldName) {
+        String msg = String.format("Can't get this field: %s.%s", thisArg.getClass().getTypeName(), fieldName);
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when can't get a field
+     */
+    static SecurityError reflectCantGetField(Object thisArg, String fieldName) {
+        String msg = String.format("Can't get this field using reflection: %s.%s", thisArg.getClass().getTypeName(), fieldName);
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when can't get a field
+     */
+    static SecurityError cantGetStaticField(Class<?> _class, String fieldName) {
+        String msg = String.format("Can't get this static field: %s.%s", _class.getTypeName(), fieldName);
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when can't get a field
+     */
+    static SecurityError reflectCantGetStaticField(Class<?> _class, String fieldName) {
+        String msg = String.format("Can't get this static field using reflection: %s.%s", _class.getTypeName(), fieldName);
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when a class can't extends another class
+     */
+    static SecurityError cantExtends(Class<?> superClass) {
+        String msg = String.format("Can't extend this class: %s", superClass.getName());
+        return new SecurityError(msg);
+    }
+
+    /**
+     * Create a error for when a class can't implements an interface
+     */
+    static SecurityError cantImplements(Class<?> _interface) {
+        String msg = String.format("Can't implement this interface: %s", _interface.getName());
+        return new SecurityError(msg);
+    }
+
+    @Override
+    public EvalError toEvalError(String msg, Node node, CallStack callstack) {
+        return new EvalError(this.getMessage(), node, callstack);
+    }
+
+    @Override
+    public EvalError toEvalError(Node node, CallStack callstack) {
+        return new EvalError(this.getMessage(), node, callstack);
+    }
+
+}
