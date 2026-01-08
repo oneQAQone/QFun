@@ -1,5 +1,7 @@
 package me.yxp.qfun.utils.qq
 
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import com.tencent.biz.troop.EditUniqueTitleActivity
 import com.tencent.mobileqq.app.QQAppInterface
@@ -127,7 +129,7 @@ object TroopTool : DexKitTask {
                 groupInfoList.add(
                     GroupInfo(
                         it.troopuin,
-                        it.troopNameFromNT,
+                        it.troopNameFromNT ?: it.troopuin,
                         it.troopowneruin,
                         it
                     )
@@ -194,6 +196,13 @@ object TroopTool : DexKitTask {
         }.onFailure {
             edit.app = QQCurrentEnv.qQAppInterface
             edit.intent = Intent()
+            ContextWrapper::class.java
+                .getDeclaredMethod(
+                    "attachBaseContext",
+                    Context::class.java
+                )
+                .apply { isAccessible = true }
+                .invoke(edit, HostInfo.hostContext)
             setGroupMemberTitle.invoke(edit, troopUin, uin, title)
         }
 
