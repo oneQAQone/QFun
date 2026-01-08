@@ -27,6 +27,7 @@ object AutoGroupClockIn : BaseClickableHookItem<TroopSetConfig>(TroopSetConfig.s
             "DailyClockIn_Exact",
             targetMidnight
         ) {
+            if (!isEnable) return@ScheduledTask
             doClockIn()
         }
 
@@ -34,6 +35,7 @@ object AutoGroupClockIn : BaseClickableHookItem<TroopSetConfig>(TroopSetConfig.s
             "DailyClockIn_Backup",
             targetMidnight + 500
         ) {
+            if (!isEnable) return@ScheduledTask
             doClockIn()
             scheduleClockIn()
         }

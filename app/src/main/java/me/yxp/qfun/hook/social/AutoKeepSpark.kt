@@ -44,6 +44,7 @@ object AutoKeepSpark : BaseClickableHookItem<SparkConfig>(SparkConfig.serializer
             TASK_ID,
             targetTime
         ) {
+            if (!isEnable) return@ScheduledTask
             sendMsg()
             scheduleSend()
         }

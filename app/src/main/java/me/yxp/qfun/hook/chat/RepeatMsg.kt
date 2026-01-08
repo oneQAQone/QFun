@@ -50,7 +50,7 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     override fun onInit(): Boolean {
         handleIntent = AIOMsgFollowComponent::class.java
             .findMethod {
-                returnType = Void.TYPE
+                returnType = void
                 paramTypes(int, AIOMsgItem::class.java.superclass, list)
             }
         return super.onInit()
