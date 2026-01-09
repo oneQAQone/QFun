@@ -2,10 +2,11 @@ package me.yxp.qfun.hook.base
 
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.utils.qq.HostInfo
+import me.yxp.qfun.utils.reflect.TAG
 
 abstract class BaseHookItem {
 
-    val name: String = this::class.java.simpleName
+    val name: String = TAG
 
     open var isEnable = true
 

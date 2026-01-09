@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import com.tencent.mobileqq.activity.SplashActivity
+import kotlinx.coroutines.delay
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.generated.HookRegistry
 import me.yxp.qfun.ui.components.dialogs.CenterDialogContainerNoButton
@@ -21,6 +22,7 @@ import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.MsgTool
 import me.yxp.qfun.utils.qq.TroopTool
+import me.yxp.qfun.utils.reflect.TAG
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.FindMethod
@@ -65,7 +67,7 @@ object DexKitFinder {
     }
 
     private fun startFind() {
-        ModuleScope.launchIO("DexKitFinder") {
+        ModuleScope.launchIO(TAG) {
             val tasks = HookRegistry.hookItems.filterIsInstance<DexKitTask>().toMutableList()
             tasks.apply {
                 add(TroopTool)
@@ -79,24 +81,24 @@ object DexKitFinder {
                         task.getQueryMap().forEach { (name, query) ->
                             when (query) {
                                 is FindClass -> bridge.findClass(query).singleOrNull()?.let {
-                                    val tip = "${task.getSimpleName()}->$name"
+                                    val tip = "${task.TAG}->$name"
                                     progressText = tip
                                     DexKitCache.cacheMap[tip] = it.descriptor
                                 }
 
                                 is FindMethod -> bridge.findMethod(query).singleOrNull()?.let {
-                                    val tip = "${task.getSimpleName()}->$name"
+                                    val tip = "${task.TAG}->$name"
                                     progressText = tip
                                     DexKitCache.cacheMap[tip] = it.descriptor
                                 }
                             }
                         }
-                    }.onFailure { LogUtils.e("", it) }
+                    }.onFailure { LogUtils.e(task.TAG, it) }
                 }
             }
             progressText = "查找完成，保存并关闭应用"
             DexKitCache.saveCache()
-            Thread.sleep(500)
+            delay(500)
             Process.killProcess(Process.myPid())
         }
     }
@@ -106,13 +108,11 @@ interface DexKitTask {
 
     fun getQueryMap(): Map<String, BaseQuery>
 
-    fun getSimpleName(): String = this.javaClass.simpleName
-
     fun requireClass(name: String): Class<*> {
-        return DexKitCache.getClass("${getSimpleName()}->$name")
+        return DexKitCache.getClass("${TAG}->$name")
     }
 
     fun requireMethod(name: String): Method {
-        return DexKitCache.getMethod("${getSimpleName()}->$name")
+        return DexKitCache.getMethod("${TAG}->$name")
     }
 }

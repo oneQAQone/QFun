@@ -198,7 +198,7 @@ object AntiRevoke : BaseSwitchHookItem(), AIOViewUpdateListener {
 
         param.args[1] = ByteArray(0)
 
-        ModuleScope.launchIO {
+        ModuleScope.launchIO(name) {
             val operatorName =
                 TroopTool.getMemberInfo(groupPeerId, FriendTool.getUinFromUid(operatorUid)).uinName
             val senderName = if (operatorUid != senderUid) {
@@ -260,7 +260,7 @@ object AntiRevoke : BaseSwitchHookItem(), AIOViewUpdateListener {
         recordRevoke(operatorUid, msgSeq)
         param.args[1] = ByteArray(0)
 
-        ModuleScope.launchIO {
+        ModuleScope.launchIO(name) {
             val builder = NtGrayTipJsonBuilder()
             builder.appendText("对方")
             builder.appendText(" 尝试撤回")

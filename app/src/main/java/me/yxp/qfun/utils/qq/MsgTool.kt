@@ -10,6 +10,7 @@ import com.tencent.qqnt.msg.api.IMsgUtilApi
 import me.yxp.qfun.utils.dexkit.DexKitTask
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.net.HttpUtils
+import me.yxp.qfun.utils.reflect.TAG
 import me.yxp.qfun.utils.reflect.callMethod
 import me.yxp.qfun.utils.reflect.callOriginal
 import me.yxp.qfun.utils.reflect.findMethod
@@ -51,11 +52,11 @@ object MsgTool : DexKitTask {
             if (HttpUtils.downloadSync(path, savePath)) {
                 return savePath
             }
-            LogUtils.e("MsgTool", Throwable("下载图片失败: $path"))
+            LogUtils.e(TAG, Throwable("下载图片失败: $path"))
             return null
         }
 
-        return if (File(path).exists()) path else null
+        return path.takeIf { File(it).exists() }
     }
 
     fun sendPai(toUin: String, peerUin: String, chatType: Int) {
@@ -68,11 +69,11 @@ object MsgTool : DexKitTask {
     }
 
     private fun recallMsg(contact: Contact, msgIds: ArrayList<Long>) {
-        QQCurrentEnv.kernelMsgService!!.recallMsg(contact, msgIds, null)
+        QQCurrentEnv.kernelMsgService?.recallMsg(contact, msgIds, null)
     }
 
     fun recallMsg(contact: Contact, msgId: Long) {
-        recallMsg(contact, ArrayList<Long>().apply { add(msgId) })
+        recallMsg(contact, arrayListOf(msgId))
     }
 
     fun recallMsg(chatType: Int, peerUin: String, msgId: Long) {
@@ -152,7 +153,7 @@ object MsgTool : DexKitTask {
 
             else -> msgUtilApiImpl.createTextElement(value)
         }
-        sendMsg(contact, ArrayList<MsgElement>().apply { add(msgElement) })
+        sendMsg(contact, arrayListOf(msgElement))
     }
 
     private fun sendMsgByType(peerUin: String, chatType: Int, value: String, type: String) {

@@ -35,6 +35,7 @@ import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import me.yxp.qfun.R
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.plugin.loader.PluginManager
+import me.yxp.qfun.utils.reflect.TAG
 import me.yxp.qfun.ui.core.compatibility.QFunBottomDialog
 import me.yxp.qfun.ui.core.theme.AccentGreen
 import me.yxp.qfun.ui.core.theme.Dimens
@@ -189,7 +190,7 @@ class PluginView(private val activity: Activity) {
                             name,
                             plugin.id
                         ) {
-                            ModuleScope.launchIO {
+                            ModuleScope.launchIO(TAG) {
                                 plugin.compiler.callback.invokeMenuItem(
                                     method,
                                     currentContact.chatType,
@@ -213,7 +214,7 @@ class PluginView(private val activity: Activity) {
                 if (plugin != null) {
                     Toasts.qqToast(2, "正在重载: ${plugin.name}...")
                     dismiss()
-                    ModuleScope.launchIO {
+                    ModuleScope.launchIO(TAG) {
                         try {
                             PluginManager.reloadPlugin(plugin)
                             Toasts.qqToast(2, "${plugin.name} 重载成功")

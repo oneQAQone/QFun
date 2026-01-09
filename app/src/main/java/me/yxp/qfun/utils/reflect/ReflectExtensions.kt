@@ -1,7 +1,15 @@
 package me.yxp.qfun.utils.reflect
 
 import me.yxp.qfun.utils.hook.xpcompat.XposedBridge
+import java.lang.Byte
+import java.lang.Double
+import java.lang.Float
+import java.lang.Long
+import java.lang.Short
 import java.lang.reflect.Member
+
+val Any.TAG: String
+    get() = this.javaClass.simpleName
 
 fun Member.callOriginal(obj: Any, vararg args: Any?): Any {
     return XposedBridge.invokeOriginalMethod(this, obj, args)
@@ -121,12 +129,12 @@ fun Class<*>.newInstanceWithArgs(vararg args: Any?): Any {
 
 private val primitiveWrapperMap = mapOf(
     Integer.TYPE to Integer::class.java,
-    java.lang.Long.TYPE to java.lang.Long::class.java,
+    Long.TYPE to Long::class.java,
     java.lang.Boolean.TYPE to java.lang.Boolean::class.java,
-    java.lang.Double.TYPE to java.lang.Double::class.java,
-    java.lang.Float.TYPE to java.lang.Float::class.java,
-    java.lang.Short.TYPE to java.lang.Short::class.java,
-    java.lang.Byte.TYPE to java.lang.Byte::class.java,
+    Double.TYPE to Double::class.java,
+    Float.TYPE to Float::class.java,
+    Short.TYPE to Short::class.java,
+    Byte.TYPE to Byte::class.java,
     Character.TYPE to Character::class.java
 )
 

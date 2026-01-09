@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
                     isActivated,
                     frameworkInfo,
                     isIconVisible,
-                    { handleToggleIcon() },
+                    ::handleToggleIcon,
                     { jump("https://t.me/QFunChannel") },
                     { jump("https://github.com/oneQAQone/QFun") },
                     { jump("mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1067198087&card_type=group&source=qrcode") }

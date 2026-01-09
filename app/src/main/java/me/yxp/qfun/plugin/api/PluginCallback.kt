@@ -3,6 +3,7 @@ package me.yxp.qfun.plugin.api
 import bsh.BshMethod
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.api.PaiYiPaiListener
+import me.yxp.qfun.utils.reflect.TAG
 import me.yxp.qfun.hook.api.ReceiveMsgListener
 import me.yxp.qfun.hook.api.SendMsgListener
 import me.yxp.qfun.hook.api.TroopJoinListener
@@ -93,7 +94,7 @@ class PluginCallback(val compiler: PluginCompiler) {
     ) {
         val bsh = compiler.interpreter
 
-        ModuleScope.launchIO {
+        ModuleScope.launchIO(TAG) {
             try {
                 val nameSpace = bsh.nameSpace
                 var targetMethod: BshMethod? = null
@@ -149,7 +150,7 @@ class PluginCallback(val compiler: PluginCompiler) {
     private fun runOnBackground(
         methodName: String, paramTypes: Array<Class<*>>, args: Array<Any>
     ) {
-        ModuleScope.launchIO {
+        ModuleScope.launchIO(TAG) {
             invokeMethodExists(methodName, paramTypes, args)
         }
     }

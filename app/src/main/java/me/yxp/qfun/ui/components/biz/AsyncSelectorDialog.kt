@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.ui.components.atoms.LoadingIndicator
+import me.yxp.qfun.utils.reflect.TAG
 import me.yxp.qfun.ui.components.dialogs.BaseDialogSurface
 import me.yxp.qfun.ui.components.dialogs.CenterDialog
 import me.yxp.qfun.ui.components.dialogs.SelectionItem
@@ -33,7 +34,7 @@ fun <T> AsyncSelectorDialog(
     var tempSelection by remember(currentSelection) { mutableStateOf(currentSelection) }
 
     LaunchedEffect(Unit) {
-        ModuleScope.launchIO {
+        ModuleScope.launchIO(TAG) {
             val rawData = dataLoader()
             val mappedItems = rawData.map(mapper)
             items = mappedItems.sortedByDescending { tempSelection.contains(it.id) }

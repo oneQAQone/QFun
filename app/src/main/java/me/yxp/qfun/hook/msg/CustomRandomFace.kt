@@ -101,7 +101,7 @@ object CustomRandomFace : BaseSwitchHookItem() {
                     SelectionList(values.toList()) { index ->
                         Toasts.qqToast(2, "已发送: ${values[index]}")
                         dismiss()
-                        ModuleScope.launchIO {
+                        ModuleScope.launchIO(name) {
                             try {
                                 val bytes = makeBytes(faceText, index + 1, peerUid, chatType)
                                 if (bytes.isNotEmpty()) sendBuffer(bytes)

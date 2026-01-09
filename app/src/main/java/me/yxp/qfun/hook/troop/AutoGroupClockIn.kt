@@ -46,7 +46,7 @@ object AutoGroupClockIn : BaseClickableHookItem<TroopSetConfig>(TroopSetConfig.s
 
     private fun doClockIn() {
         config.selectedSet.forEach {
-            ModuleScope.launchIO("ClockIn") {
+            ModuleScope.launchIO(name) {
                 TroopTool.clockIn(it)
             }
         }

@@ -151,7 +151,7 @@ object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
             if (contacts.isEmpty()) {
                 return@hookReplace param.invokeOriginal()
             }
-            ModuleScope.launchIO {
+            ModuleScope.launchIO(name) {
                 contacts.forEach { (key, value) ->
                     MsgTool.sendMsg(value, key, elements)
                     kotlinx.coroutines.delay(500)
@@ -172,7 +172,7 @@ object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
                 val newList = CopyOnWriteArrayList<Any>().apply {
                     addAll(list)
                 }
-                ModuleScope.launchIO {
+                ModuleScope.launchIO(name) {
                     newList.forEach { contact ->
 
                         val peerUin = contact.getObject("peerUin") as String

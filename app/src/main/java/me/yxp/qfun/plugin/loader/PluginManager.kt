@@ -4,6 +4,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.plugin.bean.PluginInfo
+import me.yxp.qfun.utils.reflect.TAG
 import me.yxp.qfun.utils.io.FileUtils
 import me.yxp.qfun.utils.io.ObjectStore
 import me.yxp.qfun.utils.log.PluginError
@@ -85,7 +86,7 @@ object PluginManager {
     }
 
     fun startAutoLoadPlugins() {
-        ModuleScope.launchIO {
+        ModuleScope.launchIO(TAG) {
             plugins.filter { autoLoadList.contains(it.id) }.forEach {
                 if (!it.isRunning) {
                     startPlugin(it)

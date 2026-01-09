@@ -15,6 +15,7 @@ import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.net.HttpUtils
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.QQCurrentEnv
+import me.yxp.qfun.utils.reflect.TAG
 import me.yxp.qfun.utils.reflect.findMethod
 import java.io.Serializable
 
@@ -22,11 +23,11 @@ object MainHook {
 
     private val allHookItem = HookRegistry.hookItems
     private val apiHookItemList =
-        allHookItem.filterIsInstance<BaseApiHookItem<Listener>>().toList()
+        allHookItem.filterIsInstance<BaseApiHookItem<Listener>>()
     val switchHookItemList =
-        allHookItem.filterIsInstance<BaseSwitchHookItem>().toList()
+        allHookItem.filterIsInstance<BaseSwitchHookItem>()
     val clickableHookItemList =
-        switchHookItemList.filterIsInstance<BaseClickableHookItem<Serializable>>().toList()
+        switchHookItemList.filterIsInstance<BaseClickableHookItem<Serializable>>()
 
 
     fun loadHook() {
@@ -47,10 +48,10 @@ object MainHook {
             }
         }
 
-    private fun initSwitchHookItem() = switchHookItemList.forEach { it.init() }
+    private fun initSwitchHookItem() = switchHookItemList.forEach(BaseSwitchHookItem::init)
 
     fun processDataForCurrent(tag: String) = clickableHookItemList
-        .filter { it.isAvailable }
+        .filter(BaseSwitchHookItem::isAvailable)
         .forEach {
             when (tag) {
                 "init" -> it.initData()

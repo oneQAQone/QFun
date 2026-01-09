@@ -53,7 +53,7 @@ object AutoKeepSpark : BaseClickableHookItem<SparkConfig>(SparkConfig.serializer
 
     private fun sendMsg() {
         config.contacts.forEach { contactStr ->
-            ModuleScope.launchIO("KeepSpark") {
+            ModuleScope.launchIO(name) {
                 val uin = contactStr.dropLast(4)
                 val chatType = if (contactStr.endsWith("(好友)")) 1 else 2
                 MsgTool.sendMsg(uin, config.message, chatType)

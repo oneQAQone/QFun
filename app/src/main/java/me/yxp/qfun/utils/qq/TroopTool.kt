@@ -173,7 +173,7 @@ object TroopTool : DexKitTask {
 
     fun kickGroup(troopUin: String, uin: String, block: Boolean) {
         val handler = handler<MemberSettingHandler>()
-        val uinList = ArrayList<Long>().apply { add(uin.toLong()) }
+        val uinList = arrayListOf(uin.toLong())
         runCatching {
             kickGroup.invoke(handler, troopUin.toLong(), uinList, block, false)
         }.onFailure {
@@ -219,8 +219,8 @@ object TroopTool : DexKitTask {
         changeMemberName.invoke(
             handler<TroopMemberCardHandler>(),
             troopUin,
-            ArrayList<TroopMemberCardInfo>().apply { add(cardInfo) },
-            ArrayList<Int>().apply { add(1) }
+            arrayListOf(cardInfo),
+            arrayListOf(1)
         )
     }
 

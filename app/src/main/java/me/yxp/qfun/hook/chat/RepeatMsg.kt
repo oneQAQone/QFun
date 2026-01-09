@@ -98,7 +98,7 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
             return
         }
 
-        ModuleScope.launchIO {
+        ModuleScope.launchIO(name) {
             val msgId = msgService.generateMsgUniqueId(
                 msgRecord.chatType,
                 System.currentTimeMillis()

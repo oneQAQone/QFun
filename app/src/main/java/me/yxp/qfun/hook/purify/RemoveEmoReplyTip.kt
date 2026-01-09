@@ -38,7 +38,7 @@ object RemoveEmoReplyTip : BaseSwitchHookItem() {
             if (grayTip.grayTipElement.xmlElement?.toString()?.contains("回应了你的") ?: false) {
                 QQCurrentEnv.kernelMsgService?.deleteMsg(
                     Contact(msgRecord.chatType, msgRecord.peerUid, ""),
-                    ArrayList<Long>().apply { add(msgRecord.msgId) },
+                    arrayListOf(msgRecord.msgId),
                     null
                 )
             }
