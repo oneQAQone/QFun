@@ -10,6 +10,7 @@ import me.yxp.qfun.hook.base.BaseClickableHookItem
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
 import me.yxp.qfun.hook.base.Listener
 import me.yxp.qfun.plugin.MainPlugin
+import me.yxp.qfun.ui.pages.configs.ConfigUiRegistry
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.net.HttpUtils
@@ -17,17 +18,17 @@ import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.reflect.TAG
 import me.yxp.qfun.utils.reflect.findMethod
-import java.io.Serializable
 
 object MainHook {
 
+    private var initialized = false
     private val allHookItem = HookRegistry.hookItems
     private val apiHookItemList =
         allHookItem.filterIsInstance<BaseApiHookItem<Listener>>()
     val switchHookItemList =
         allHookItem.filterIsInstance<BaseSwitchHookItem>()
     val clickableHookItemList =
-        switchHookItemList.filterIsInstance<BaseClickableHookItem<Serializable>>()
+        switchHookItemList.filterIsInstance<BaseClickableHookItem<*>>()
 
 
     fun loadHook() {
@@ -47,6 +48,18 @@ object MainHook {
                 LogUtils.e(it, t)
             }
         }
+
+    fun initAllConfigUI() {
+        if (initialized) return
+        initialized = true
+
+        clickableHookItemList
+            .forEach { item ->
+                ConfigUiRegistry.register(item.name) { onDismiss ->
+                    item.ConfigContent(onDismiss)
+                }
+            }
+    }
 
     private fun initSwitchHookItem() = switchHookItemList.forEach(BaseSwitchHookItem::init)
 

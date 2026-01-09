@@ -15,7 +15,6 @@ import me.yxp.qfun.hook.MainHook
 import me.yxp.qfun.hook.chat.RepeatMsg
 import me.yxp.qfun.ui.components.dialogs.ConfirmDialog
 import me.yxp.qfun.ui.core.theme.QFunTheme
-import me.yxp.qfun.ui.pages.configs.ConfigRegistrations
 import me.yxp.qfun.ui.pages.settings.SettingsScreen
 import me.yxp.qfun.ui.viewmodel.SettingViewModel
 import me.yxp.qfun.utils.qq.QQCurrentEnv
@@ -29,7 +28,7 @@ class SettingActivity : BaseComposeActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ConfigRegistrations.initAll()
+        MainHook.initAllConfigUI()
         setContent {
             val vm: SettingViewModel = viewModel()
             val appMetrics = applicationContext.resources.displayMetrics
