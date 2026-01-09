@@ -2,6 +2,9 @@ package me.yxp.qfun.plugin.view
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.res.ColorStateList
+import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
@@ -31,18 +34,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.widget.ImageViewCompat
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import me.yxp.qfun.R
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.plugin.loader.PluginManager
-import me.yxp.qfun.utils.reflect.TAG
 import me.yxp.qfun.ui.core.compatibility.QFunBottomDialog
 import me.yxp.qfun.ui.core.theme.AccentGreen
 import me.yxp.qfun.ui.core.theme.Dimens
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.utils.log.PluginError
+import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.qq.Toasts
+import me.yxp.qfun.utils.reflect.TAG
 import me.yxp.qfun.utils.ui.ThemeHelper
+import java.io.File
 import kotlin.math.abs
 
 class PluginView(private val activity: Activity) {
@@ -56,45 +62,54 @@ class PluginView(private val activity: Activity) {
     private var initialTouchY = 0
     private var isDragging = false
 
-    companion object {
-        private var savedX = -1
-        private var savedY = -1
-    }
+    private val prefs by lazy { QQCurrentEnv.globalPreference }
 
     fun show() {
         ThemeHelper.applyTheme(activity)
         if (popupWindow != null) return
-
         val currentContact = PluginViewLoader.currentContact
         PluginManager.plugins.filter { it.isRunning }
             .forEach {
                 it.compiler.callback.chatInterface(
-                    currentContact.chatType,
-                    currentContact.peerUin,
-                    currentContact.peerName
+                    currentContact.chatType, currentContact.peerUin, currentContact.peerName
                 )
             }
 
         val metrics = activity.resources.displayMetrics
+        val savedX = prefs.getInt("plugin_float_x", -1)
+        val savedY = prefs.getInt("plugin_float_y", -1)
+        val size = dp2px(35f)
+
         if (savedX == -1 || savedY == -1) {
-            lastX = metrics.widthPixels / 2
-            lastY = metrics.heightPixels / 2
+            lastX = (metrics.widthPixels - size) / 2
+            lastY = (metrics.heightPixels - size) / 2
         } else {
             lastX = savedX
             lastY = savedY
         }
 
-        val size = dp2px(20f)
-        val touchSize = dp2px(35f)
-
         val imageView = ImageView(activity).apply {
-            setImageResource(R.drawable.ic_plugin)
-            scaleType = ImageView.ScaleType.FIT_CENTER
+            val customIconFile = File("${QQCurrentEnv.currentDir}data/plugin")
+            if (customIconFile.exists()) {
+                try {
+                    val bitmap = BitmapFactory.decodeFile(customIconFile.absolutePath)
+                    setImageBitmap(bitmap)
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                } catch (_: Exception) {
+                    setImageResource(R.drawable.ic_float_ball)
+                }
+            } else {
+                setImageResource(R.drawable.ic_float_ball)
+                val isNight = ThemeHelper.isNightMode()
+                val tintColor = if (isNight) Color.WHITE else Color.BLACK
+                ImageViewCompat.setImageTintList(this, ColorStateList.valueOf(tintColor))
+                imageTintList = ColorStateList.valueOf(tintColor)
+            }
             layoutParams = ViewGroup.LayoutParams(size, size)
         }
 
         floatBtn = imageView
-        popupWindow = PopupWindow(imageView, touchSize, touchSize, false).apply {
+        popupWindow = PopupWindow(imageView, size, size, false).apply {
             isOutsideTouchable = false
             isFocusable = false
             elevation = 0f
@@ -127,8 +142,7 @@ class PluginView(private val activity: Activity) {
         val metrics = activity.resources.displayMetrics
         val width = metrics.widthPixels
         val height = metrics.heightPixels
-        val offset = dp2px(25f)
-
+        val offset = dp2px(40f)
         if (lastX < 0) lastX = 0
         if (lastX > width - offset) lastX = width - offset
         if (lastY < 0) lastY = 0
@@ -147,13 +161,10 @@ class PluginView(private val activity: Activity) {
                     isDragging = false
                     true
                 }
-
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.rawX - touchStartX
                     val dy = event.rawY - touchStartY
-
                     if (abs(dx) > 10 || abs(dy) > 10) isDragging = true
-
                     if (isDragging) {
                         lastX = (initialTouchX + dx).toInt()
                         lastY = (initialTouchY + dy).toInt()
@@ -161,17 +172,18 @@ class PluginView(private val activity: Activity) {
                     }
                     true
                 }
-
                 MotionEvent.ACTION_UP -> {
                     if (isDragging) {
-                        savedX = lastX
-                        savedY = lastY
+                        prefs.edit().apply {
+                            putInt("plugin_float_x", lastX)
+                            putInt("plugin_float_y", lastY)
+                            apply()
+                        }
                     } else {
                         showMenu()
                     }
                     true
                 }
-
                 else -> false
             }
         }
@@ -180,7 +192,6 @@ class PluginView(private val activity: Activity) {
     private fun showMenu() {
         val menuItems = mutableListOf<PluginMenuItem>()
         val currentContact = PluginViewLoader.currentContact
-
         PluginManager.plugins.filter { it.isRunning }.forEach { plugin ->
             if (plugin.compiler.menuItems.isNotEmpty()) {
                 menuItems.add(PluginMenuItem.Header(plugin.name, plugin.id))
@@ -207,7 +218,6 @@ class PluginView(private val activity: Activity) {
                 }
             }
         }
-
         QFunBottomDialog(activity) { dismiss ->
             PluginMenuContent(menuItems, dismiss) { pluginId ->
                 val plugin = PluginManager.plugins.find { it.id == pluginId }
@@ -229,9 +239,7 @@ class PluginView(private val activity: Activity) {
 
     private fun dp2px(dp: Float): Int {
         return TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            dp,
-            activity.resources.displayMetrics
+            TypedValue.COMPLEX_UNIT_DIP, dp, activity.resources.displayMetrics
         ).toInt()
     }
 }
@@ -249,7 +257,6 @@ private fun PluginMenuContent(
     onReloadPlugin: (String) -> Unit
 ) {
     val colors = QFunTheme.colors
-
     Column(
         Modifier
             .fillMaxWidth()
@@ -274,7 +281,6 @@ private fun PluginMenuContent(
         Spacer(Modifier.height(20.dp))
         HorizontalDivider(color = colors.textSecondary.copy(0.1f))
         Spacer(Modifier.height(20.dp))
-
         if (menuItems.isEmpty()) {
             Box(
                 Modifier
@@ -331,8 +337,7 @@ private fun PluginActionItem(name: String, onClick: () -> Unit) {
             .clip(RoundedCornerShape(16.dp))
             .background(colors.cardBackground)
             .clickable(onClick = onClick)
-            .padding(Dimens.CardCornerRadius, 18.dp),
-        Alignment.Center
+            .padding(Dimens.CardCornerRadius, 18.dp), Alignment.Center
     ) {
         Text(name, fontSize = 15.sp, color = colors.textPrimary)
     }

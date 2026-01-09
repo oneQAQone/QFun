@@ -7,6 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.core.net.toUri
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import me.yxp.qfun.ui.components.dialogs.ConfirmDialog
 import me.yxp.qfun.ui.core.theme.QFunTheme
@@ -17,17 +18,19 @@ import me.yxp.qfun.utils.net.HttpUtils
 @Suppress("DEPRECATION")
 class PluginActivity : BaseComposeActivity() {
 
+    companion object {
+        const val REQUEST_CODE_PICK_ICON = 1004
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val vm: PluginViewModel = viewModel()
-
             val appMetrics = applicationContext.resources.displayMetrics
             val stableDensity = Density(
                 density = appMetrics.density,
                 fontScale = appMetrics.scaledDensity / appMetrics.density
             )
-
             CompositionLocalProvider(LocalDensity provides stableDensity) {
                 QFunTheme(isDarkTheme) {
                     PluginScreen(
@@ -45,7 +48,8 @@ class PluginActivity : BaseComposeActivity() {
                         onPluginDelete = vm::showDeleteConfirm,
                         onPluginReload = vm::reloadPlugin,
                         onPluginUpload = vm::showUploadConfirm,
-                        onPluginDownload = vm::downloadPlugin
+                        onPluginDownload = vm::downloadPlugin,
+                        onPickIcon = ::openPickIcon
                     )
                     ConfirmDialog(
                         visible = vm.showDeleteDialog,
@@ -68,6 +72,25 @@ class PluginActivity : BaseComposeActivity() {
                 }
             }
         }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode != RESULT_OK || data == null) return
+        val uri = data.data ?: return
+        if (requestCode == REQUEST_CODE_PICK_ICON) {
+            val vm = ViewModelProvider(this)[PluginViewModel::class.java]
+            vm.handleIconSelection(this, uri)
+        }
+    }
+
+    private fun openPickIcon() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "image/*"
+        }
+        startActivityForResult(intent, REQUEST_CODE_PICK_ICON)
     }
 
     private fun openDocs() = runCatching {

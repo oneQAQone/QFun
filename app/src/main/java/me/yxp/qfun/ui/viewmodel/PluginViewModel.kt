@@ -1,11 +1,15 @@
 package me.yxp.qfun.ui.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.plugin.loader.PluginManager
 import me.yxp.qfun.plugin.net.ScriptInfo
 import me.yxp.qfun.plugin.net.ScriptService
@@ -23,28 +27,20 @@ sealed interface PluginListUiState {
 }
 
 class PluginViewModel : ViewModel() {
-
     var localPlugins by mutableStateOf<List<LocalPluginData>>(emptyList())
         private set
-
     var onlineUiState by mutableStateOf<PluginListUiState>(PluginListUiState.Loading)
         private set
-
     var downloadingPlugins by mutableStateOf<Set<String>>(emptySet())
         private set
-
     var showDeleteDialog by mutableStateOf(false)
         private set
-
     var showUploadDialog by mutableStateOf(false)
         private set
-
     var pendingDeletePluginId by mutableStateOf<String?>(null)
-        private set
-
+    private set
     var pendingUploadPluginId by mutableStateOf<String?>(null)
-        private set
-
+    private set
     private val scriptList = mutableListOf<ScriptInfo>()
 
     init {
@@ -164,9 +160,7 @@ class PluginViewModel : ViewModel() {
 
     fun fetchOnlinePlugins() {
         if (onlineUiState is PluginListUiState.Loading && scriptList.isNotEmpty()) return
-
         onlineUiState = PluginListUiState.Loading
-
         viewModelScope.launch {
             ScriptService.fetchScriptList().fold(
                 onSuccess = { list ->
@@ -210,6 +204,28 @@ class PluginViewModel : ViewModel() {
                     Toasts.qqToast(1, e.message ?: "安装失败")
                 }
             )
+        }
+    }
+
+    fun handleIconSelection(context: Context, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val targetFile = File("${QQCurrentEnv.currentDir}data/plugin")
+                FileUtils.ensureFile(targetFile)
+                inputStream?.use { input ->
+                    targetFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                ModuleScope.launchMain {
+                    Toasts.qqToast(2, "悬浮图标已更新，下次显示生效")
+                }
+            }.onFailure {
+                ModuleScope.launchMain {
+                    Toasts.qqToast(1, "图标设置失败: ${it.message}")
+                }
+            }
         }
     }
 }

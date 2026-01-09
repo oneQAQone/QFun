@@ -72,7 +72,7 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
                 context,
                 MODULE_ORDER,
                 "JavaPlugin",
-                R.drawable.ic_plugin
+                R.drawable.ic_float_ball
             )
             setOnClickListener.invoke(
                 pluginEntry, makeProxy(
