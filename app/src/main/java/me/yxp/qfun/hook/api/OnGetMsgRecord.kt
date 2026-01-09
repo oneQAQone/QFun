@@ -14,8 +14,7 @@ object OnGetMsgRecord : BaseApiHookItem<GetMsgRecordListener>() {
         AIOMsgItem::class.java.getDeclaredMethod("getMsgRecord")
             .hookAfter(this) { param ->
                 val msgRecord = param.result as MsgRecord
-                listenerSet.filter { verify(it) }
-                    .forEach { it.onGet(msgRecord) }
+                forEachChecked { it.onGet(msgRecord) }
             }
     }
 }

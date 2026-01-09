@@ -38,11 +38,10 @@ object OnReceiveMsg : BaseApiHookItem<ReceiveMsgListener>(), DexKitTask {
 
                 QQCurrentEnv.kernelMsgService?.getMsgsByMsgId(
                     Contact(msgRecord.chatType, msgRecord.peerUid, msgRecord.guildId),
-                    ArrayList<Long>().apply { add(msgRecord.msgId) }
+                    arrayListOf(msgRecord.msgId)
                 ) { _, _, arrayList ->
                     val record = arrayList.firstOrNull() ?: msgRecord
-                    listenerSet.filter { verify(it) }
-                        .forEach { it.onReceive(record) }
+                    forEachChecked { it.onReceive(record) }
                 }
 
             }
@@ -58,8 +57,7 @@ object OnReceiveMsg : BaseApiHookItem<ReceiveMsgListener>(), DexKitTask {
 
             if (msgRecords[0].elements.isEmpty()) return@hookAfter
 
-            listenerSet.filter { verify(it) }
-                .forEach { it.onReceive(msgRecords[0]) }
+            forEachChecked { it.onReceive(msgRecords[0]) }
         }
     }
 

@@ -53,18 +53,16 @@ object OnMenuBuild : BaseApiHookItem<MenuClickListener>(), DexKitTask {
                 val msgType = msgRecord.msgType.toString()
 
 
-                listenerSet.filter {
-                    verify(it)
-                }.forEach { listener ->
+               forEachChecked { listener ->
 
-                    if (items.any { isModuleItem(it, listener.menuKey) }) return@forEach
+                    if (items.any { isModuleItem(it, listener.menuKey) }) return@forEachChecked
 
                     val args = listener.menuKey.split(",")
-                    if (args.size < 5) return@forEach
+                    if (args.size < 5) return@forEachChecked
 
                     val targetTypes = args.subList(4, args.size).filter { it.isNotEmpty() }
                     if (targetTypes.isNotEmpty() && !targetTypes.contains(msgType)) {
-                        return@forEach
+                        return@forEachChecked
                     }
 
                     addMenuItem(items, itemClass, listener.menuKey, aioMsgItem)

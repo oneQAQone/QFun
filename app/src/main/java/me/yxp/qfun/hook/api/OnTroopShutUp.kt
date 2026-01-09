@@ -51,10 +51,7 @@ object OnTroopShutUp : BaseApiHookItem<TroopShutUpListener>() {
                 val memberUin = FriendTool.getUinFromUid(memberUid)
                 val time = shutUpInfo["2"].long ?: 0L
 
-                listenerSet.filter { verify(it) }
-                    .forEach {
-                        it.onShutUp(troopUin, memberUin, time, opUin)
-                    }
+                forEachChecked { it.onShutUp(troopUin, memberUin, time, opUin) }
             }
     }
 }

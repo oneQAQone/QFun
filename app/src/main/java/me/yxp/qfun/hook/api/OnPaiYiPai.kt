@@ -68,11 +68,7 @@ object OnPaiYiPai : BaseApiHookItem<PaiYiPaiListener>() {
                 }
 
                 if (!isValidQQ(fromUin) || toUin != QQCurrentEnv.currentUin) return@hookAfter
-
-                listenerSet.filter { verify(it) }
-                    .forEach {
-                        it.onPai(peerUin, chatType, fromUin)
-                    }
+                forEachChecked { it.onPai(peerUin, chatType, fromUin) }
             }
     }
 

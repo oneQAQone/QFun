@@ -35,8 +35,11 @@ abstract class BaseApiHookItem<T : Listener> : BaseHookItem() {
         listenerSet.remove(listener)
     }
 
-    protected fun verify(listener: T): Boolean {
-        return (listener !is BaseSwitchHookItem || listener.isEnable)
+    protected inline fun forEachChecked(action: (T) -> Unit) {
+        for (listener in listenerSet) {
+            if (listener !is BaseSwitchHookItem || listener.isEnable)
+                action(listener)
+        }
     }
 
 }

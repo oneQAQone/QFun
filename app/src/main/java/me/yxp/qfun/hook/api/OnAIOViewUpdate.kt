@@ -40,9 +40,7 @@ object OnAIOViewUpdate : BaseApiHookItem<AIOViewUpdateListener>() {
                     parent.children.filterIsInstance<BubbleLayoutCompatPress>().singleOrNull()
                         ?: return@hookAfter
                 val frameLayout = setupFrameLayout(msgLayout)
-                listenerSet.filter { verify(it) }
-                    .forEach { it.onUpdate(frameLayout, msgRecord) }
-
+                forEachChecked { it.onUpdate(frameLayout, msgRecord) }
 
             }
     }

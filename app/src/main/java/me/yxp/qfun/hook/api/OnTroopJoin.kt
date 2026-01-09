@@ -45,7 +45,7 @@ object OnTroopJoin : BaseApiHookItem<TroopJoinListener>(), DexKitTask {
                 val troopUin = json.walk("3", "2", "1").toString()
                 val memberUid = json.walk("3", "2", "3").str ?: return@hookAfter
 
-                ModuleScope.launchIO {
+                ModuleScope.launchIO(name) {
                     var uin = ""
                     repeat(10) {
                         if (uin.isEmpty()) {
@@ -63,12 +63,7 @@ object OnTroopJoin : BaseApiHookItem<TroopJoinListener>(), DexKitTask {
     }
 
     private fun handleJoin(troopUin: String, memberUin: String) {
-        listenerSet.filter {
-            verify(it)
-        }.forEach {
-            it.onJoin(troopUin, memberUin)
-        }
-
+       forEachChecked { it.onJoin(troopUin, memberUin) }
     }
 
     private fun getUinFromUid(uid: String): String {

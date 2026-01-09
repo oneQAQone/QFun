@@ -20,8 +20,7 @@ object OnSendMsg : BaseApiHookItem<SendMsgListener>() {
             }.hookBefore(this) { param ->
 
                 val elements = param.args[2] as ArrayList<MsgElement>
-                listenerSet.filter { verify(it) }
-                    .forEach { it.onSend(elements) }
+                forEachChecked { it.onSend(elements) }
             }
     }
 

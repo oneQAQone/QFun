@@ -20,12 +20,7 @@ object OnTroopQuit : BaseApiHookItem<TroopQuitListener>() {
             .hookAfter(this) { param ->
                 val troopUin = param.args[0] as String
                 val memberUin = param.args[1] as String
-                listenerSet
-                    .filter {
-                        verify(it)
-                    }.forEach {
-                        it.onQuit(troopUin, memberUin)
-                    }
+                forEachChecked { it.onQuit(troopUin, memberUin) }
             }
 
 
