@@ -4,14 +4,12 @@
     android:viewportWidth="64"
     android:viewportHeight="64">
 
-    <!-- 外围绿色圆环 -->
     <path
         android:fillColor="#00000000"
         android:pathData="M32,58A26,26 0 1,1 32,6A26,26 0 1,1 32,58Z"
         android:strokeWidth="5.33"
         android:strokeColor="#00FF00" />
 
-    <!-- 内部绿钩 -->
     <path
         android:fillColor="#00000000"
         android:pathData="M16,32 L26.67,42.67 L48,21.33"

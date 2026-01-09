@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -20,9 +21,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import me.yxp.qfun.R
 import me.yxp.qfun.ui.components.atoms.QFunCard
 import me.yxp.qfun.ui.components.molecules.QFunTopBar
 import me.yxp.qfun.ui.components.molecules.TabItem
+import me.yxp.qfun.ui.components.molecules.TopBarIconButton
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.ui.viewmodel.PluginListUiState
 
@@ -64,7 +67,8 @@ fun PluginScreen(
     onPluginDelete: (String) -> Unit,
     onPluginReload: (String) -> Unit,
     onPluginUpload: (String) -> Unit,
-    onPluginDownload: (String) -> Unit
+    onPluginDownload: (String) -> Unit,
+    onPickIcon: () -> Unit
 ) {
     val colors = QFunTheme.colors
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -80,13 +84,18 @@ fun PluginScreen(
             showBackButton = true,
             onBackClick = onBackClick,
             isDarkTheme = isDarkTheme,
-            onThemeToggle = onThemeToggle
+            onThemeToggle = onThemeToggle,
+            actions = {
+                TopBarIconButton(
+                    iconRes = R.drawable.ic_settings_gear,
+                    contentDescription = "设置悬浮图标",
+                    onClick = onPickIcon
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+            }
         )
-
         PluginTabBar(selectedTab, { selectedTab = it }, onCreatePlugin, onDocsClick)
-
         Spacer(modifier = Modifier.height(12.dp))
-
         when (selectedTab) {
             0 -> LocalPluginPage(
                 localPlugins,

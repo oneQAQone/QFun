@@ -35,7 +35,7 @@ object QQPlusInject : BaseApiHookItem<Listener>() {
                             R.string.plugin_name,
                             "JavaPlugin",
                             "JavaPlugin",
-                            R.drawable.ic_plugin
+                            R.drawable.ic_float_ball
                         )
                     )
                     add(
