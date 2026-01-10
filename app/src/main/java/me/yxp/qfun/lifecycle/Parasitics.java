@@ -52,9 +52,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.List;
 
+import me.yxp.qfun.BuildConfig;
 import me.yxp.qfun.R;
 import me.yxp.qfun.common.ModuleLoader;
 import me.yxp.qfun.utils.qq.HostInfo;
@@ -67,12 +67,28 @@ public class Parasitics {
 
     private static final String ACTIVITY_PROXY_INTENT = "ACTIVITY_PROXY_INTENT";
 
-    private static final List<String> InjectActivityNames = Arrays
-            .asList("me.yxp.qfun.activity.SettingActivity", "me.yxp.qfun.activity.PluginActivity", "me.yxp.qfun.activity.CrashActivity");
-
     private static final ClassLoader moduleloader = ClassUtils.INSTANCE.getModuleClassLoader();
 
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    private static boolean isTargetActivity(String className) {
+
+        if (className == null) return false;
+
+        if (!className.startsWith(BuildConfig.APPLICATION_ID)) {
+            return false;
+        }
+
+        try {
+            Class<?> targetClass = moduleloader.loadClass(className);
+            Class<?> baseClass = moduleloader.loadClass("me.yxp.qfun.activity.BaseComposeActivity");
+            return baseClass.isAssignableFrom(targetClass);
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+
+    }
+
 
     public static void injectModuleResources(Resources res) {
         if (res == null) {
@@ -238,7 +254,7 @@ public class Parasitics {
                     ComponentName component = raw.getComponent();
 
                     if (component != null && HostInfo.INSTANCE.getPackageName().equals(component.getPackageName())
-                            && InjectActivityNames.contains(component.getClassName())) {
+                            && isTargetActivity(component.getClassName())) {
 
                         Intent wrapper = new Intent();
 
@@ -394,7 +410,7 @@ public class Parasitics {
         public void callActivityOnCreate(Activity activity, Bundle icicle) {
             if (icicle != null) {
                 String className = activity.getClass().getName();
-                if (InjectActivityNames.contains(className)) {
+                if (isTargetActivity(className)) {
                     icicle.setClassLoader(moduleloader);
                 }
             }
@@ -406,7 +422,7 @@ public class Parasitics {
         public void callActivityOnCreate(Activity activity, Bundle icicle, PersistableBundle persistentState) {
             if (icicle != null) {
                 String className = activity.getClass().getName();
-                if (InjectActivityNames.contains(className)) {
+                if (isTargetActivity(className)) {
                     icicle.setClassLoader(moduleloader);
                 }
             }
@@ -435,7 +451,7 @@ public class Parasitics {
                     ComponentName component = (ComponentName) args[0];
                     long flags = ((Number) args[1]).longValue();
                     if (HostInfo.INSTANCE.getPackageName().equals(component.getPackageName())
-                            && InjectActivityNames.contains(component.getClassName())) {
+                            && isTargetActivity(component.getClassName())) {
                         return CounterfeitActivityInfoFactory.makeProxyActivityInfo(component.getClassName(), flags);
                     } else {
                         return null;
