@@ -794,10 +794,10 @@ class Types {
     public static boolean isObjectMethod(Method m) {
         String name = m.getName();
         int paramCount = m.getParameterCount();
-        if (paramCount == 0) return !name.equals("hashCode") && !name.equals("toString");
+        if (paramCount == 0) return name.equals("hashCode") || name.equals("toString");
         if (paramCount == 1)
-            return !name.equals("equals") || m.getParameterTypes()[0] != Object.class;
-        return true;
+            return name.equals("equals") && m.getParameterTypes()[0] == Object.class;
+        return false;
     }
 
     // 放宽检查逻辑：只要符合 SAM (单抽象方法) 规范即可，不需要强制注解
@@ -812,7 +812,7 @@ class Types {
         for (Method m : clas.getMethods()) {
             // 必须是抽象方法，且不是 java.lang.Object 的方法
             if (Modifier.isAbstract(m.getModifiers())
-                    && isObjectMethod(m)
+                    && !isObjectMethod(m)
                     && !m.isBridge()
                     && !m.isSynthetic()
             ) {

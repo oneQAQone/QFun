@@ -6,10 +6,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import bsh.org.objectweb.asm.ClassWriter;
 import bsh.org.objectweb.asm.FieldVisitor;
@@ -29,7 +29,8 @@ public abstract class BshLambda {
     /**
      * Cache for the BshLambda wrappers classes
      */
-    private static Map<Class<?>, Class<?>> fiClasses = new HashMap<>();
+    private static final Map<Class<?>, Class<?>> ADAPTER_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Method> FI_METHOD_CACHE = new ConcurrentHashMap<>();
     protected final Node expressionNode;
     protected final Class<?> dummyType;
     protected final BshClassManager classManager;
@@ -84,20 +85,22 @@ public abstract class BshLambda {
      * Util method to return the functional interface's method to be implemented
      */
     protected static Method methodFromFI(Class<?> functionalInterface) {
-        for (Method method : functionalInterface.getMethods())
-            // 增强过滤：排除 bridge, synthetic 和 Object 方法
-            if (Modifier.isAbstract(method.getModifiers())
-                    && !method.isBridge()
-                    && !method.isSynthetic()
-                    && Types.isObjectMethod(method))
-                return method;
-        throw new IllegalArgumentException("This class isn't a valid Functional Interface: " + functionalInterface.getName());
+        return FI_METHOD_CACHE.computeIfAbsent(functionalInterface, fi -> {
+            for (Method method : fi.getMethods()) {
+                if (Modifier.isAbstract(method.getModifiers())
+                        && !method.isBridge()
+                        && !method.isSynthetic()
+                        && !Types.isObjectMethod(method)) {
+                    return method;
+                }
+            }
+            throw new IllegalArgumentException("This class isn't a valid Functional Interface: " + fi.getName());
+        });
     }
 
     protected static <T> Class<T> getClassForFI(Class<T> fi, BshClassManager classManager) {
-
-        return WrapperGenerator.generateClass(fi, classManager);
-
+        return (Class<T>) ADAPTER_CACHE.computeIfAbsent(fi,
+                k -> WrapperGenerator.generateClass(k, classManager));
     }
 
     /**
