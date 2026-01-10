@@ -56,6 +56,7 @@ import java.util.List;
 
 import me.yxp.qfun.BuildConfig;
 import me.yxp.qfun.R;
+import me.yxp.qfun.activity.BaseComposeActivity;
 import me.yxp.qfun.common.ModuleLoader;
 import me.yxp.qfun.utils.qq.HostInfo;
 import me.yxp.qfun.utils.reflect.ClassUtils;
@@ -75,14 +76,17 @@ public class Parasitics {
 
         if (className == null) return false;
 
+        if (DynamicActivityRegistry.contains(className)) {
+            return true;
+        }
+
         if (!className.startsWith(BuildConfig.APPLICATION_ID)) {
             return false;
         }
 
         try {
             Class<?> targetClass = moduleloader.loadClass(className);
-            Class<?> baseClass = moduleloader.loadClass("me.yxp.qfun.activity.BaseComposeActivity");
-            return baseClass.isAssignableFrom(targetClass);
+            return BaseComposeActivity.class.isAssignableFrom(targetClass);
         } catch (ClassNotFoundException e) {
             return false;
         }
@@ -397,6 +401,10 @@ public class Parasitics {
         @Override
         public Activity newActivity(ClassLoader cl, String className, Intent intent)
                 throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+            if (DynamicActivityRegistry.contains(className)) {
+                Class<? extends Activity> activityClass = DynamicActivityRegistry.getActivityClass(className);
+                if (activityClass != null) return activityClass.newInstance();
+            }
             try {
                 return mBase.newActivity(cl, className, intent);
             } catch (Exception e) {

@@ -10,6 +10,7 @@ import me.yxp.qfun.hook.api.OnSendMsg
 import me.yxp.qfun.hook.api.OnTroopJoin
 import me.yxp.qfun.hook.api.OnTroopQuit
 import me.yxp.qfun.hook.api.OnTroopShutUp
+import me.yxp.qfun.lifecycle.DynamicActivityRegistry
 import me.yxp.qfun.plugin.api.PluginCallback
 import me.yxp.qfun.plugin.api.PluginMethod
 import me.yxp.qfun.plugin.bean.MsgData
@@ -25,6 +26,7 @@ class PluginCompiler(val info: PluginInfo) {
     var interpreter = Interpreter()
     val menuItems = linkedMapOf<String, String>()
     val msgMenuItem = mutableSetOf<String>()
+    val registedActivitys = mutableSetOf<String>()
 
     private val api = PluginMethod(this)
     val callback = PluginCallback(this)
@@ -80,10 +82,14 @@ class PluginCompiler(val info: PluginInfo) {
         }
 
         try {
+            registedActivitys.forEach {
+                DynamicActivityRegistry.unregister(it)
+            }
             removeCallbacks()
             interpreter.nameSpace.clear()
             menuItems.clear()
             msgMenuItem.clear()
+            registedActivitys.clear()
         } catch (e: Exception) {
             PluginError.callError(e, info)
         } finally {

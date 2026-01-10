@@ -7,6 +7,7 @@ import bsh.classpath.BshLoaderManager
 import com.tencent.mobileqq.data.troop.TroopInfo
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import me.yxp.qfun.common.ModuleScope
+import me.yxp.qfun.lifecycle.DynamicActivityRegistry
 import me.yxp.qfun.plugin.bean.ForbidInfo
 import me.yxp.qfun.plugin.bean.FriendInfo
 import me.yxp.qfun.plugin.bean.GroupInfo
@@ -70,6 +71,13 @@ class PluginMethod(private val compiler: PluginCompiler) {
                 BshLoaderManager.getDexLoader(path, ClassUtils.hostClassLoader)
             )
         }
+    }
+
+    fun registerActivity(activityClass: Class<*>) {
+        if (!Activity::class.java.isAssignableFrom(activityClass))
+            throw RuntimeException("注册类必须是Activity的实现类！")
+        DynamicActivityRegistry.register(activityClass)
+        compiler.registedActivitys.add(activityClass.name)
     }
 
     fun getAllFriend(): List<FriendInfo>? = runWithErrorHandle(null, FriendTool::getAllFriend)
