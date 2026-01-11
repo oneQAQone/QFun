@@ -12,7 +12,6 @@ object CrashMonitor {
 
     private var isInitialized = false
 
-    @JvmStatic
     fun init() {
         if (isInitialized) return
         isInitialized = true

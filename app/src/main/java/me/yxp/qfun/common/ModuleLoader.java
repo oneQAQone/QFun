@@ -13,7 +13,6 @@ import me.yxp.qfun.loader.hookapi.IHookBridge;
 import me.yxp.qfun.loader.hookapi.ILoaderService;
 import me.yxp.qfun.utils.hook.xpcompat.XposedBridge;
 import me.yxp.qfun.utils.qq.HostInfo;
-import me.yxp.qfun.utils.reflect.ClassUtils;
 
 public class ModuleLoader {
 
@@ -46,14 +45,10 @@ public class ModuleLoader {
             XposedBridge.log("[QFun] ModuleLoader init");
         }
 
-        CrashMonitor.init();
-
         HostInfo.INSTANCE.setPackageName(packageName);
         HostInfo.INSTANCE.setProcessName(processName);
-        ClassUtils.INSTANCE.setHostClassLoader(hostClassLoader);
-        injectClassLoader(hostClassLoader);
 
-        Startup.hookApplicationCreate();
+        Startup.init(hostClassLoader);
 
         sLoaded = true;
 
@@ -61,7 +56,7 @@ public class ModuleLoader {
 
     @SuppressWarnings("JavaReflectionMemberAccess")
     @SuppressLint("DiscouragedPrivateApi")
-    private static void injectClassLoader(ClassLoader hostClassLoader) {
+    public static void injectClassLoader(ClassLoader hostClassLoader) {
         HybridClassLoader.setHostClassLoader(hostClassLoader);
         HybridClassLoader loader = HybridClassLoader.INSTANCE;
         ClassLoader self = ModuleLoader.class.getClassLoader();
