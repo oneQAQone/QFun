@@ -7,6 +7,7 @@ import com.tencent.mobileqq.aio.msg.AIOMsgItem
 import com.tencent.mobileqq.aio.msglist.holder.component.ptt.AIOPttContentComponent
 import com.tencent.mobileqq.selectmember.ResultRecord
 import com.tencent.qqnt.aio.forward.NtMsgForwardUtils
+import kotlinx.coroutines.delay
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.common.ModuleScope
@@ -135,7 +136,7 @@ object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
 
             val contacts = mutableMapOf<String, Int>()
 
-            val elements = lastAIOMsgItem!!.msgRecord.elements
+            val elements = lastAIOMsgItem?.msgRecord?.elements ?: return@hookReplace param.invokeOriginal()
 
             val uin = intent.getStringExtra("uin")
             val uinType = intent.getIntExtra("uintype", INVALID_TYPE)
@@ -154,7 +155,7 @@ object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
             ModuleScope.launchIO(name) {
                 contacts.forEach { (key, value) ->
                     MsgTool.sendMsg(value, key, elements)
-                    kotlinx.coroutines.delay(500)
+                    delay(500)
                 }
             }
             null
@@ -166,27 +167,25 @@ object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
             val list = param.args[2] as List<*>
 
             if (map.size == 1 && lastAIOMsgItem != null) {
-                val msgRecord = lastAIOMsgItem!!.msgRecord
+                val msgRecord = lastAIOMsgItem?.msgRecord ?: return@hookReplace param.invokeOriginal()
                 val elements = msgRecord.elements
 
-                val newList = CopyOnWriteArrayList<Any>().apply {
-                    addAll(list)
-                }
                 ModuleScope.launchIO(name) {
-                    newList.forEach { contact ->
+                    CopyOnWriteArrayList<Any>(list)
+                        .forEach { contact ->
 
-                        val peerUin = contact.getObject("peerUin") as String
-                        val peerType = contact.getObject("peerType") as Int
+                            val peerUin = contact.getObject("peerUin") as String
+                            val peerType = contact.getObject("peerType") as Int
 
-                        contact.setObject("peerType", INVALID_TYPE)
+                            contact.setObject("peerType", INVALID_TYPE)
 
-                        kotlinx.coroutines.delay(500)
-                        try {
-                            MsgTool.sendMsg(peerType, peerUin, elements)
-                        } catch (t: Throwable) {
-                            LogUtils.e(this@ForwardPtt, t)
+                            delay(500)
+                            try {
+                                MsgTool.sendMsg(peerType, peerUin, elements)
+                            } catch (t: Throwable) {
+                                LogUtils.e(this@ForwardPtt, t)
+                            }
                         }
-                    }
                 }
             }
             param.invokeOriginal()

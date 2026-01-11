@@ -2,6 +2,7 @@ package me.yxp.qfun.hook.api
 
 import com.tencent.mobileqq.troop.onlinepush.api.impl.TroopOnlinePushHandler
 import com.tencent.qqnt.troopmemberlist.ITroopMemberListRepoApi
+import kotlinx.coroutines.delay
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.base.BaseApiHookItem
@@ -50,7 +51,7 @@ object OnTroopJoin : BaseApiHookItem<TroopJoinListener>(), DexKitTask {
                     repeat(10) {
                         if (uin.isEmpty()) {
                             uin = getUinFromUid(memberUid)
-                            kotlinx.coroutines.delay(500)
+                            delay(500)
                         } else return@repeat
                     }
                     handleJoin(troopUin, uin)
