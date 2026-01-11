@@ -5,12 +5,13 @@ import android.widget.LinearLayout
 import com.tencent.mobileqq.aio.msg.AIOMsgItem
 import com.tencent.mvi.mvvm.BaseVM
 import com.tencent.mvi.mvvm.framework.FrameworkVM
+import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
+import kotlinx.coroutines.delay
 import me.yxp.qfun.R
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
-import me.yxp.qfun.plugin.bean.MsgData
 import me.yxp.qfun.utils.dexkit.DexKitTask
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.log.LogUtils
@@ -50,10 +51,8 @@ object MultiRecall : BaseSwitchHookItem(), DexKitTask {
             "com.tencent.mobileqq.aio.input.multiselect.MultiSelectBarVB"
         }
 
-        val innerClassName = $$"$$className$mOperationLayout$2"
-
         val multiSelectBarVBClass = className.toClass
-        val operationLayoutClass = innerClassName.toClass
+        val operationLayoutClass = $$"$$className$mOperationLayout$2".toClass
         val multiForwardClass = requireClass("multiForward")
 
         getMsgList = multiForwardClass.findMethod {
@@ -115,21 +114,19 @@ object MultiRecall : BaseSwitchHookItem(), DexKitTask {
 
         try {
             val vm = multiSelectBarVM ?: return
-            val multiForwardClass = requireClass("multiForward")
 
-            val multiForwardInstance = multiForwardClass.newInstanceWithArgs()
+            val multiForwardInstance = requireClass("multiForward").newInstanceWithArgs()
 
             val mContext = getMContext.invoke(vm)
 
             val msgList = getMsgList.invoke(multiForwardInstance, mContext) as List<AIOMsgItem>
+
             val size = msgList.size
-            val newList = CopyOnWriteArrayList<AIOMsgItem>().apply {
-                addAll(msgList)
-            }
+
             ModuleScope.launchIO(name) {
-                newList.forEach {
+                CopyOnWriteArrayList(msgList).forEach {
                     recallSingleItem(it)
-                    if (size > 10) kotlinx.coroutines.delay(300)
+                    if (size > 10) delay(300)
                 }
             }
             Toasts.qqToast(2, "开始撤回 $size 条消息...")
@@ -147,8 +144,13 @@ object MultiRecall : BaseSwitchHookItem(), DexKitTask {
     private fun recallSingleItem(aioMsgItem: AIOMsgItem) {
         try {
 
-            val msgData = MsgData(aioMsgItem.msgRecord)
-            MsgTool.recallMsg(msgData.contact, msgData.msgId)
+            val msgRecord = aioMsgItem.msgRecord
+            val contact = Contact(
+                msgRecord.chatType,
+                msgRecord.peerUid,
+                msgRecord.guildId
+            )
+            MsgTool.recallMsg(contact, msgRecord.msgId)
 
         } catch (t: Throwable) {
             LogUtils.e(this, t)

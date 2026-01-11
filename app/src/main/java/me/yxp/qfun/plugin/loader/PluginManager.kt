@@ -91,7 +91,7 @@ object PluginManager {
                 if (!it.isRunning) {
                     startPlugin(it)
                 }
-                kotlinx.coroutines.delay(100)
+                delay(100)
             }
         }
     }
