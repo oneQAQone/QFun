@@ -157,15 +157,11 @@ class Name implements java.io.Serializable {
         if (null == thisNameSpace)
             return null;
 
-        // is a class instance
-        if (thisNameSpace.isClass)
-            return thisNameSpace;
-
-        // is a method parent is a class
-        if (thisNameSpace.isMethod
-                && thisNameSpace.getParent() != null
-                && thisNameSpace.getParent().isClass)
-            return thisNameSpace.getParent();
+        NameSpace ns = thisNameSpace;
+        while (ns != null) {
+            if (ns.isClass) return ns;
+            ns = ns.getParent();
+        }
 
         return null;
     }
