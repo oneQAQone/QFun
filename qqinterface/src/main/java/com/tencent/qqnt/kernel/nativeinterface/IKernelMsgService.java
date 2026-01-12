@@ -30,6 +30,11 @@ public interface IKernelMsgService {
         }
 
         @Override
+        public void forwardMsg(ArrayList<Long> arrayList, Contact contact, ArrayList<Contact> arrayList2, HashMap<Integer, MsgAttributeInfo> hashMap, IForwardOperateCallback iForwardOperateCallback) {
+
+        }
+
+        @Override
         public void addLocalJsonGrayTipMsg(Contact contact, JsonGrayElement jsonGrayElement, boolean z, boolean z2, IAddJsonGrayTipMsgCallback iAddJsonGrayTipMsgCallback) {
 
         }
@@ -62,6 +67,8 @@ public interface IKernelMsgService {
     void sendMsg(long j, Contact contact, ArrayList<MsgElement> arrayList, HashMap<Integer, MsgAttributeInfo> hashMap, IOperateCallback iOperateCallback);
 
     long generateMsgUniqueId(int i, long j);
+
+    void forwardMsg(ArrayList<Long> arrayList, Contact contact, ArrayList<Contact> arrayList2, HashMap<Integer, MsgAttributeInfo> hashMap, IForwardOperateCallback iForwardOperateCallback);
 
     /**
      * 已被删除的旧版本接口,新版本不要使用
@@ -206,8 +213,6 @@ public interface IKernelMsgService {
     void fetchStatusUnitedConfigInfo(IGetStatusMsgCallback iGetStatusMsgCallback);
 
     void forwardFile(TargetFileInfo targetFileInfo, Contact contact, IOperateCallback iOperateCallback);
-
-    void forwardMsg(ArrayList<Long> arrayList, Contact contact, ArrayList<Contact> arrayList2, HashMap<Integer, MsgAttributeInfo> hashMap, IForwardOperateCallback iForwardOperateCallback);
 
     void forwardMsgWithComment(ArrayList<Long> arrayList, Contact contact, ArrayList<Contact> arrayList2, ArrayList<MsgElement> arrayList3, HashMap<Integer, MsgAttributeInfo> hashMap, IForwardOperateCallback iForwardOperateCallback);
 
