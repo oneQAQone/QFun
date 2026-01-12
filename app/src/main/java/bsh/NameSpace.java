@@ -1887,12 +1887,7 @@ public class NameSpace
             lambdaNS.variables.putAll(parent.variables);
         }
 
-        // Change all variables to be final
-        lambdaNS.variables.replaceAll((k, v) -> {
-            Variable clone = v.clone();
-            clone.modifiers.addModifier("final");
-            return clone;
-        });
+        lambdaNS.variables.replaceAll((k, v) -> v.clone());
         return lambdaNS;
     }
 
