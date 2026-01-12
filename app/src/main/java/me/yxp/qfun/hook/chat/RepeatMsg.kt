@@ -7,12 +7,12 @@ import android.widget.ImageView
 import androidx.compose.runtime.Composable
 import com.tencent.mobileqq.aio.msg.AIOMsgItem
 import com.tencent.mobileqq.aio.msglist.holder.component.msgfollow.AIOMsgFollowComponent
+import com.tencent.qqnt.kernel.nativeinterface.IKernelMsgService
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import me.yxp.qfun.R
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
-import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.conf.RepeatConfig
 import me.yxp.qfun.hook.api.MenuClickListener
 import me.yxp.qfun.hook.base.BaseClickableHookItem
@@ -31,9 +31,7 @@ import java.io.FileOutputStream
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
-    "消息复读",
-    "支持快捷图标或长按菜单复读，点击配置具体方式",
-    HookCategory.CHAT
+    "消息复读", "支持快捷图标或长按菜单复读，点击配置具体方式", HookCategory.CHAT
 )
 object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()),
     MenuClickListener {
@@ -48,11 +46,10 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     var bitmap: Bitmap? = null
 
     override fun onInit(): Boolean {
-        handleIntent = AIOMsgFollowComponent::class.java
-            .findMethod {
-                returnType = void
-                paramTypes(int, AIOMsgItem::class.java.superclass, list)
-            }
+        handleIntent = AIOMsgFollowComponent::class.java.findMethod {
+            returnType = void
+            paramTypes(int, AIOMsgItem::class.java.superclass, list)
+        }
         return super.onInit()
     }
 
@@ -97,24 +94,44 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
             Toasts.toast("获取消息服务失败")
             return
         }
+        if (msgRecord.msgType in listOf(2, 3, 7)) forwardSend(msgRecord, msgService)
+        else directSend(msgRecord, msgService)
 
-        ModuleScope.launchIO(name) {
-            val msgId = msgService.generateMsgUniqueId(
+    }
+
+    private fun forwardSend(msgRecord: MsgRecord, msgService: IKernelMsgService) {
+        val contact = Contact(
+            msgRecord.chatType,
+            msgRecord.peerUid,
+            msgRecord.guildId
+        )
+        msgService.forwardMsg(
+            arrayListOf(msgRecord.msgId),
+            contact,
+            arrayListOf(contact),
+            msgRecord.msgAttrs,
+            null
+        )
+    }
+
+    private fun directSend(msgRecord: MsgRecord, msgService: IKernelMsgService) {
+        
+        val msgId = msgService.generateMsgUniqueId(
+            msgRecord.chatType,
+            System.currentTimeMillis()
+        )
+
+        msgService.sendMsg(
+            msgId, Contact(
                 msgRecord.chatType,
-                System.currentTimeMillis()
-            )
+                msgRecord.peerUid,
+                msgRecord.guildId
+            ),
+            msgRecord.elements,
+            msgRecord.msgAttrs,
+            null
+        )
 
-            msgService.sendMsg(
-                msgId, Contact(
-                    msgRecord.chatType,
-                    msgRecord.peerUid,
-                    msgRecord.guildId
-                ),
-                ArrayList(msgRecord.elements),
-                msgRecord.msgAttrs,
-                null
-            )
-        }
     }
 
     private fun isDoubleClick(): Boolean {
@@ -145,13 +162,10 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     @Composable
     override fun ConfigContent(onDismiss: () -> Unit) {
         RepeatMsgPage(
-            currentConfig = config,
-            bitmap = bitmap,
-            onSave = {
+            currentConfig = config, bitmap = bitmap, onSave = {
                 updateConfig(it)
                 Toasts.qqToast(2, "设置已保存，滑动消息列表生效")
-            },
-            onDismiss = onDismiss
+            }, onDismiss = onDismiss
         )
     }
 }
