@@ -7,11 +7,12 @@ kotlin = "2.3.0"
 kotlinpoet = "2.2.0"
 ksp = "2.3.2"
 protobuf = "0.9.6"
-protobuf-java = "4.33.2"
+protobuf-java = "4.33.4"
 xposed = "82"
 jetbrainsKotlinJvm = "2.3.0"
 kotlinx-coroutines = "1.10.2"
 ktx = "1.17.0"
+serialization = "1.9.0"
 compose-bom = "2024.12.01"
 activity-compose = "1.9.3"
 lifecycle = "2.8.7"
@@ -27,7 +28,7 @@ protobuf-java = { group = "com.google.protobuf", name = "protobuf-java", version
 xposed = { group = "de.robv.android.xposed", name = "api", version.ref = "xposed" }
 dexkit = { group= "org.luckypray", name = "dexkit", version.ref = "dexkit"}
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.7.3" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
 compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
