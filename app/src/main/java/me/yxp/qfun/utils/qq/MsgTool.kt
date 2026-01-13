@@ -37,7 +37,7 @@ object MsgTool : DexKitTask {
     }
 
     private val sendMsg by lazy {
-        IKernelMsgService::class.java
+        IKernelMsgService.CppProxy::class.java
             .findMethod {
                 name = "sendMsg"
             }

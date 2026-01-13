@@ -15,6 +15,7 @@ import me.yxp.qfun.utils.hook.xpcompat.XposedBridge
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.reflect.ClassUtils
+import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicBoolean
 
 object Startup {
@@ -27,6 +28,7 @@ object Startup {
 
         runCatching {
             initialLoader.loadClass("com.tencent.common.app.QFixApplicationImplProxy")
+                .getDeclaredMethod("attachBaseContext", Context::class.java)
         }.getOrNull()
             ?.let {
                 hookQFixAttach(it)
@@ -35,29 +37,26 @@ object Startup {
 
     }
 
-    private fun hookQFixAttach(qfixClass: Class<*>) {
+    private fun hookQFixAttach(attach: Method) {
         val constructorUnhooks = ArrayList<XC_MethodHook.Unhook>()
 
-        qfixClass.getDeclaredMethod("attachBaseContext", Context::class.java).hook {
+        attach.hook {
             before {
 
                 BaseDexClassLoader::class.java.declaredConstructors.forEach { ctor ->
-                    val unhook = ctor.hook {
-                        after { param ->
-                            val loader = param.thisObject as ClassLoader
-                            val loaderStr = loader.toString()
+                    val unhook = ctor.hookAfter { param ->
+                        val loader = param.thisObject as ClassLoader
+                        val loaderStr = loader.toString()
 
-                            if (loaderStr.contains(BuildConfig.APPLICATION_ID)) return@after
+                        if (loaderStr.contains(BuildConfig.APPLICATION_ID)) return@hookAfter
 
-                            if ((loaderStr.contains("com.tencent.") ||
-                                        loaderStr.contains("TinkerClassLoader") ||
-                                        loaderStr.contains("DelegateLastClassLoader")) &&
-                                !hasCapturedTinker.get()
-                            ) {
-                                hasCapturedTinker.set(true)
-                                XposedBridge.log("[QFun] 捕获到热更 ClassLoader: $loader")
-                                doRealStartup(loader)
-                            }
+                        if ((loaderStr.contains("com.tencent.") || loaderStr.contains("TinkerClassLoader") || loaderStr.contains(
+                                "DelegateLastClassLoader"
+                            )) && !hasCapturedTinker.get()
+                        ) {
+                            hasCapturedTinker.set(true)
+                            XposedBridge.log("[QFun] 捕获到热更 ClassLoader: $loader")
+                            doRealStartup(loader)
                         }
                     }
                     constructorUnhooks.add(unhook)
@@ -87,30 +86,28 @@ object Startup {
 
         try {
 
-            BaseApplicationImpl::class.java
-                .getDeclaredMethod("onCreate")
-                .hookAfter { param ->
+            BaseApplicationImpl::class.java.getDeclaredMethod("onCreate").hookAfter { param ->
 
-                    if (isInit.compareAndSet(false, true)) {
-                        val hostContext = param.thisObject as Context
+                if (isInit.compareAndSet(false, true)) {
+                    val hostContext = param.thisObject as Context
 
-                        HostInfo.init(hostContext)
+                    HostInfo.init(hostContext)
 
-                        if (HostInfo.processName == HostInfo.packageName) {
-                            XposedBridge.log("[QFun] 宿主启动 (Loader: $realClassLoader)")
-                            LogUtils.logEnvironment()
-                        }
+                    if (HostInfo.processName == HostInfo.packageName) {
+                        XposedBridge.log("[QFun] 宿主启动 (Loader: $realClassLoader)")
+                        LogUtils.logEnvironment()
+                    }
 
-                        Parasitics.initForStubActivity(hostContext)
-                        Parasitics.injectModuleResources(hostContext.resources)
+                    Parasitics.initForStubActivity(hostContext)
+                    Parasitics.injectModuleResources(hostContext.resources)
 
-                        if (DexKitCache.initCache()) {
-                            MainHook.loadHook()
-                        } else {
-                            DexKitFinder.doFind()
-                        }
+                    if (DexKitCache.initCache()) {
+                        MainHook.loadHook()
+                    } else {
+                        DexKitFinder.doFind()
                     }
                 }
+            }
         } catch (th: Throwable) {
             XposedBridge.log(th)
         }
