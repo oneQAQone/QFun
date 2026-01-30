@@ -1,14 +1,14 @@
 package me.yxp.qfun.hook.purify
 
+import android.annotation.SuppressLint
+import android.widget.ImageView
+import com.tencent.qqnt.aio.shortcutbar.PanelIconLinearLayout
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
-import me.yxp.qfun.utils.dexkit.DexKitTask
-import me.yxp.qfun.utils.hook.doNothing
+import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.reflect.findMethod
-import org.luckypray.dexkit.query.FindClass
-import org.luckypray.dexkit.query.base.BaseQuery
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
@@ -16,31 +16,39 @@ import java.lang.reflect.Method
     "去除新版QQ底部选项中的滤镜视频",
     HookCategory.PURIFY
 )
-object RemoveFilterVideo : BaseSwitchHookItem(), DexKitTask {
+object RemoveFilterVideo : BaseSwitchHookItem() {
 
-    private lateinit var addFilter: Method
+    private lateinit var bindView: Method
 
     override fun onInit(): Boolean {
         if (HostInfo.isTIM || (HostInfo.isQQ && HostInfo.versionCode < 11310)) return false
-        addFilter = requireClass("addFilter")
+        bindView = PanelIconLinearLayout::class.java
             .findMethod {
                 returnType = void
-                paramTypes(list, null)
+                paramTypes(int, string, null)
             }
         return super.onInit()
     }
 
+    @SuppressLint("DiscouragedApi")
     override fun onHook() {
-        addFilter.doNothing(this)
-    }
+        bindView.hookAfter(this) {
+            val layout = it.thisObject as PanelIconLinearLayout
+            val icon = layout.findViewWithTag<ImageView>(1016) ?: return@hookAfter
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
-        "addFilter" to FindClass().apply {
-            searchPackages("com.tencent.mobileqq.aio.shortcurtbar")
-            matcher {
-                usingStrings("originList", "filterVideoItem")
-            }
+
+            val id = HostInfo.hostContext.resources
+                .getIdentifier(
+                    "qui_red_envelope_aio_oversized_light_selector",
+                    "drawable",
+                    HostInfo.packageName
+                )
+
+            icon.tag = 1004
+            icon.contentDescription = "红包"
+            icon.setImageResource(id)
+
         }
-    )
+    }
 
 }
