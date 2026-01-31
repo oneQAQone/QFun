@@ -31,7 +31,9 @@ import java.io.FileOutputStream
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
-    "消息复读", "支持快捷图标或长按菜单复读，点击配置具体方式", HookCategory.CHAT
+    "消息复读",
+    "支持快捷图标或长按菜单复读，点击配置具体方式及自定义图标",
+    HookCategory.CHAT
 )
 object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()),
     MenuClickListener {
@@ -82,11 +84,7 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
         }
     }
 
-    override fun onClick(msgData: MsgData) {
-        if (config.mode == 1) {
-            performRepeat(msgData.data)
-        }
-    }
+    override fun onClick(msgData: MsgData) = performRepeat(msgData.data)
 
     private fun performRepeat(msgRecord: MsgRecord) {
         val msgService = QQCurrentEnv.kernelMsgService
@@ -94,9 +92,15 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
             Toasts.toast("获取消息服务失败")
             return
         }
-        if (msgRecord.msgType in listOf(2, 3, 7)) forwardSend(msgRecord, msgService)
+        if (isNeedForward(msgRecord)) forwardSend(msgRecord, msgService)
         else directSend(msgRecord, msgService)
 
+    }
+
+    private fun isNeedForward(msgRecord: MsgRecord): Boolean = when (msgRecord.msgType) {
+        in listOf(3, 7) -> true
+        2 if msgRecord.elements.mapNotNull { it.textElement }.all { it.atType != 2 } -> true
+        else -> false
     }
 
     private fun forwardSend(msgRecord: MsgRecord, msgService: IKernelMsgService) {
@@ -115,14 +119,15 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     }
 
     private fun directSend(msgRecord: MsgRecord, msgService: IKernelMsgService) {
-        
+
         val msgId = msgService.generateMsgUniqueId(
             msgRecord.chatType,
             System.currentTimeMillis()
         )
 
         msgService.sendMsg(
-            msgId, Contact(
+            msgId,
+            Contact(
                 msgRecord.chatType,
                 msgRecord.peerUid,
                 msgRecord.guildId
@@ -162,10 +167,10 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     @Composable
     override fun ConfigContent(onDismiss: () -> Unit) {
         RepeatMsgPage(
-            currentConfig = config, bitmap = bitmap, onSave = {
-                updateConfig(it)
-                Toasts.qqToast(2, "设置已保存，滑动消息列表生效")
-            }, onDismiss = onDismiss
+            currentConfig = config,
+            bitmap = bitmap,
+            onSave = ::updateConfig,
+            onDismiss = onDismiss
         )
     }
 }
