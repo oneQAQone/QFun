@@ -1,10 +1,11 @@
+import com.android.build.api.dsl.ApplicationExtension
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
@@ -16,7 +17,7 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
-android {
+extensions.configure<ApplicationExtension> {
     namespace = "me.yxp.qfun"
     compileSdk = 36
 
@@ -71,7 +72,7 @@ android {
         additionalParameters += listOf(
             "--allow-reserved-package-id",
             "--package-id",
-            "0x13",
+            "0x44",
         )
     }
 
@@ -120,7 +121,7 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.33.4"
+        artifact = "com.google.protobuf:protoc:4.33.5"
     }
 
     generateProtoTasks {
