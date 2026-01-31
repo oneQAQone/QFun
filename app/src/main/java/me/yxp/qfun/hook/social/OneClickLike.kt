@@ -31,7 +31,7 @@ object OneClickLike : BaseSwitchHookItem() {
 
         sendZan.hookReplace(this) { param ->
 
-            param.args[4] = 20
+            param.args[4] = 10
             repeat(5) { param.invokeOriginal() }
 
             null
