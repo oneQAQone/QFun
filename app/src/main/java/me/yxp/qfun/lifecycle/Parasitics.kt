@@ -222,13 +222,17 @@ object Parasitics {
     }
 
     private fun unwrapIntent(intent: Intent): Intent? {
-        val clone = intent.clone() as Intent
-        clone.extras?.classLoader = ClassUtils.hostClassLoader
-        return if (clone.hasExtra(ACTIVITY_PROXY_INTENT)) {
-            clone.getParcelableExtra<Intent>(ACTIVITY_PROXY_INTENT)?.apply {
-                extras?.classLoader = moduleLoader
+        return runCatching {
+            val clone = intent.clone() as Intent
+            clone.extras?.classLoader = ClassUtils.hostClassLoader
+            if (clone.hasExtra(ACTIVITY_PROXY_INTENT)) {
+                clone.getParcelableExtra<Intent>(ACTIVITY_PROXY_INTENT)?.apply {
+                    extras?.classLoader = moduleLoader
+                }
+            } else {
+                null
             }
-        } else null
+        }.getOrNull()
     }
 
     // ================= 资源注入逻辑 =================
