@@ -10,6 +10,11 @@ public interface IKernelMsgService {
 
     class CppProxy implements IKernelMsgService {
         @Override
+        public void startMsgSync() {
+
+        }
+
+        @Override
         public void deleteMsg(Contact contact, ArrayList<Long> msdIds, IOperateCallback iOperateCallback) {
 
         }
@@ -59,6 +64,8 @@ public interface IKernelMsgService {
 
         }
     }
+
+    void startMsgSync();
 
     void deleteMsg(Contact contact, ArrayList<Long> msdIds, IOperateCallback iOperateCallback);
 
@@ -556,8 +563,6 @@ public interface IKernelMsgService {
     void setToken(SetTokenReq setTokenReq, IOperateCallback iOperateCallback);
 
     void setTokenForMqq(byte[] bArr, IOperateCallback iOperateCallback);
-
-    void startMsgSync();
 
     void stopGenerateMsg(Contact contact, long j, IOperateCallback iOperateCallback);
 
