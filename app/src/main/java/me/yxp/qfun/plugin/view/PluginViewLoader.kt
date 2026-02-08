@@ -1,8 +1,8 @@
 package me.yxp.qfun.plugin.view
 
 import android.annotation.SuppressLint
-import com.tencent.aio.data.AIOContact
 import com.tencent.mobileqq.activity.ScaleAIOActivity
+import com.tencent.qqnt.aio.activity.AIODelegate
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.base.BaseApiHookItem
@@ -25,47 +25,68 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
 
     @SuppressLint("StaticFieldLeak")
     private var currentPluginView: PluginView? = null
+    private var aioDelegate: AIODelegate? = null
 
-    var currentContact = PluginContact()
+    val currentContact: PluginContact
+        get() = aioDelegate?.let {
+            parseToPluginContact(it.aioContact.toString())
+        } ?: PluginContact()
 
     override fun loadHook() {
-        val string = String::class.java
-        AIOContact::class.java.getDeclaredConstructor(
-            Int::class.javaPrimitiveType, string, string, string
-        ).hookAfter(this) { param ->
 
-            val chatType = param.args[0] as Int
-            val peerUid = param.args[1] as String
-            val peerUin = if (chatType == 2) peerUid
-            else FriendTool.getUinFromUid(peerUid).ifEmpty {
-                val intent = QQCurrentEnv.activity?.intent ?: return@ifEmpty ""
-                intent.getStringExtra("key_peerUin") ?: ""
+        AIODelegate::class.java.getDeclaredMethod("show")
+            .hookAfter(this) {
+                aioDelegate = it.thisObject as AIODelegate
+
+                if (currentContact.chatType != 0) {
+                    hideView()
+                    showView()
+                }
+
+
+            }
+        AIODelegate::class.java.getDeclaredMethod("hide")
+            .hookAfter(this) {
+                if (QQCurrentEnv.activity !is ScaleAIOActivity) hideView()
             }
 
-            if (chatType != 0) {
-                currentContact = PluginContact(
-                    chatType,
-                    peerUid,
-                    peerUin,
-                    param.args[2] as String,
-                    param.args[3] as String,
-                )
-            }
+    }
 
-            if (chatType == 0 && QQCurrentEnv.activity !is ScaleAIOActivity) hideView()
-            else if (currentContact.peerUid.isNotEmpty()) showView()
-
+    private fun parseToPluginContact(input: String): PluginContact {
+        val regex = """(\w+)=([^,)]*)""".toRegex()
+        val map = regex.findAll(input).associate {
+            it.groupValues[1] to it.groupValues[2].trim('\'')
         }
+
+        val chatType = map["chatType"]?.toIntOrNull() ?: 0
+        val peerUid = map["peerUid"] ?: ""
+        val guild = map["guildId"] ?: ""
+        val peerName = map["nick"] ?: ""
+
+        val peerUin = if (chatType == 2) {
+            peerUid
+        } else {
+            FriendTool.getUinFromUid(peerUid).ifEmpty {
+                QQCurrentEnv.activity?.intent?.getStringExtra("key_peerUin") ?: ""
+            }
+        }
+
+        return PluginContact(
+            chatType,
+            peerUid,
+            peerUin,
+            guild,
+            peerName
+        )
     }
 
     private fun showView() {
 
         ModuleScope.launchMainDelayed(1) {
-
             val activity = QQCurrentEnv.activity ?: return@launchMainDelayed
-            if (PluginManager.plugins.any { it.isRunning }) {
-                if (currentPluginView == null)
-                    currentPluginView = PluginView(activity)
+
+            if (PluginManager.plugins.any { it.isRunning && it.compiler.menuItems.isNotEmpty() }) {
+                currentPluginView = PluginView(activity)
                 currentPluginView?.show()
             }
         }
