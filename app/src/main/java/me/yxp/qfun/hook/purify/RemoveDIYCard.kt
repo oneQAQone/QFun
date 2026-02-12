@@ -14,10 +14,8 @@ import me.yxp.qfun.utils.qq.HostInfo
 )
 object RemoveDIYCard : BaseSwitchHookItem() {
 
-    override fun onInit(): Boolean {
-        return HostInfo.isQQ
-    }
-
+    override fun onInit() = HostInfo.isQQ
+    
     override fun onHook() {
         FriendProfileCardActivity::class.java
             .getDeclaredMethod("handleSwitchVasCard")
