@@ -17,7 +17,6 @@ import me.yxp.qfun.utils.net.HttpUtils
 
 @Suppress("DEPRECATION")
 class PluginActivity : BaseComposeActivity() {
-
     companion object {
         const val REQUEST_CODE_PICK_ICON = 1004
     }
@@ -31,6 +30,7 @@ class PluginActivity : BaseComposeActivity() {
                 density = appMetrics.density,
                 fontScale = appMetrics.scaledDensity / appMetrics.density
             )
+
             CompositionLocalProvider(LocalDensity provides stableDensity) {
                 QFunTheme(isDarkTheme) {
                     PluginScreen(
@@ -40,7 +40,7 @@ class PluginActivity : BaseComposeActivity() {
                         isDarkTheme = isDarkTheme,
                         onThemeToggle = ::toggleTheme,
                         onBackClick = ::finish,
-                        onCreatePlugin = vm::createPlugin,
+                        onCreatePlugin = vm::showCreatePluginDialog,
                         onDocsClick = ::openDocs,
                         onRefreshOnline = vm::fetchOnlinePlugins,
                         onPluginRunToggle = vm::togglePluginRun,
@@ -49,8 +49,15 @@ class PluginActivity : BaseComposeActivity() {
                         onPluginReload = vm::reloadPlugin,
                         onPluginUpload = vm::showUploadConfirm,
                         onPluginDownload = vm::downloadPlugin,
-                        onPickIcon = ::openPickIcon
+                        onPickIcon = ::openPickIcon,
+                        showCreateDialog = vm.showCreateDialog,
+                        onDismissCreateDialog = vm::dismissCreatePluginDialog,
+                        onConfirmCreatePlugin = vm::createPlugin,
+                        showSuccessDialog = vm.showSuccessDialog,
+                        createdPluginPath = vm.createdPluginPath,
+                        onDismissSuccessDialog = vm::dismissSuccessDialog
                     )
+
                     ConfirmDialog(
                         visible = vm.showDeleteDialog,
                         title = "删除脚本",
@@ -60,6 +67,7 @@ class PluginActivity : BaseComposeActivity() {
                         onDismiss = vm::dismissDeleteDialog,
                         onConfirm = vm::confirmDelete
                     )
+
                     ConfirmDialog(
                         visible = vm.showUploadDialog,
                         title = "上传脚本",

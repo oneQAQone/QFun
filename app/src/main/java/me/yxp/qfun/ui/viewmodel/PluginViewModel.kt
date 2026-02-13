@@ -38,9 +38,16 @@ class PluginViewModel : ViewModel() {
     var showUploadDialog by mutableStateOf(false)
         private set
     var pendingDeletePluginId by mutableStateOf<String?>(null)
-    private set
+        private set
     var pendingUploadPluginId by mutableStateOf<String?>(null)
-    private set
+        private set
+    var showCreateDialog by mutableStateOf(false)
+        private set
+    var showSuccessDialog by mutableStateOf(false)
+        private set
+    var createdPluginPath by mutableStateOf("")
+        private set
+
     private val scriptList = mutableListOf<ScriptInfo>()
 
     init {
@@ -63,14 +70,27 @@ class PluginViewModel : ViewModel() {
         }
     }
 
-    fun createPlugin(): Boolean {
-        return if (PluginManager.createExamplePlugin()) {
-            Toasts.qqToast(2, "创建成功")
+    fun showCreatePluginDialog() {
+        showCreateDialog = true
+    }
+
+    fun dismissCreatePluginDialog() {
+        showCreateDialog = false
+    }
+
+    fun dismissSuccessDialog() {
+        showSuccessDialog = false
+    }
+
+    fun createPlugin(id: String, name: String, version: String, author: String) {
+        val file = PluginManager.createPlugin(id, name, version, author)
+        if (file != null) {
+            createdPluginPath = file.absolutePath
             refreshLocalPlugins()
-            true
+            showCreateDialog = false
+            showSuccessDialog = true
         } else {
-            Toasts.qqToast(1, "创建失败")
-            false
+            Toasts.qqToast(1, "创建失败: ID重复或文件夹(脚本名)已存在")
         }
     }
 
@@ -218,13 +238,9 @@ class PluginViewModel : ViewModel() {
                         input.copyTo(output)
                     }
                 }
-                ModuleScope.launchMain {
-                    Toasts.qqToast(2, "悬浮图标已更新，下次显示生效")
-                }
+                ModuleScope.launchMain { Toasts.qqToast(2, "悬浮图标已更新，下次显示生效") }
             }.onFailure {
-                ModuleScope.launchMain {
-                    Toasts.qqToast(1, "图标设置失败: ${it.message}")
-                }
+                ModuleScope.launchMain { Toasts.qqToast(1, "图标设置失败: ${it.message}") }
             }
         }
     }
