@@ -1,5 +1,6 @@
 package me.yxp.qfun.plugin.loader
 
+import kotlinx.coroutines.delay
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import me.yxp.qfun.common.ModuleScope
@@ -14,16 +15,28 @@ import java.io.File
 object PluginManager {
     val plugins = mutableListOf<PluginInfo>()
     val autoLoadList = mutableListOf<String>()
-
     private val listSerializer = ListSerializer(String.serializer())
 
     private val pluginDir: File
         get() = File(QQCurrentEnv.currentDir, "plugin").apply { mkdirs() }
 
+    private const val DEFAULT_DESC = "这是一个自动生成的示例脚本。"
+    private val DEFAULT_CODE = """
+        log("脚本开始运行...");
+        qqToast(2, "Hello World!");
+        addItem("测试菜单", "onTestClick");
+        void onTestClick(int chatType, String peerUin, String peerName) {
+            qqToast(2, "点击了菜单");
+        }
+        void unLoadPlugin() {
+            qqToast(0, "脚本停止运行");
+            log("脚本停止运行");
+        }
+    """.trimIndent()
+
     fun loadAll() {
         val existingMap = plugins.associateBy { it.id }
         plugins.clear()
-
         pluginDir.listFiles()?.filter { it.isDirectory }?.forEach { dir ->
             PluginInfo.fromDir(dir)?.let { newInfo ->
                 val existing = existingMap[newInfo.id]
@@ -35,7 +48,6 @@ object PluginManager {
                 }
             }
         }
-
         val savedList = ObjectStore.load("data", "AutoLoadList", listSerializer)
         if (savedList != null) {
             autoLoadList.clear()
@@ -97,11 +109,7 @@ object PluginManager {
     }
 
     fun stopAllPlugins() {
-
-        plugins.filter { it.isRunning }.forEach {
-            stopPlugin(it)
-        }
-
+        plugins.filter { it.isRunning }.forEach { stopPlugin(it) }
     }
 
     fun saveConfig() {
@@ -112,68 +120,61 @@ object PluginManager {
         startAutoLoadPlugins()
     }
 
-    fun createExamplePlugin(): Boolean {
-        val timestamp = System.currentTimeMillis()
-        val dirName = "Example_$timestamp"
-        val targetDir = File(pluginDir, dirName)
+    fun createPlugin(
+        id: String,
+        name: String,
+        version: String,
+        author: String
+    ): File? {
+        if (plugins.any { it.id == id }) {
+            return null
+        }
 
-        if (!targetDir.mkdirs()) return false
+        val safeFolderName = name.replace("[\\\\/:*?\"<>|]".toRegex(), "_")
+        val targetDir = File(pluginDir, safeFolderName)
+
+        if (targetDir.exists()) {
+            return null
+        }
+
+        if (!targetDir.mkdirs()) return null
 
         try {
             val propFile = File(targetDir, "info.prop")
             val propContent = """
-                id=example_$timestamp
-                pluginName=示例脚本
-                versionCode=1.0
-                author=QFunDeveloper
+                id=$id
+                pluginName=$name
+                versionCode=$version
+                author=$author
             """.trimIndent()
             FileUtils.writeText(propFile, propContent)
 
             val descFile = File(targetDir, "desc.txt")
-            FileUtils.writeText(descFile, "这是一个自动生成的示例脚本。")
+            FileUtils.writeText(descFile, DEFAULT_DESC)
 
             val mainFile = File(targetDir, "main.java")
-            val javaContent = """
-                log("脚本开始运行...");
-                qqToast(2, "Hello World!");
-                
-                addItem("测试菜单", "onTestClick");
-                
-                void onTestClick(int chatType, String peerUin, String peerName) {
-                    qqToast(2, "点击了菜单");
-                }
-                
-                void unLoadPlugin() {
-                    qqToast(0, "脚本停止运行");
-                    log("脚本停止运行");
-                }
-            """.trimIndent()
-            FileUtils.writeText(mainFile, javaContent)
+            FileUtils.writeText(mainFile, DEFAULT_CODE)
+
             PluginInfo.fromDir(targetDir)?.let { plugins.add(it) }
-            return true
+            return targetDir
         } catch (_: Exception) {
             FileUtils.delete(targetDir)
-            return false
+            return null
         }
     }
 
     fun installPluginFromZip(zipFile: File): String? {
-        val tempDir =
-            File(QQCurrentEnv.currentDir, "cache/temp_install_${System.currentTimeMillis()}")
-
+        val tempDir = File(QQCurrentEnv.currentDir, "cache/temp_install_${System.currentTimeMillis()}")
         try {
             if (!FileUtils.unzip(zipFile, tempDir)) {
                 return "解压失败"
             }
-
             var scriptRoot = tempDir
             val files = tempDir.listFiles()
             if (files != null && files.size == 1 && files[0].isDirectory) {
                 scriptRoot = files[0]
             }
-
             val newInfo = PluginInfo.fromDir(scriptRoot) ?: return "无效的脚本包(缺少info.prop)"
-
             val oldPlugin = plugins.find { it.id == newInfo.id }
             var wasRunning = false
             var finalTargetDir = File(pluginDir, scriptRoot.name)
@@ -181,47 +182,36 @@ object PluginManager {
             if (oldPlugin != null) {
                 finalTargetDir = File(oldPlugin.dirPath)
                 wasRunning = oldPlugin.isRunning
-
                 if (wasRunning) {
                     oldPlugin.compiler.stop(true)
                 }
-
                 val oldConfigDir = File(finalTargetDir, "config")
-                val tempConfigBackup =
-                    File(QQCurrentEnv.currentDir, "cache/config_backup_${newInfo.id}")
+                val tempConfigBackup = File(QQCurrentEnv.currentDir, "cache/config_backup_${newInfo.id}")
                 if (oldConfigDir.exists()) {
                     FileUtils.copy(oldConfigDir, tempConfigBackup)
                 }
-
                 FileUtils.delete(finalTargetDir)
                 FileUtils.copy(scriptRoot, finalTargetDir)
-
                 if (tempConfigBackup.exists()) {
                     val newConfigDir = File(finalTargetDir, "config")
                     FileUtils.ensureDir(newConfigDir)
                     FileUtils.copy(tempConfigBackup, newConfigDir)
                     FileUtils.delete(tempConfigBackup)
                 }
-
             } else {
                 if (finalTargetDir.exists()) {
-                    finalTargetDir =
-                        File(pluginDir, "${scriptRoot.name}_${System.currentTimeMillis()}")
+                    finalTargetDir = File(pluginDir, "${scriptRoot.name}_${System.currentTimeMillis()}")
                 }
                 FileUtils.copy(scriptRoot, finalTargetDir)
             }
-
             loadAll()
-
             val installedPlugin = plugins.find { it.id == newInfo.id }
             if (installedPlugin != null) {
                 if (wasRunning || autoLoadList.contains(installedPlugin.id)) {
                     startPlugin(installedPlugin)
                 }
             }
-
             return null
-
         } catch (e: Exception) {
             e.printStackTrace()
             return "安装异常: ${e.message}"
