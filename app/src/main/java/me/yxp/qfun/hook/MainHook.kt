@@ -75,7 +75,7 @@ object MainHook {
 
     private fun hookAccountChange() {
         QQAppInterface::class.java.findMethod {
-            name = "onCreateQQMessageFacade"
+            name = "onCreate"
         }.hookAfter {
             QQCurrentEnv.globalPreference.edit {
                 putString(
