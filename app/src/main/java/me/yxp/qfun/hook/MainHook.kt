@@ -1,9 +1,6 @@
 package me.yxp.qfun.hook
 
 import androidx.core.content.edit
-import com.tencent.mobileqq.app.QQAppInterface
-import me.yxp.qfun.BuildConfig
-import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.generated.HookRegistry
 import me.yxp.qfun.hook.base.BaseApiHookItem
 import me.yxp.qfun.hook.base.BaseClickableHookItem
@@ -13,11 +10,8 @@ import me.yxp.qfun.plugin.MainPlugin
 import me.yxp.qfun.ui.pages.configs.ConfigUiRegistry
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.log.LogUtils
-import me.yxp.qfun.utils.net.HttpUtils
-import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.QQCurrentEnv
-import me.yxp.qfun.utils.reflect.TAG
-import me.yxp.qfun.utils.reflect.findMethod
+import me.yxp.qfun.utils.reflect.toClass
 
 object MainHook {
 
@@ -74,19 +68,20 @@ object MainHook {
 
 
     private fun hookAccountChange() {
-        QQAppInterface::class.java.findMethod {
-            name = "onCreate"
-        }.hookAfter {
-            QQCurrentEnv.globalPreference.edit {
-                putString(
-                    "currentUin",
-                    QQCurrentEnv.currentUin
-                )
-            }
-            processDataForCurrent("init")
-            MainPlugin.initAllPluginForCurrent()
 
-        }
+        "com.tencent.imcore.message.BaseQQMessageFacade".toClass
+            .declaredConstructors.first()
+            .hookAfter {
+                QQCurrentEnv.globalPreference.edit {
+                    putString(
+                        "currentUin",
+                        QQCurrentEnv.currentUin
+                    )
+                }
+                processDataForCurrent("init")
+                MainPlugin.initAllPluginForCurrent()
+
+            }
     }
 
 }
