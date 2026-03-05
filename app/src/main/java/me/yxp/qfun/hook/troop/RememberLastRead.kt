@@ -13,6 +13,7 @@ import me.yxp.qfun.hook.base.BaseSwitchHookItem
 import me.yxp.qfun.plugin.view.PluginViewLoader
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.io.ObjectStore
+import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.newInstanceWithArgs
 import me.yxp.qfun.utils.reflect.toClass
@@ -36,7 +37,7 @@ object RememberLastRead : BaseSwitchHookItem(), AIOViewUpdateListener {
         frameLayout: FrameLayout,
         msgRecord: MsgRecord
     ) {
-        if (msgRecord.chatType != 2) return
+        if (msgRecord.chatType != 2 || isFromHistory()) return
         seqMap[msgRecord.peerUid] = msgRecord.msgSeq
     }
 
@@ -61,15 +62,22 @@ object RememberLastRead : BaseSwitchHookItem(), AIOViewUpdateListener {
             if (contact.chatType != 2 || !seqMap.contains(contact.peerUid)) return@hookAfter
 
             ObjectStore.save("data", name, seqMap, serializer)
+
             val intent = $$"com.tencent.mobileqq.aio.event.MsgNavigationEvent$NavigateBySeqEvent"
                 .toClass.newInstanceWithArgs("", seqMap[contact.peerUid], 0L, false, null, false, false, null, 228, null)
 
-            ModuleScope.launchMainDelayed(100) {
+            ModuleScope.launchMainDelayed(150) {
+                if (isFromHistory()) return@launchMainDelayed
                 sendIntent.invoke(it.thisObject, intent)
             }
 
         }
 
+    }
+
+    private fun isFromHistory(): Boolean {
+        val intent = QQCurrentEnv.activity?.intent ?: return false
+        return intent.getStringExtra("preAct") == "NTChatHistoryActivity"
     }
 
 }
