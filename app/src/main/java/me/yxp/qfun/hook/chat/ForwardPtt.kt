@@ -34,9 +34,9 @@ import java.lang.reflect.Method
 import java.util.concurrent.CopyOnWriteArrayList
 
 @HookItemAnnotation(
-    "转发语音",
-    "语音长按菜单出现转发按钮（支持私聊，群聊，临时会话）",
-    HookCategory.CHAT
+    tag = "转发语音",
+    desc = "语音长按菜单出现转发按钮（支持私聊，群聊，临时会话）",
+    category = HookCategory.CHAT
 )
 object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
 
@@ -128,15 +128,17 @@ object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
 
         onActivityResult?.hookReplace(this) { param ->
             val intent = param.args[3] as? Intent ?: return@hookReplace param.invokeOriginal()
+            val target = lastAIOMsgItem
+            lastAIOMsgItem = null
 
             val msgId = intent.getLongExtra("forward_nt_msg_id", 0L)
-            if (msgId == 0L || lastAIOMsgItem == null) {
+            if (msgId == 0L || target == null) {
                 return@hookReplace param.invokeOriginal()
             }
 
             val contacts = mutableMapOf<String, Int>()
 
-            val elements = lastAIOMsgItem?.msgRecord?.elements ?: return@hookReplace param.invokeOriginal()
+            val elements = target.msgRecord.elements
 
             val uin = intent.getStringExtra("uin")
             val uinType = intent.getIntExtra("uintype", INVALID_TYPE)
@@ -165,10 +167,12 @@ object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
         handleForward?.hookReplace(this) { param ->
             val map = param.args[0] as Map<*, *>
             val list = param.args[2] as List<*>
+            val target = lastAIOMsgItem
+            lastAIOMsgItem = null
 
-            if (map.size == 1 && lastAIOMsgItem != null) {
-                val msgRecord = lastAIOMsgItem?.msgRecord ?: return@hookReplace param.invokeOriginal()
-                val elements = msgRecord.elements
+            if (map.size == 1 && target != null) {
+
+                val elements = target.msgRecord.elements
 
                 ModuleScope.launchIO(name) {
                     CopyOnWriteArrayList<Any>(list)
