@@ -34,9 +34,9 @@ import java.lang.reflect.Method
 import java.util.concurrent.CopyOnWriteArrayList
 
 @HookItemAnnotation(
-    tag = "转发语音",
-    desc = "语音长按菜单出现转发按钮（支持私聊，群聊，临时会话）",
-    category = HookCategory.CHAT
+    "转发语音",
+    "语音长按菜单出现转发按钮（支持私聊，群聊，临时会话）",
+    HookCategory.CHAT
 )
 object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
 
