@@ -24,7 +24,7 @@ object AutoKeepSpark : BaseClickableHookItem<SparkConfig>(SparkConfig.serializer
     private const val TASK_ID = "AutoKeepSpark_Task"
 
     private fun getNextTargetTime(): Long {
-        val now = System.currentTimeMillis()
+        val now = PrecisionScheduler.currentServerTime()
         val c = Calendar.getInstance()
         c.timeInMillis = now
         c.set(Calendar.HOUR_OF_DAY, config.hour)

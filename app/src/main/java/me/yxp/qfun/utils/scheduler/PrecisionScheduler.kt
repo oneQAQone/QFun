@@ -96,13 +96,15 @@ object PrecisionScheduler {
 
     fun getNextMidnight(): Long {
         val c = Calendar.getInstance()
-        c.add(Calendar.DAY_OF_YEAR, 1)
+        c.timeInMillis = currentServerTime()
         c.set(Calendar.HOUR_OF_DAY, 0)
         c.set(Calendar.MINUTE, 0)
         c.set(Calendar.SECOND, 0)
         c.set(Calendar.MILLISECOND, 0)
+        c.add(Calendar.DAY_OF_YEAR, 1)
         return c.timeInMillis
     }
+
 
     fun addTask(task: ScheduledTask) {
         if (task.targetTime < currentServerTime()) {
@@ -132,7 +134,11 @@ object PrecisionScheduler {
         val flags = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         val pi = PendingIntent.getBroadcast(context, 10086, intent, flags)
 
-        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pi)
+        try {
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pi)
+        } catch (_: Exception) {
+            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pi)
+        }
     }
 
     @Suppress("DEPRECATION")

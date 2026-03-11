@@ -38,7 +38,6 @@ object SortEmoticonsByUsage : BaseSwitchHookItem(), DexKitTask {
         return super.onInit()
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun onHook() {
         FavEmoRoamingHandler::class.java
             .findMethod {
