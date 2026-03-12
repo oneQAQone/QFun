@@ -7,6 +7,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.view.WindowCompat
@@ -17,6 +18,7 @@ import me.yxp.qfun.utils.ui.ThemeHelper
 @Suppress("DEPRECATION")
 abstract class BaseComposeActivity : ComponentActivity() {
 
+    protected var themeMode by mutableIntStateOf(ThemeHelper.MODE_AUTO)
     protected var isDarkTheme by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,12 +26,11 @@ abstract class BaseComposeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
-
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
         setupTransparentStatusBar()
-
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        
+        themeMode = ThemeHelper.getThemeMode()
         isDarkTheme = ThemeHelper.isNightMode()
         updateStatusBarAppearance()
     }
@@ -38,6 +39,14 @@ abstract class BaseComposeActivity : ComponentActivity() {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus && Build.VERSION.SDK_INT < 30) {
             (lifecycle as LifecycleRegistry).handleLifecycleEvent(Lifecycle.Event.ON_START)
+        }
+        
+        if (hasFocus && themeMode == ThemeHelper.MODE_AUTO) {
+            val newNightMode = ThemeHelper.isNightMode()
+            if (isDarkTheme != newNightMode) {
+                isDarkTheme = newNightMode
+                updateStatusBarAppearance()
+            }
         }
     }
 
@@ -55,8 +64,11 @@ abstract class BaseComposeActivity : ComponentActivity() {
     }
 
     protected fun toggleTheme() {
-        isDarkTheme = !isDarkTheme
-        ThemeHelper.setNightMode(isDarkTheme)
+        
+        themeMode = (themeMode + 1) % 3
+        ThemeHelper.setThemeMode(themeMode)
+        isDarkTheme = ThemeHelper.isNightMode()
+        ThemeHelper.applyTheme(this)
         updateStatusBarAppearance()
     }
 

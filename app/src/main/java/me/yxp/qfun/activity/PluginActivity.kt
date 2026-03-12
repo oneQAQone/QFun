@@ -37,7 +37,7 @@ class PluginActivity : BaseComposeActivity() {
                         localPlugins = vm.localPlugins,
                         onlineUiState = vm.onlineUiState,
                         downloadingPlugins = vm.downloadingPlugins,
-                        isDarkTheme = isDarkTheme,
+                        themeMode = themeMode,
                         onThemeToggle = ::toggleTheme,
                         onBackClick = ::finish,
                         onCreatePlugin = vm::showCreatePluginDialog,
