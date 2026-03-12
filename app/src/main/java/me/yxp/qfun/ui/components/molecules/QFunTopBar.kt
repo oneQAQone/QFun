@@ -1,7 +1,12 @@
 package me.yxp.qfun.ui.components.molecules
 
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,12 +24,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -39,16 +42,11 @@ fun QFunTopBar(
     modifier: Modifier = Modifier,
     showBackButton: Boolean = false,
     onBackClick: () -> Unit = {},
-    isDarkTheme: Boolean = false,
+    themeMode: Int = 0,
     onThemeToggle: () -> Unit = {},
     actions: @Composable () -> Unit = {}
 ) {
     val colors = QFunTheme.colors
-    val rotation by animateFloatAsState(
-        targetValue = if (isDarkTheme) 180f else 0f,
-        animationSpec = tween(durationMillis = 300),
-        label = "themeRotation"
-    )
 
     Row(
         modifier = modifier
@@ -58,7 +56,7 @@ fun QFunTopBar(
     ) {
         if (showBackButton) {
             QFunCard(
-                modifier = Modifier.size(40.dp), 
+                modifier = Modifier.size(40.dp),
                 animateContentSize = false,
                 onClick = onBackClick
             ) {
@@ -71,21 +69,21 @@ fun QFunTopBar(
 
         Text(
             text = title,
-            fontSize = if (showBackButton) 20.sp else 28.sp, 
+            fontSize = if (showBackButton) 20.sp else 28.sp,
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary,
             modifier = Modifier.weight(1f)
         )
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp), 
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             actions()
 
             Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(50)) 
+                    .clip(RoundedCornerShape(50))
                     .background(colors.cardBackground)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -95,16 +93,35 @@ fun QFunTopBar(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painterResource(if (isDarkTheme) R.drawable.ic_sun else R.drawable.ic_moon),
-                    "Toggle theme",
-                    Modifier
-                        .size(18.dp)
-                        .rotate(rotation),
-                    colors.textPrimary
-                )
+                val iconRes = when(themeMode) {
+                    1 -> R.drawable.ic_sun
+                    2 -> R.drawable.ic_moon
+                    else -> R.drawable.ic_theme_auto
+                }
+                val themeText = when(themeMode) {
+                    1 -> "浅色"
+                    2 -> "深色"
+                    else -> "跟随"
+                }
+
+                AnimatedContent(
+                    targetState = iconRes,
+                    transitionSpec = {
+                        scaleIn(tween(200)) + fadeIn(tween(200)) togetherWith
+                                scaleOut(tween(200)) + fadeOut(tween(200))
+                    },
+                    label = "themeIcon"
+                ) { targetIcon ->
+                    Icon(
+                        painterResource(targetIcon),
+                        contentDescription = "Toggle theme",
+                        Modifier.size(18.dp),
+                        colors.textPrimary
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = if (isDarkTheme) "深色" else "浅色",
+                    text = themeText,
                     fontSize = 13.sp,
                     color = colors.textPrimary,
                     fontWeight = FontWeight.Medium
@@ -113,6 +130,7 @@ fun QFunTopBar(
         }
     }
 }
+
 
 @Composable
 fun TopBarCapsuleButton(iconRes: Int, label: String, onClick: () -> Unit) {

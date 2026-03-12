@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -77,7 +76,7 @@ data class FunctionData(
 fun SettingsScreen(
     categories: List<CategoryData>,
     versionInfo: String,
-    isDarkTheme: Boolean,
+    themeMode: Int,
     onThemeToggle: () -> Unit,
     onImportConfig: () -> Unit,
     onExportConfig: () -> Unit,
@@ -131,7 +130,7 @@ fun SettingsScreen(
                     MainPage(
                         categories = categories,
                         versionInfo = versionInfo,
-                        isDarkTheme = isDarkTheme,
+                        themeMode = themeMode,
                         onThemeToggle = onThemeToggle,
                         onUpdateLogClick = onUpdateLogClick,
                         onImportConfig = onImportConfig,
@@ -147,7 +146,7 @@ fun SettingsScreen(
                     categories.find { it.name == categoryName }?.let { category ->
                         DetailPage(
                             category = category,
-                            isDarkTheme = isDarkTheme,
+                            themeMode = themeMode,
                             onThemeToggle = onThemeToggle,
                             onBackClick = { selectedCategoryName = null },
                             onFunctionToggle = onFunctionToggle,
@@ -230,7 +229,7 @@ private fun UpdateLogDialogContent(
 private fun MainPage(
     categories: List<CategoryData>,
     versionInfo: String,
-    isDarkTheme: Boolean,
+    themeMode: Int,
     onThemeToggle: () -> Unit,
     onUpdateLogClick: () -> Unit,
     onImportConfig: () -> Unit,
@@ -250,7 +249,7 @@ private fun MainPage(
         item {
             QFunTopBar(
                 title = "QFun",
-                isDarkTheme = isDarkTheme,
+                themeMode = themeMode,
                 onThemeToggle = onThemeToggle,
                 actions = {
                     TopBarCapsuleButton(
@@ -342,7 +341,7 @@ private fun AboutSection(
 @Composable
 private fun DetailPage(
     category: CategoryData,
-    isDarkTheme: Boolean,
+    themeMode: Int,
     onThemeToggle: () -> Unit,
     onBackClick: () -> Unit,
     onFunctionToggle: (String, Boolean) -> Unit,
@@ -353,7 +352,7 @@ private fun DetailPage(
             category.name,
             showBackButton = true,
             onBackClick = onBackClick,
-            isDarkTheme = isDarkTheme,
+            themeMode = themeMode,
             onThemeToggle = onThemeToggle
         )
         LazyColumn(

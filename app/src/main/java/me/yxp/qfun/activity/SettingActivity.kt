@@ -41,7 +41,7 @@ class SettingActivity : BaseComposeActivity() {
                     SettingsScreen(
                         categories = vm.categories,
                         versionInfo = vm.buildVersionInfo(),
-                        isDarkTheme = isDarkTheme,
+                        themeMode = themeMode,
                         onThemeToggle = ::toggleTheme,
                         onImportConfig = ::startImportConfig,
                         onExportConfig = ::startExportConfig,

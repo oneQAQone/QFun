@@ -82,7 +82,7 @@ fun PluginScreen(
     localPlugins: List<LocalPluginData>,
     onlineUiState: PluginListUiState,
     downloadingPlugins: Set<String>,
-    isDarkTheme: Boolean,
+    themeMode: Int,
     onThemeToggle: () -> Unit,
     onBackClick: () -> Unit,
     onCreatePlugin: () -> Unit,
@@ -115,7 +115,7 @@ fun PluginScreen(
             "Java Plugin",
             showBackButton = true,
             onBackClick = onBackClick,
-            isDarkTheme = isDarkTheme,
+            themeMode = themeMode,
             onThemeToggle = onThemeToggle,
             actions = {
                 TopBarCapsuleButton(
