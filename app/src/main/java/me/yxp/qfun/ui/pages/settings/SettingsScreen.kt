@@ -51,7 +51,7 @@ import me.yxp.qfun.ui.components.dialogs.CenterDialog
 import me.yxp.qfun.ui.components.listitems.SwitchActionCard
 import me.yxp.qfun.ui.components.molecules.AnimatedListItem
 import me.yxp.qfun.ui.components.molecules.QFunTopBar
-import me.yxp.qfun.ui.components.molecules.TopBarIconButton
+import me.yxp.qfun.ui.components.molecules.TopBarCapsuleButton
 import me.yxp.qfun.ui.core.theme.AccentBlue
 import me.yxp.qfun.ui.core.theme.Dimens
 import me.yxp.qfun.ui.core.theme.QFunTheme
@@ -253,8 +253,11 @@ private fun MainPage(
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,
                 actions = {
-                    TopBarIconButton(R.drawable.ic_update_log, "更新日志", onUpdateLogClick)
-                    Spacer(modifier = Modifier.width(12.dp))
+                    TopBarCapsuleButton(
+                        iconRes = R.drawable.ic_update_log,
+                        label = "更新日志",
+                        onClick = onUpdateLogClick
+                    )
                 }
             )
         }

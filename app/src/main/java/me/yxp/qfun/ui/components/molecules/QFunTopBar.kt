@@ -5,9 +5,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -51,76 +53,93 @@ fun QFunTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (showBackButton) {
             QFunCard(
-                modifier = Modifier.size(44.dp),
+                modifier = Modifier.size(40.dp), 
                 animateContentSize = false,
                 onClick = onBackClick
             ) {
-                Box(modifier = Modifier.size(44.dp), contentAlignment = Alignment.Center) {
-                    Text("←", fontSize = 24.sp, color = colors.textPrimary)
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("←", fontSize = 22.sp, color = colors.textPrimary)
                 }
             }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
         }
 
         Text(
             text = title,
-            fontSize = if (showBackButton) 22.sp else 32.sp,
+            fontSize = if (showBackButton) 20.sp else 28.sp, 
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary,
             modifier = Modifier.weight(1f)
         )
 
-        actions()
-
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(18.dp))
-                .background(colors.cardBackground)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(color = colors.ripple),
-                    onClick = onThemeToggle
-                ),
-            contentAlignment = Alignment.Center
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp), 
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painterResource(if (isDarkTheme) R.drawable.ic_sun else R.drawable.ic_moon),
-                "Toggle theme",
-                Modifier
-                    .size(24.dp)
-                    .rotate(rotation),
-                colors.textPrimary
-            )
+            actions()
+
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50)) 
+                    .background(colors.cardBackground)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(color = colors.ripple),
+                        onClick = onThemeToggle
+                    )
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painterResource(if (isDarkTheme) R.drawable.ic_sun else R.drawable.ic_moon),
+                    "Toggle theme",
+                    Modifier
+                        .size(18.dp)
+                        .rotate(rotation),
+                    colors.textPrimary
+                )
+                Text(
+                    text = if (isDarkTheme) "深色" else "浅色",
+                    fontSize = 13.sp,
+                    color = colors.textPrimary,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 }
 
 @Composable
-fun TopBarIconButton(iconRes: Int, contentDescription: String, onClick: () -> Unit) {
+fun TopBarCapsuleButton(iconRes: Int, label: String, onClick: () -> Unit) {
     val colors = QFunTheme.colors
-    Box(
+    Row(
         modifier = Modifier
-            .size(44.dp)
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(50))
             .background(colors.cardBackground)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = ripple(color = colors.ripple),
                 onClick = onClick
-            ),
-        contentAlignment = Alignment.Center
+            )
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             painterResource(iconRes),
-            contentDescription,
-            Modifier.size(24.dp),
+            contentDescription = label,
+            Modifier.size(18.dp),
             colors.textPrimary
+        )
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            color = colors.textPrimary,
+            fontWeight = FontWeight.Medium
         )
     }
 }

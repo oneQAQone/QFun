@@ -48,7 +48,7 @@ import me.yxp.qfun.ui.components.dialogs.BaseDialogSurface
 import me.yxp.qfun.ui.components.dialogs.CenterDialog
 import me.yxp.qfun.ui.components.molecules.QFunTopBar
 import me.yxp.qfun.ui.components.molecules.TabItem
-import me.yxp.qfun.ui.components.molecules.TopBarIconButton
+import me.yxp.qfun.ui.components.molecules.TopBarCapsuleButton
 import me.yxp.qfun.ui.core.theme.AccentGreen
 import me.yxp.qfun.ui.core.theme.Dimens
 import me.yxp.qfun.ui.core.theme.QFunTheme
@@ -118,12 +118,11 @@ fun PluginScreen(
             isDarkTheme = isDarkTheme,
             onThemeToggle = onThemeToggle,
             actions = {
-                TopBarIconButton(
+                TopBarCapsuleButton(
                     iconRes = R.drawable.ic_settings_gear,
-                    contentDescription = "设置悬浮图标",
+                    label = "设置图标",
                     onClick = onPickIcon
                 )
-                Spacer(modifier = Modifier.width(12.dp))
             }
         )
 
