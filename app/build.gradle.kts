@@ -25,8 +25,8 @@ extensions.configure<ApplicationExtension> {
         applicationId = "me.yxp.qfun"
         minSdk = 26
         targetSdk = 36
-        versionCode = 20
-        versionName = "1.2.8"
+        versionCode = 21
+        versionName = "1.2.9"
 
         ndk {
             abiFilters.add("arm64-v8a")
@@ -121,7 +121,7 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.33.5"
+        artifact = "com.google.protobuf:protoc:4.34.0"
     }
 
     generateProtoTasks {
