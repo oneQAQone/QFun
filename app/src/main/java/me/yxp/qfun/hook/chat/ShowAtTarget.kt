@@ -1,7 +1,5 @@
 package me.yxp.qfun.hook.chat
 
-import android.content.Intent
-import android.net.Uri
 import android.text.Spannable
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
@@ -12,14 +10,16 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.text.getSpans
 import androidx.core.view.children
+import com.tencent.mobileqq.aio.msg.AIOMsgItem
+import com.tencent.qqnt.aio.adapter.api.IContactApi
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.api.AIOViewUpdateListener
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
 import me.yxp.qfun.plugin.bean.MsgData
-import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.QQCurrentEnv
+import me.yxp.qfun.utils.qq.api
 
 @HookItemAnnotation(
     "显示艾特对象",
@@ -42,7 +42,7 @@ object ShowAtTarget : BaseSwitchHookItem(), AIOViewUpdateListener {
         findAllTextViews(origin, textViewList)
 
         if (textViewList.isNotEmpty()) {
-            setClickableSpan(msgData.atMap, textViewList)
+            setClickableSpan(msgData, textViewList)
         }
     }
 
@@ -58,8 +58,14 @@ object ShowAtTarget : BaseSwitchHookItem(), AIOViewUpdateListener {
         }
     }
 
-    private fun setClickableSpan(atMap: HashMap<String, String>, textViewList: List<TextView>) {
-        atMap.forEach { (uin, name) ->
+    private fun setClickableSpan(msgData: MsgData, textViewList: List<TextView>) {
+
+        msgData.atMap.forEach { (uin, name) ->
+            val msgRecord = MsgRecord().apply {
+                senderUin = uin.toLong()
+                peerUin = msgData.peerUin.toLong()
+                chatType = 2
+            }
             textViewList.forEach { textView ->
                 val text = textView.text
                 if (text is Spannable) {
@@ -72,7 +78,7 @@ object ShowAtTarget : BaseSwitchHookItem(), AIOViewUpdateListener {
                         }
                         text.setSpan(object : ClickableSpan() {
                             override fun onClick(widget: View) {
-                                openUserProfileCard(uin)
+                                openUserProfileCard(msgRecord)
                             }
                         }, startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
 
@@ -86,16 +92,9 @@ object ShowAtTarget : BaseSwitchHookItem(), AIOViewUpdateListener {
         }
     }
 
-    private fun openUserProfileCard(uin: String) {
-        runCatching {
-            val url =
-                "mqqapi://userprofile/friend_profile_card?src_type=web&version=1.0&source=2&uin=$uin"
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            QQCurrentEnv.activity?.startActivity(intent)
-        }.onFailure {
-            LogUtils.e(this, it)
+    private fun openUserProfileCard(msgRecord: MsgRecord) {
+        QQCurrentEnv.activity?.let {
+            api<IContactApi>().openProfileCard(it, AIOMsgItem(msgRecord))
         }
     }
 }
