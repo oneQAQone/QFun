@@ -14,10 +14,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import me.yxp.qfun.ui.components.dialogs.ConfirmDialog
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.ui.pages.home.MainScreen
 import me.yxp.qfun.utils.hook.hookstatus.HookStatus
+import me.yxp.qfun.utils.net.SocialConfigManager
 import me.yxp.qfun.utils.qq.HostInfo
 
 @Suppress("DEPRECATION")
@@ -40,6 +43,10 @@ class MainActivity : ComponentActivity() {
         updateActivationStatus()
         updateIconState()
 
+        lifecycleScope.launch {
+            SocialConfigManager.fetchSocialConfig()
+        }
+
         setContent {
             QFunTheme(false) {
                 MainScreen(
@@ -49,9 +56,9 @@ class MainActivity : ComponentActivity() {
                     frameworkInfo,
                     isIconVisible,
                     ::handleToggleIcon,
-                    { jump("https://t.me/QFunChannel") },
-                    { jump("https://github.com/oneQAQone/QFun") },
-                    { jump("mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1067198087&card_type=group&source=qrcode") }
+                    { jump(SocialConfigManager.telegramUrl) },
+                    { jump(SocialConfigManager.githubRepo) },
+                    { jump(SocialConfigManager.qqGroupUrl) }
                 )
 
                 ConfirmDialog(

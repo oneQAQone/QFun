@@ -17,6 +17,7 @@ import me.yxp.qfun.ui.pages.settings.CategoryData
 import me.yxp.qfun.ui.pages.settings.FunctionData
 import me.yxp.qfun.utils.io.BackupManager
 import me.yxp.qfun.utils.net.HttpUtils
+import me.yxp.qfun.utils.net.SocialConfigManager
 import me.yxp.qfun.utils.net.UpdateManager
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.Toasts
@@ -60,6 +61,7 @@ class SettingViewModel : ViewModel() {
     init {
         refreshCategories()
         checkUpdate()
+        fetchSocialConfig()
     }
 
     private fun checkUpdate() {
@@ -182,6 +184,12 @@ class SettingViewModel : ViewModel() {
             } else {
                 UpdateLogState(error = "获取数据失败")
             }
+        }
+    }
+
+    private fun fetchSocialConfig() {
+        viewModelScope.launch(Dispatchers.IO) {
+            SocialConfigManager.fetchSocialConfig()
         }
     }
 }
