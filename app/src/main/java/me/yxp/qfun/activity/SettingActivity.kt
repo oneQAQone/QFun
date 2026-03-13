@@ -17,6 +17,7 @@ import me.yxp.qfun.ui.components.dialogs.ConfirmDialog
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.ui.pages.settings.SettingsScreen
 import me.yxp.qfun.ui.viewmodel.SettingViewModel
+import me.yxp.qfun.utils.net.SocialConfigManager
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.qq.Toasts
 import java.text.SimpleDateFormat
@@ -47,9 +48,9 @@ class SettingActivity : BaseComposeActivity() {
                         onExportConfig = ::startExportConfig,
                         onFunctionToggle = vm::toggleFunction,
                         onFunctionClick = vm::handleFunctionClick,
-                        onGithubClick = { openUrl("https://github.com/oneQAQone/QFun") },
-                        onTelegramClick = { openUrl("https://t.me/QFunChannel") },
-                        onGroupClick = { openUrl("mqqapi://card/show_pslcard?src_type=internal&version=1&uin=1067198087&card_type=group&source=qrcode") },
+                        onGithubClick = { openUrl(SocialConfigManager.githubRepo) },
+                        onTelegramClick = { openUrl(SocialConfigManager.telegramUrl) },
+                        onGroupClick = { openUrl(SocialConfigManager.qqGroupUrl) },
                         onDonateClick = vm::showDonate,
                         activeConfigKey = vm.activeConfigKey,
                         onDismissDialog = vm::dismissDialog,
