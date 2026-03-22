@@ -1,9 +1,10 @@
 package me.yxp.qfun.common
 
 import android.content.Intent
+import android.util.Log
 import me.yxp.qfun.activity.CrashActivity
+import me.yxp.qfun.loader.hookapi.HookEngineManager
 import me.yxp.qfun.utils.hook.hookBefore
-import me.yxp.qfun.utils.hook.xpcompat.XposedBridge
 import me.yxp.qfun.utils.log.CrashReporter
 import me.yxp.qfun.utils.qq.HostInfo
 import kotlin.system.exitProcess
@@ -32,7 +33,7 @@ object CrashMonitor {
                 Thread.setDefaultUncaughtExceptionHandler(CrashHandler(currentHandler))
             }
         } catch (t: Throwable) {
-            XposedBridge.log("[QFun] CrashMonitor init failed: $t")
+            HookEngineManager.engine.log(Log.ERROR, "[QFun]", "CrashMonitor init failed: ", t)
         }
     }
 

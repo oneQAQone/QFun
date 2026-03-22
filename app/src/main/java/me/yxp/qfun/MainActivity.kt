@@ -14,7 +14,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.yxp.qfun.ui.components.dialogs.ConfirmDialog
 import me.yxp.qfun.ui.core.theme.QFunTheme
@@ -40,10 +43,17 @@ class MainActivity : ComponentActivity() {
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
         HookStatus.init(this)
-        updateActivationStatus()
-        updateIconState()
 
         lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                HookStatus.getXposedService().collect {
+                    updateActivationStatus()
+                    updateIconState()
+                }
+            }
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
             SocialConfigManager.fetchSocialConfig()
         }
 

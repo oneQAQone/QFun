@@ -3,10 +3,9 @@ package me.yxp.qfun.utils.log
 import android.os.Build
 import android.util.Log
 import me.yxp.qfun.BuildConfig
-import me.yxp.qfun.common.ModuleLoader
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.base.BaseHookItem
-import me.yxp.qfun.utils.hook.xpcompat.XposedBridge
+import me.yxp.qfun.loader.hookapi.HookEngineManager
 import me.yxp.qfun.utils.io.FileUtils
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.QQCurrentEnv
@@ -27,10 +26,8 @@ object LogUtils {
     fun e(tag: String, t: Throwable) {
         val stackTrace = Log.getStackTraceString(t)
         val msg = "[$tag] Error:\n$stackTrace"
-        runCatching {
-            XposedBridge.log("[$TAG] [$tag] Error occurred:")
-            XposedBridge.log(t)
-        }
+        HookEngineManager.engine.log(Log.ERROR, "[$TAG] [$tag]", "Error occurred:", t)
+
         saveCrashLog(tag, msg)
     }
 
@@ -39,7 +36,7 @@ object LogUtils {
     }
 
     fun getEnvironmentInfo(): String {
-        val bridge = ModuleLoader.getHookBridge()
+        val engine = HookEngineManager.engine
         return """
                 === Environment Information ===
                 Record Time: ${dateFormat.format(Date())}
@@ -57,10 +54,10 @@ object LogUtils {
                 Supported ABIs: ${Build.SUPPORTED_ABIS.joinToString(", ")}
 
                 --- Xposed Framework Information ---
-                Framework Name: ${bridge?.frameworkName ?: "Unknown"}
-                Framework Version: ${bridge?.frameworkVersion ?: "Unknown"}
-                Framework Version Code: ${bridge?.frameworkVersionCode ?: "Unknown"}
-                API Version: ${bridge?.apiLevel ?: "Unknown"}
+                Framework Name: ${engine.frameworkName}
+                Framework Version: ${engine.frameworkVersion}
+                Framework Version Code: ${engine.frameworkVersionCode}
+                API Version: ${engine.apiLevel}
 
                 --- Host Application Information ---
                 Package Name: ${HostInfo.packageName}

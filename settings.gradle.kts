@@ -30,10 +30,7 @@ dependencyResolutionManagement {
 rootProject.name = "QFun"
 include(
     ":app",
-    ":libs:libxposed:api",
-    "libs:libxposed:service",
     ":annotation",
     ":processor",
     ":qqinterface"
 )
-

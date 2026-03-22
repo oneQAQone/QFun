@@ -10,13 +10,13 @@ import com.tencent.mobileqq.paiyipai.PaiYiPaiHandler
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
+import me.yxp.qfun.loader.hookapi.Chain
 import me.yxp.qfun.ui.components.atoms.DialogTextField
 import me.yxp.qfun.ui.components.dialogs.CenterDialogContainer
 import me.yxp.qfun.ui.core.compatibility.QFunCenterDialog
 import me.yxp.qfun.utils.hook.hookReplace
 import me.yxp.qfun.utils.hook.invokeOriginal
 import me.yxp.qfun.utils.hook.returnConstant
-import me.yxp.qfun.utils.hook.xpcompat.XC_MethodHook
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.findMethodOrNull
@@ -63,7 +63,7 @@ object MultiPaiYiPai : BaseSwitchHookItem() {
 
     }
 
-    private fun showDialog(param: XC_MethodHook.MethodHookParam) {
+    private fun showDialog(param: Chain) {
         val activity = QQCurrentEnv.activity ?: return
 
         QFunCenterDialog(activity) { dismiss ->

@@ -8,11 +8,11 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
+import me.yxp.qfun.loader.hookapi.Chain
 import me.yxp.qfun.ui.core.compatibility.QFunBottomDialog
 import me.yxp.qfun.utils.dexkit.DexKitTask
 import me.yxp.qfun.utils.hook.hookReplace
 import me.yxp.qfun.utils.hook.invokeOriginal
-import me.yxp.qfun.utils.hook.xpcompat.XC_MethodHook
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.MsgTool
 import me.yxp.qfun.utils.qq.QQCurrentEnv
@@ -61,7 +61,7 @@ object SimpleTroopManagement : BaseSwitchHookItem(), DexKitTask {
     private fun showManagementSheet(
         activity: Activity,
         msgRecord: MsgRecord,
-        param: XC_MethodHook.MethodHookParam,
+        param: Chain,
         isOwner: Boolean
     ) {
         val troopUin = msgRecord.peerUin.toString()

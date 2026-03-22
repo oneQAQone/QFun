@@ -1,6 +1,8 @@
+@file:Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+
 package me.yxp.qfun.utils.reflect
 
-import me.yxp.qfun.utils.hook.xpcompat.XposedBridge
+import me.yxp.qfun.loader.hookapi.HookEngineManager
 import java.lang.Byte
 import java.lang.Double
 import java.lang.Float
@@ -11,8 +13,8 @@ import java.lang.reflect.Member
 val Any.TAG: String
     get() = this.javaClass.simpleName
 
-fun Member.callOriginal(obj: Any, vararg args: Any?): Any {
-    return XposedBridge.invokeOriginalMethod(this, obj, args)
+fun Member.callOriginal(obj: Any, vararg args: Any?): Any? {
+    return HookEngineManager.engine.getInvoker(this).invokeOrigin(obj, *args)
 }
 
 fun Any.callMethod(methodName: String, vararg args: Any?): Any? {
@@ -44,7 +46,7 @@ private fun Class<*>.findMethodAndCall(
         method.invoke(obj, *args)
     } catch (e: Exception) {
         try {
-            XposedBridge.invokeOriginalMethod(method, obj, args)
+            HookEngineManager.engine.getInvoker(method).invokeOrigin(obj, args)
         } catch (_: Exception) {
             throw e
         }

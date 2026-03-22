@@ -40,7 +40,7 @@ import io.github.libxposed.service.XposedServiceHelper;
 import kotlinx.coroutines.flow.MutableStateFlow;
 import kotlinx.coroutines.flow.StateFlowKt;
 import me.yxp.qfun.BuildConfig;
-import me.yxp.qfun.common.ModuleLoader;
+import me.yxp.qfun.loader.hookapi.HookEngineManager;
 
 /**
  * This class is only intended to be used in module process, not in host process.
@@ -153,7 +153,7 @@ public class HookStatus {
     }
 
     private static void initHookStatusImplInHostProcess() throws LinkageError {
-        Class<?> xposedClass = (Class<?>) ModuleLoader.getLoaderService().queryExtension("GetXposedBridgeClass");
+        Class<?> xposedClass = HookEngineManager.engine.getBridgeClass();
         boolean dexObfsEnabled = false;
         if (xposedClass != null) {
             dexObfsEnabled = !"de.robv.android.xposed.XposedBridge".equals(xposedClass.getName());

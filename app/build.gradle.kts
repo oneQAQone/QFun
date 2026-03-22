@@ -97,7 +97,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.dalvik.dx)
-    implementation(projects.libs.libxposed.service)
+    implementation(libs.libxposed.service)
     implementation(projects.annotation)
     implementation(libs.dexkit)
     implementation(libs.protobuf.java)
@@ -114,7 +114,7 @@ dependencies {
 
     ksp(projects.processor)
 
-    compileOnly(projects.libs.libxposed.api)
+    compileOnly(libs.libxposed.api)
     compileOnly(libs.xposed)
     compileOnly(projects.qqinterface)
 }

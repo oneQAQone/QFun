@@ -43,7 +43,7 @@ object OnMenuBuild : BaseApiHookItem<MenuClickListener>(), DexKitTask {
             .findMethod {
                 name = "setMenu"
             }.hookBefore(this) { param ->
-                val customMenu = param.args[0]
+                val customMenu = param.args[0] ?: return@hookBefore
 
                 val items =
                     customMenu.getObjectByTypeOrNull<MutableList<Any>>(customMenu.javaClass.superclass)
@@ -74,7 +74,7 @@ object OnMenuBuild : BaseApiHookItem<MenuClickListener>(), DexKitTask {
             returnType = view
             paramTypes(int, itemClass, boolean, floatArr)
         }.hookReplace(this) { param ->
-            val menuItem = param.args[1]
+            val menuItem = param.args[1] ?: return@hookReplace param.invokeOriginal()
             if (menuItem.javaClass != itemClass)
                 return@hookReplace param.invokeOriginal()
             val label = menuItem.getObjectByType<String>()

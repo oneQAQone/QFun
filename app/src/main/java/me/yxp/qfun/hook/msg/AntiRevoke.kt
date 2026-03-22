@@ -16,9 +16,9 @@ import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.api.AIOViewUpdateListener
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
+import me.yxp.qfun.loader.hookapi.HookParam
 import me.yxp.qfun.plugin.bean.MsgData
 import me.yxp.qfun.utils.hook.hookBefore
-import me.yxp.qfun.utils.hook.xpcompat.XC_MethodHook
 import me.yxp.qfun.utils.io.ObjectStore
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.FriendTool
@@ -122,7 +122,7 @@ object AntiRevoke : BaseSwitchHookItem(), AIOViewUpdateListener {
         }
     }
 
-    private fun handleInfoSyncPush(protoBuf: ByteArray, param: XC_MethodHook.MethodHookParam) {
+    private fun handleInfoSyncPush(protoBuf: ByteArray, param: HookParam) {
         val infoSyncPush = InfoSyncPushOuterClass.InfoSyncPush.parseFrom(protoBuf)
         if (!infoSyncPush.hasSyncRecallContent()) return
 
@@ -158,7 +158,7 @@ object AntiRevoke : BaseSwitchHookItem(), AIOViewUpdateListener {
         }
     }
 
-    private fun handleMsgPush(protoBuf: ByteArray, param: XC_MethodHook.MethodHookParam) {
+    private fun handleMsgPush(protoBuf: ByteArray, param: HookParam) {
         val msgPush = MsgPushOuterClass.MsgPush.parseFrom(protoBuf)
         val qqMessage = msgPush.qqMessage
         val content = qqMessage.messageContentInfo
@@ -175,7 +175,7 @@ object AntiRevoke : BaseSwitchHookItem(), AIOViewUpdateListener {
         }
     }
 
-    private fun onGroupRecallByMsgPush(opBytes: ByteArray, param: XC_MethodHook.MethodHookParam) {
+    private fun onGroupRecallByMsgPush(opBytes: ByteArray, param: HookParam) {
 
         val realBytes = if (opBytes.size > 7) opBytes.copyOfRange(7, opBytes.size) else opBytes
         val info =
@@ -242,7 +242,7 @@ object AntiRevoke : BaseSwitchHookItem(), AIOViewUpdateListener {
         }
     }
 
-    private fun onC2CRecallByMsgPush(opBytes: ByteArray, param: XC_MethodHook.MethodHookParam) {
+    private fun onC2CRecallByMsgPush(opBytes: ByteArray, param: HookParam) {
         val info =
             QQMessageOuterClass.QQMessage.MessageBody.C2CRecallOperationInfo.parseFrom(opBytes)
         val innerInfo = info.info
