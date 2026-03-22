@@ -40,7 +40,7 @@ object RemoveReplyAt : BaseSwitchHookItem(), DexKitTask {
 
             if (param.args[0] !is AIOMsgSendEvent.MsgOnClickReplyEvent)
                 return@hookReplace param.invokeOriginal()
-            val aioMsgItem = param.args[0].getObjectByTypeOrNull<AIOMsgItem>()
+            val aioMsgItem = param.args[0]?.getObjectByTypeOrNull<AIOMsgItem>()
                 ?: return@hookReplace param.invokeOriginal()
             val msgRecord = aioMsgItem.msgRecord
             val senderUid = msgRecord.senderUid
