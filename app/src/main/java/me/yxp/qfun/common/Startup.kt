@@ -11,7 +11,8 @@ import me.yxp.qfun.loader.hookapi.HookEngineManager
 import me.yxp.qfun.loader.hookapi.Unhook
 import me.yxp.qfun.utils.dexkit.DexKitCache
 import me.yxp.qfun.utils.dexkit.DexKitFinder
-import me.yxp.qfun.utils.hook.*
+import me.yxp.qfun.utils.hook.hookAfter
+import me.yxp.qfun.utils.hook.hookReplace
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.reflect.ClassUtils
@@ -33,7 +34,7 @@ object Startup {
     }
 
     private fun hookQFixAttach(attach: Method) {
-        
+
         attach.hookReplace { chain ->
             val constructorUnhooks = mutableListOf<Unhook>()
 
@@ -42,29 +43,33 @@ object Startup {
                     val loader = param.thisObject as ClassLoader
                     val loaderStr = loader.toString()
                     if (loaderStr.contains(BuildConfig.APPLICATION_ID)) return@hookAfter
-                    
-                    if ((loaderStr.contains("com.tencent.") || 
-                         loaderStr.contains("TinkerClassLoader") || 
-                         loaderStr.contains("DelegateLastClassLoader")) 
+
+                    if ((loaderStr.contains("com.tencent.") ||
+                                loaderStr.contains("TinkerClassLoader") ||
+                                loaderStr.contains("DelegateLastClassLoader"))
                         && !hasCapturedTinker.get()
                     ) {
                         hasCapturedTinker.set(true)
-                        
-                        HookEngineManager.engine.log(Log.INFO, "[QFun]", "捕获到热更 ClassLoader: $loader")
+
+                        HookEngineManager.engine.log(
+                            Log.INFO,
+                            "[QFun]",
+                            "捕获到热更 ClassLoader: $loader"
+                        )
                         doRealStartup(loader)
                     }
                 }
                 constructorUnhooks.add(unhook)
             }
 
-            
+
             try {
                 return@hookReplace chain.proceed()
             } finally {
-                
+
                 constructorUnhooks.forEach { it.unhook() }
                 constructorUnhooks.clear()
-                
+
                 if (!hasCapturedTinker.get()) {
                     val context = chain.args[0] as Context
                     doRealStartup(context.classLoader)
@@ -87,8 +92,12 @@ object Startup {
                     HostInfo.init(hostContext)
 
                     if (HostInfo.processName == HostInfo.packageName) {
-                        
-                        HookEngineManager.engine.log(Log.INFO, "[QFun]", "宿主启动 (Loader: $realClassLoader)")
+
+                        HookEngineManager.engine.log(
+                            Log.INFO,
+                            "[QFun]",
+                            "宿主启动 (Loader: $realClassLoader)"
+                        )
                         LogUtils.logEnvironment()
                     }
 
