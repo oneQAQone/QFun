@@ -34,9 +34,9 @@ interface IHookEngine {
     val frameworkVersionCode: Long
     val bridgeClass: Class<*>?
 
-    fun hookBefore(method: Member, priority: Int, callback: (HookParam) -> Unit): Unhook
-    fun hookAfter(method: Member, priority: Int, callback: (HookParam) -> Unit): Unhook
-    fun hookReplace(method: Member, priority: Int, callback: (Chain) -> Any?): Unhook
+    fun hookBefore(method: Member, priority: Int = 50, callback: (HookParam) -> Unit): Unhook
+    fun hookAfter(method: Member, priority: Int = 50, callback: (HookParam) -> Unit): Unhook
+    fun hookReplace(method: Member, priority: Int = 50, callback: (Chain) -> Any?): Unhook
     
     fun getInvoker(method: Member): Invoker
     fun deoptimize(method: Member): Boolean
