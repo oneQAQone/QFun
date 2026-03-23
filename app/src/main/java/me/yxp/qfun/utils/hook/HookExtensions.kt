@@ -13,21 +13,18 @@ import me.yxp.qfun.loader.hookapi.HookEngineManager
 
 fun Member.hookBefore(
     owner: BaseHookItem? = null,
-    priority: Int = 50,
     block: (HookParam) -> Unit
 ): Unhook {
-    return HookEngineManager.engine.hookBefore(this, priority) { param ->
+    return HookEngineManager.engine.hookBefore(this) { param ->
         if (owner?.isEnable == false) return@hookBefore
         runCatching { block(param) }.onFailure { LogUtils.e("HookBeforeError: ${owner?.name ?: "Unknown"}", it) }
     }
 }
-
 fun Member.hookAfter(
     owner: BaseHookItem? = null,
-    priority: Int = 50,
     block: (HookParam) -> Unit
 ): Unhook {
-    return HookEngineManager.engine.hookAfter(this, priority) { param ->
+    return HookEngineManager.engine.hookAfter(this) { param ->
         if (owner?.isEnable == false) return@hookAfter
         runCatching { block(param) }.onFailure { LogUtils.e("HookAfterError: ${owner?.name ?: "Unknown"}", it) }
     }
@@ -35,10 +32,9 @@ fun Member.hookAfter(
 
 fun Member.hookReplace(
     owner: BaseHookItem? = null,
-    priority: Int = 50,
     block: (Chain) -> Any?
 ): Unhook {
-    return HookEngineManager.engine.hookReplace(this, priority) { chain ->
+    return HookEngineManager.engine.hookReplace(this) { chain ->
         try {
             if (owner?.isEnable == false) {
                 chain.proceed()
@@ -64,7 +60,7 @@ fun Member.returnConstant(owner: BaseHookItem? = null, constant: Any?): Unhook {
     return this.hookReplace(owner) { constant }
 }
 
-fun Member.doNothing(owner: BaseHookItem?): Unhook {
+fun Member.doNothing(owner: BaseHookItem? = null): Unhook {
     return this.hookReplace(owner) { null }
 }
 
