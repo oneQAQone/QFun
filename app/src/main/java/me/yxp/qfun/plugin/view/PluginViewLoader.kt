@@ -7,7 +7,6 @@ import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.base.BaseApiHookItem
 import me.yxp.qfun.hook.base.Listener
-import me.yxp.qfun.hook.plugin.PluginFloatWindowSwitch
 import me.yxp.qfun.plugin.loader.PluginManager
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.qq.FriendTool
@@ -80,11 +79,9 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
         ModuleScope.launchMainDelayed(1) {
             val activity = QQCurrentEnv.activity ?: return@launchMainDelayed
 
-            if (PluginFloatWindowSwitch.isEnable) {
-                if (PluginManager.plugins.any { it.isRunning && it.compiler.menuItems.isNotEmpty() }) {
-                    currentPluginView = PluginView(activity)
-                    currentPluginView?.show()
-                }
+            if (PluginManager.plugins.any { it.isRunning }) {
+                currentPluginView = PluginView(activity)
+                currentPluginView?.show()
             }
         }
     }

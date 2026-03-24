@@ -14,6 +14,7 @@ import android.widget.ImageView
 import android.widget.PopupWindow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import androidx.core.widget.ImageViewCompat
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import me.yxp.qfun.R
 import me.yxp.qfun.common.ModuleScope
+import me.yxp.qfun.hook.plugin.PluginFloatWindowSwitch
 import me.yxp.qfun.plugin.loader.PluginManager
 import me.yxp.qfun.ui.core.compatibility.QFunBottomDialog
 import me.yxp.qfun.ui.core.theme.AccentGreen
@@ -67,6 +69,7 @@ class PluginView(private val activity: Activity) {
     fun show() {
         ThemeHelper.applyTheme(activity)
         if (popupWindow != null) return
+        
         val currentContact = PluginViewLoader.currentContact
         PluginManager.plugins.filter { it.isRunning }
             .forEach {
@@ -74,6 +77,10 @@ class PluginView(private val activity: Activity) {
                     currentContact.chatType, currentContact.peerUin, currentContact.peerName
                 )
             }
+
+        if (!PluginFloatWindowSwitch.isEnable) return
+        val hasMenuItems = PluginManager.plugins.any { it.isRunning && it.compiler.menuItems.isNotEmpty() }
+        if (!hasMenuItems) return
 
         val metrics = activity.resources.displayMetrics
         val savedX = prefs.getInt("plugin_float_x", -1)
@@ -161,6 +168,7 @@ class PluginView(private val activity: Activity) {
                     isDragging = false
                     true
                 }
+
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.rawX - touchStartX
                     val dy = event.rawY - touchStartY
@@ -172,6 +180,7 @@ class PluginView(private val activity: Activity) {
                     }
                     true
                 }
+
                 MotionEvent.ACTION_UP -> {
                     if (isDragging) {
                         prefs.edit().apply {
@@ -184,6 +193,7 @@ class PluginView(private val activity: Activity) {
                     }
                     true
                 }
+
                 else -> false
             }
         }
