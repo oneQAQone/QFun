@@ -7,6 +7,7 @@ import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.base.BaseApiHookItem
 import me.yxp.qfun.hook.base.Listener
+import me.yxp.qfun.hook.plugin.PluginFloatWindowSwitch
 import me.yxp.qfun.plugin.loader.PluginManager
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.qq.FriendTool
@@ -33,23 +34,18 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
         } ?: PluginContact()
 
     override fun loadHook() {
-
         AIODelegate::class.java.getDeclaredMethod("show")
             .hookAfter(this) {
                 aioDelegate = it.thisObject as AIODelegate
-
                 if (currentContact.chatType != 0) {
                     hideView()
                     showView()
                 }
-
-
             }
         AIODelegate::class.java.getDeclaredMethod("hide")
             .hookAfter(this) {
                 if (QQCurrentEnv.activity !is ScaleAIOActivity) hideView()
             }
-
     }
 
     private fun parseToPluginContact(input: String): PluginContact {
@@ -81,9 +77,10 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
     }
 
     private fun showView() {
-
         ModuleScope.launchMainDelayed(1) {
             val activity = QQCurrentEnv.activity ?: return@launchMainDelayed
+            
+            if (!PluginFloatWindowSwitch.isEnable) return@launchMainDelayed
 
             if (PluginManager.plugins.any { it.isRunning && it.compiler.menuItems.isNotEmpty() }) {
                 currentPluginView = PluginView(activity)
@@ -96,5 +93,4 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
         currentPluginView?.dismiss()
         currentPluginView = null
     }
-
 }
