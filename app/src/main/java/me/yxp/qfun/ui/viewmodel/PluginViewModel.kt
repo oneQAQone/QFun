@@ -8,7 +8,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.plugin.loader.PluginManager
 import me.yxp.qfun.plugin.net.ScriptInfo
@@ -47,13 +51,67 @@ class PluginViewModel : ViewModel() {
         private set
     var createdPluginPath by mutableStateOf("")
         private set
+    var isLocalRefreshing by mutableStateOf(false)
+        private set
+    var isOnlineRefreshing by mutableStateOf(false)
+        private set
 
     private val scriptList = mutableListOf<ScriptInfo>()
 
     init {
-        refreshLocalPlugins()
         PluginManager.loadAll()
+        refreshLocalPlugins()
         fetchOnlinePlugins()
+    }
+
+    fun reloadLocalPlugins() {
+        if (isLocalRefreshing) return
+        isLocalRefreshing = true
+        viewModelScope.launch(Dispatchers.IO) {
+            PluginManager.loadAll()
+            delay(500)
+            withContext(Dispatchers.Main) {
+                refreshLocalPlugins()
+                isLocalRefreshing = false
+                Toasts.qqToast(2, "刷新成功")
+            }
+        }
+    }
+
+    fun reloadOnlinePlugins() {
+        if (isOnlineRefreshing) return
+        isOnlineRefreshing = true
+        viewModelScope.launch {
+            try {
+                withTimeout(10_000L) {
+                    ScriptService.fetchScriptList().fold(
+                        onSuccess = { list ->
+                            scriptList.clear()
+                            scriptList.addAll(list)
+                            onlineUiState = PluginListUiState.Success(list.map { script ->
+                                OnlinePluginData(
+                                    script.id,
+                                    script.name,
+                                    script.version,
+                                    script.author,
+                                    script.description,
+                                    script.downloads,
+                                    script.uploadTime
+                                )
+                            })
+                            Toasts.qqToast(2, "刷新成功")
+                        },
+                        onFailure = { e ->
+                            Toasts.qqToast(1, e.message ?: "刷新失败")
+                        }
+                    )
+                }
+            } catch (e: TimeoutCancellationException) {
+                Toasts.qqToast(1, "请求超时")
+            } finally {
+                isOnlineRefreshing = false
+            }
+        }
     }
 
     fun refreshLocalPlugins() {
@@ -178,7 +236,7 @@ class PluginViewModel : ViewModel() {
         }
     }
 
-    fun fetchOnlinePlugins() {
+    private fun fetchOnlinePlugins() {
         if (onlineUiState is PluginListUiState.Loading && scriptList.isNotEmpty()) return
         onlineUiState = PluginListUiState.Loading
         viewModelScope.launch {

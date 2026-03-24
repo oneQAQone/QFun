@@ -82,11 +82,14 @@ fun PluginScreen(
     localPlugins: List<LocalPluginData>,
     onlineUiState: PluginListUiState,
     downloadingPlugins: Set<String>,
+    isLocalRefreshing: Boolean,
+    isOnlineRefreshing: Boolean,
     themeMode: Int,
     onThemeToggle: () -> Unit,
     onBackClick: () -> Unit,
     onCreatePlugin: () -> Unit,
     onDocsClick: () -> Unit,
+    onRefreshLocal: () -> Unit,
     onRefreshOnline: () -> Unit,
     onPluginRunToggle: (String, Boolean) -> Unit,
     onPluginAutoLoadToggle: (String, Boolean) -> Unit,
@@ -126,24 +129,32 @@ fun PluginScreen(
             }
         )
 
-        PluginTabBar(selectedTab, { selectedTab = it }, onCreatePlugin, onDocsClick)
+        PluginTabBar(
+            selectedTab = selectedTab,
+            onTabSelected = { selectedTab = it },
+            onCreatePlugin = onCreatePlugin,
+            onDocsClick = onDocsClick
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         when (selectedTab) {
             0 -> LocalPluginPage(
-                localPlugins,
-                onPluginRunToggle,
-                onPluginAutoLoadToggle,
-                onPluginDelete,
-                onPluginReload,
-                onPluginUpload
+                plugins = localPlugins,
+                isRefreshing = isLocalRefreshing,
+                onRunToggle = onPluginRunToggle,
+                onAutoLoadToggle = onPluginAutoLoadToggle,
+                onDelete = onPluginDelete,
+                onReload = onPluginReload,
+                onUpload = onPluginUpload,
+                onRefresh = onRefreshLocal
             )
             1 -> OnlinePluginPage(
-                onlineUiState,
-                downloadingPlugins,
-                onPluginDownload,
-                onRefreshOnline
+                uiState = onlineUiState,
+                isOnlineRefreshing = isOnlineRefreshing,
+                downloadingPlugins = downloadingPlugins,
+                onDownload = onPluginDownload,
+                onRefresh = onRefreshOnline
             )
         }
     }
@@ -225,7 +236,6 @@ private fun CreatePluginDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-
                 DialogTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -234,7 +244,6 @@ private fun CreatePluginDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-
                 DialogTextField(
                     value = version,
                     onValueChange = { version = it },
@@ -243,7 +252,6 @@ private fun CreatePluginDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-
                 DialogTextField(
                     value = author,
                     onValueChange = { author = it },
