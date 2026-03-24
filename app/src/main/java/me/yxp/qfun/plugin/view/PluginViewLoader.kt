@@ -79,12 +79,12 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
     private fun showView() {
         ModuleScope.launchMainDelayed(1) {
             val activity = QQCurrentEnv.activity ?: return@launchMainDelayed
-            
-            if (!PluginFloatWindowSwitch.isEnable) return@launchMainDelayed
 
-            if (PluginManager.plugins.any { it.isRunning && it.compiler.menuItems.isNotEmpty() }) {
-                currentPluginView = PluginView(activity)
-                currentPluginView?.show()
+            if (PluginFloatWindowSwitch.isEnable) {
+                if (PluginManager.plugins.any { it.isRunning && it.compiler.menuItems.isNotEmpty() }) {
+                    currentPluginView = PluginView(activity)
+                    currentPluginView?.show()
+                }
             }
         }
     }
