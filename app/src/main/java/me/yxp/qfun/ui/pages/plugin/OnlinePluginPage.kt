@@ -1,8 +1,10 @@
 package me.yxp.qfun.ui.pages.plugin
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,26 +15,31 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import me.yxp.qfun.ui.components.atoms.ActionButton
 import me.yxp.qfun.ui.components.atoms.ActionButtonStyle
 import me.yxp.qfun.ui.components.atoms.LoadingIndicator
 import me.yxp.qfun.ui.components.atoms.QFunCard
 import me.yxp.qfun.ui.components.molecules.AnimatedListItem
 import me.yxp.qfun.ui.components.molecules.EmptyStateView
+import me.yxp.qfun.ui.components.molecules.PullRefreshBox
 import me.yxp.qfun.ui.core.theme.Dimens
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.ui.viewmodel.PluginListUiState
@@ -40,22 +47,39 @@ import me.yxp.qfun.ui.viewmodel.PluginListUiState
 @Composable
 fun OnlinePluginPage(
     uiState: PluginListUiState,
+    isOnlineRefreshing: Boolean,
     downloadingPlugins: Set<String>,
     onDownload: (String) -> Unit,
     onRefresh: () -> Unit
 ) {
-    when (uiState) {
-        is PluginListUiState.Loading -> LoadingIndicator(message = "正在获取在线脚本...")
-        is PluginListUiState.Error -> EmptyStateView(
-            "获取失败: ${uiState.message}\n点击重试",
-            onClick = onRefresh
-        )
+    val listState = rememberLazyListState()
+    val showScrollToTop by remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
+    val scope = rememberCoroutineScope()
 
-        is PluginListUiState.Success -> OnlinePluginList(
-            uiState.data,
-            downloadingPlugins,
-            onDownload,
-            onRefresh
+    Box(modifier = Modifier.fillMaxSize()) {
+        PullRefreshBox(isRefreshing = isOnlineRefreshing, onRefresh = onRefresh) {
+            when (uiState) {
+                is PluginListUiState.Loading -> LoadingIndicator(message = "正在获取在线脚本...")
+                is PluginListUiState.Error -> EmptyStateView(
+                    "获取失败: ${uiState.message}\n点击重试",
+                    onClick = onRefresh
+                )
+                is PluginListUiState.Success -> OnlinePluginList(
+                    uiState.data,
+                    downloadingPlugins,
+                    onDownload,
+                    onRefresh,
+                    listState
+                )
+            }
+        }
+
+        ScrollToTopButton(
+            visible = showScrollToTop && uiState is PluginListUiState.Success,
+            onClick = { scope.launch { listState.animateScrollToItem(0) } },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 24.dp)
         )
     }
 }
@@ -65,13 +89,14 @@ private fun OnlinePluginList(
     plugins: List<OnlinePluginData>,
     downloadingPlugins: Set<String>,
     onDownload: (String) -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    listState: LazyListState
 ) {
     if (plugins.isEmpty()) {
         EmptyStateView("暂无在线脚本\n点击刷新", onClick = onRefresh)
     } else {
         LazyColumn(
-            state = rememberLazyListState(),
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp, 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -79,9 +104,7 @@ private fun OnlinePluginList(
             items(plugins, key = { "online_${plugins.indexOf(it)}_${it.id}" }) { plugin ->
                 AnimatedListItem(plugins.indexOf(plugin)) {
                     OnlinePluginCard(plugin, downloadingPlugins.contains(plugin.id)) {
-                        onDownload(
-                            plugin.id
-                        )
+                        onDownload(plugin.id)
                     }
                 }
             }
