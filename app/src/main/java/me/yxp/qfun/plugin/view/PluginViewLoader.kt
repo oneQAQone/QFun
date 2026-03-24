@@ -79,7 +79,7 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
         ModuleScope.launchMainDelayed(1) {
             val activity = QQCurrentEnv.activity ?: return@launchMainDelayed
 
-            if (PluginManager.plugins.any { it.isRunning }) {
+            if (PluginManager.plugins.any { it.isRunning && it.compiler.menuItems.isNotEmpty() }) {
                 currentPluginView = PluginView(activity)
                 currentPluginView?.show()
             }
