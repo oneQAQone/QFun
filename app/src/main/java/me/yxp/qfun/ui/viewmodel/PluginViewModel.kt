@@ -11,9 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.plugin.loader.PluginManager
 import me.yxp.qfun.plugin.net.ScriptInfo
 import me.yxp.qfun.plugin.net.ScriptService
@@ -68,20 +66,21 @@ class PluginViewModel : ViewModel() {
         if (isLocalRefreshing) return
         isLocalRefreshing = true
         viewModelScope.launch(Dispatchers.IO) {
+            val startTime = System.currentTimeMillis()
             PluginManager.loadAll()
-            delay(500)
-            withContext(Dispatchers.Main) {
-                refreshLocalPlugins()
-                isLocalRefreshing = false
-                Toasts.qqToast(2, "刷新成功")
-            }
+            val diff = System.currentTimeMillis() - startTime
+            if (diff < 500L) delay(500L - diff)
+            refreshLocalPlugins()
+            isLocalRefreshing = false
+            Toasts.qqToast(2, "刷新成功")
         }
     }
 
     fun reloadOnlinePlugins() {
         if (isOnlineRefreshing) return
         isOnlineRefreshing = true
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
+            val startTime = System.currentTimeMillis()
             try {
                 withTimeout(10_000L) {
                     ScriptService.fetchScriptList().fold(
@@ -106,9 +105,11 @@ class PluginViewModel : ViewModel() {
                         }
                     )
                 }
-            } catch (e: TimeoutCancellationException) {
+            } catch (_: TimeoutCancellationException) {
                 Toasts.qqToast(1, "请求超时")
             } finally {
+                val diff = System.currentTimeMillis() - startTime
+                if (diff < 500L) delay(500L - diff)
                 isOnlineRefreshing = false
             }
         }
@@ -214,12 +215,12 @@ class PluginViewModel : ViewModel() {
 
     private fun uploadPlugin(id: String) {
         val plugin = PluginManager.plugins.find { it.id == id } ?: return
-        val scriptZip = File("${QQCurrentEnv.currentDir}cache", "${plugin.name}.zip")
+        val scriptZip = File(QQCurrentEnv.currentDir + "cache", "${plugin.name}.zip")
         if (!FileUtils.zip(File(plugin.dirPath), scriptZip)) {
             Toasts.qqToast(1, "打包失败")
             return
         }
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val result = ScriptService.uploadScript(
                 plugin.id,
                 plugin.author,
@@ -239,7 +240,7 @@ class PluginViewModel : ViewModel() {
     private fun fetchOnlinePlugins() {
         if (onlineUiState is PluginListUiState.Loading && scriptList.isNotEmpty()) return
         onlineUiState = PluginListUiState.Loading
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             ScriptService.fetchScriptList().fold(
                 onSuccess = { list ->
                     scriptList.clear()
@@ -270,7 +271,7 @@ class PluginViewModel : ViewModel() {
         if (downloadingPlugins.contains(id)) return
         downloadingPlugins = downloadingPlugins + id
         Toasts.qqToast(0, "开始下载: ${script.name}")
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             ScriptService.downloadAndInstall(script).fold(
                 onSuccess = {
                     downloadingPlugins = downloadingPlugins - id
@@ -296,9 +297,9 @@ class PluginViewModel : ViewModel() {
                         input.copyTo(output)
                     }
                 }
-                ModuleScope.launchMain { Toasts.qqToast(2, "悬浮图标已更新，下次显示生效") }
+                Toasts.qqToast(2, "悬浮图标已更新，下次显示生效")
             }.onFailure {
-                ModuleScope.launchMain { Toasts.qqToast(1, "图标设置失败: ${it.message}") }
+                Toasts.qqToast(1, "图标设置失败: ${it.message}")
             }
         }
     }
