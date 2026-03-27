@@ -3,6 +3,9 @@ package me.yxp.qfun.ui.components.molecules
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -17,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,11 +62,13 @@ fun PullRefreshBox(
 
     var touchDownY by remember { mutableStateOf(0f) }
     var boxHeight by remember { mutableStateOf(0f) }
-    
-        var hasScrolledThisDrag by remember { mutableStateOf(false) }
+    var hasScrolledThisDrag by remember { mutableStateOf(false) }
 
-        LaunchedEffect(isRefreshing) {
-        if (isRefreshing) {
+    val currentIsRefreshing by rememberUpdatedState(isRefreshing)
+    val currentOnRefresh by rememberUpdatedState(onRefresh)
+
+    LaunchedEffect(currentIsRefreshing) {
+        if (currentIsRefreshing) {
             if (offsetY.value < thresholdPx) {
                 offsetY.animateTo(thresholdPx, tween(250))
             }
@@ -75,24 +81,24 @@ fun PullRefreshBox(
         }
     }
 
-        DisposableEffect(Unit) {
+    DisposableEffect(Unit) {
         onDispose {
             scope.launch { offsetY.snapTo(0f) }
         }
     }
 
-        val nestedScrollConnection = remember(isRefreshing) {
+    val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (isRefreshing) return Offset.Zero
+                if (currentIsRefreshing) return Offset.Zero
 
                 if (source == NestedScrollSource.Drag) {
-                                        if (available.y < 0 && offsetY.value == 0f) {
+                    if (available.y < 0 && offsetY.value == 0f) {
                         hasScrolledThisDrag = true
                     }
                 }
 
-                                if (available.y < 0 && offsetY.value > 0) {
+                if (available.y < 0 && offsetY.value > 0) {
                     val current = offsetY.value
                     val newOffset = (current + available.y).coerceAtLeast(0f)
                     val consumed = newOffset - current
@@ -107,16 +113,16 @@ fun PullRefreshBox(
                 available: Offset,
                 source: NestedScrollSource
             ): Offset {
-                if (isRefreshing) return Offset.Zero
+                if (currentIsRefreshing) return Offset.Zero
 
                 if (source == NestedScrollSource.Drag) {
-                                        if (consumed.y > 0) {
+                    if (consumed.y > 0) {
                         hasScrolledThisDrag = true
                     }
 
-                                        val allowPullForThisDrag = !hasScrolledThisDrag && (boxHeight == 0f || touchDownY <= boxHeight / 2f)
+                    val allowPullForThisDrag = !hasScrolledThisDrag && (boxHeight == 0f || touchDownY <= boxHeight / 2f)
 
-                                        if (allowPullForThisDrag && available.y > 0) {
+                    if (allowPullForThisDrag && available.y > 0) {
                         val current = offsetY.value
                         val newOffset = (current + available.y).coerceAtMost(maxOffsetPx)
                         val consumedY = newOffset - current
@@ -128,29 +134,31 @@ fun PullRefreshBox(
             }
 
             override suspend fun onPreFling(available: Velocity): Velocity {
-                                hasScrolledThisDrag = false
+                hasScrolledThisDrag = false
 
-                if (isRefreshing) return Velocity.Zero
+                if (currentIsRefreshing) return Velocity.Zero
                 
                 if (offsetY.value > 0) {
                     if (offsetY.value >= thresholdPx) {
-                        onRefresh()
+                        currentOnRefresh()
                         offsetY.animateTo(thresholdPx, tween(200))
                     } else {
                         offsetY.animateTo(0f, tween(250))
                     }
-                                        return Velocity(0f, available.y)
+                    return Velocity(0f, available.y)
                 }
                 return Velocity.Zero
             }
         }
     }
 
+    val dummyScrollableState = rememberScrollableState { 0f }
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .onGloballyPositioned { boxHeight = it.size.height.toFloat() }
-                        .pointerInput(Unit) {
+            .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
                         val event = awaitPointerEvent(PointerEventPass.Initial)
@@ -163,7 +171,17 @@ fun PullRefreshBox(
             }
             .nestedScroll(nestedScrollConnection)
     ) {
-                content()
+        
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .scrollable(
+                    state = dummyScrollableState,
+                    orientation = Orientation.Vertical
+                )
+        ) {
+            content()
+        }
 
         val currentOffset = offsetY.value
         if (currentOffset > 0f) {
@@ -172,7 +190,7 @@ fun PullRefreshBox(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                                        .offset { IntOffset(0, (currentOffset - indicatorSizePx).roundToInt()) }
+                    .offset { IntOffset(0, (currentOffset - indicatorSizePx).roundToInt()) }
                     .alpha(pullRatio)
                     .shadow(elevation = 4.dp, shape = CircleShape, clip = false)
                     .clip(CircleShape)
@@ -181,7 +199,7 @@ fun PullRefreshBox(
                     .padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                if (isRefreshing) {
+                if (currentIsRefreshing) {
                     LoadingIndicator()
                 } else {
                     CircularProgressIndicator(

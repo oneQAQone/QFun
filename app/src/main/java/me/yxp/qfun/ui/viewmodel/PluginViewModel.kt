@@ -59,9 +59,23 @@ class PluginViewModel : ViewModel() {
     private val scriptList = mutableListOf<ScriptInfo>()
 
     init {
-        PluginManager.loadAll()
         refreshLocalPlugins()
+        PluginManager.loadAll()
         fetchOnlinePlugins()
+    }
+
+    fun refreshLocalPlugins() {
+        localPlugins = PluginManager.plugins.map { plugin ->
+            LocalPluginData(
+                plugin.id,
+                plugin.name,
+                plugin.version,
+                plugin.author,
+                plugin.desc,
+                plugin.isRunning,
+                PluginManager.autoLoadList.contains(plugin.id)
+            )
+        }
     }
 
     fun reloadLocalPlugins() {
@@ -111,20 +125,6 @@ class PluginViewModel : ViewModel() {
             } finally {
                 isOnlineRefreshing = false
             }
-        }
-    }
-
-    fun refreshLocalPlugins() {
-        localPlugins = PluginManager.plugins.map { plugin ->
-            LocalPluginData(
-                plugin.id,
-                plugin.name,
-                plugin.version,
-                plugin.author,
-                plugin.desc,
-                plugin.isRunning,
-                PluginManager.autoLoadList.contains(plugin.id)
-            )
         }
     }
 
@@ -236,7 +236,7 @@ class PluginViewModel : ViewModel() {
         }
     }
 
-    private fun fetchOnlinePlugins() {
+    fun fetchOnlinePlugins() {
         if (onlineUiState is PluginListUiState.Loading && scriptList.isNotEmpty()) return
         onlineUiState = PluginListUiState.Loading
         viewModelScope.launch {

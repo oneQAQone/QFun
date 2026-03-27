@@ -129,32 +129,27 @@ fun PluginScreen(
             }
         )
 
-        PluginTabBar(
-            selectedTab = selectedTab,
-            onTabSelected = { selectedTab = it },
-            onCreatePlugin = onCreatePlugin,
-            onDocsClick = onDocsClick
-        )
+        PluginTabBar(selectedTab, { selectedTab = it }, onCreatePlugin, onDocsClick)
 
         Spacer(modifier = Modifier.height(12.dp))
 
         when (selectedTab) {
             0 -> LocalPluginPage(
-                plugins = localPlugins,
-                isRefreshing = isLocalRefreshing,
-                onRunToggle = onPluginRunToggle,
-                onAutoLoadToggle = onPluginAutoLoadToggle,
-                onDelete = onPluginDelete,
-                onReload = onPluginReload,
-                onUpload = onPluginUpload,
-                onRefresh = onRefreshLocal
+                localPlugins,
+                isLocalRefreshing,
+                onRefreshLocal,
+                onPluginRunToggle,
+                onPluginAutoLoadToggle,
+                onPluginDelete,
+                onPluginReload,
+                onPluginUpload
             )
             1 -> OnlinePluginPage(
-                uiState = onlineUiState,
-                isOnlineRefreshing = isOnlineRefreshing,
-                downloadingPlugins = downloadingPlugins,
-                onDownload = onPluginDownload,
-                onRefresh = onRefreshOnline
+                onlineUiState,
+                isOnlineRefreshing,
+                downloadingPlugins,
+                onPluginDownload,
+                onRefreshOnline
             )
         }
     }
@@ -236,6 +231,7 @@ private fun CreatePluginDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+
                 DialogTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -244,6 +240,7 @@ private fun CreatePluginDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+
                 DialogTextField(
                     value = version,
                     onValueChange = { version = it },
@@ -252,6 +249,7 @@ private fun CreatePluginDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+
                 DialogTextField(
                     value = author,
                     onValueChange = { author = it },

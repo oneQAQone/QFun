@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -60,12 +59,12 @@ import me.yxp.qfun.ui.core.theme.QFunTheme
 fun LocalPluginPage(
     plugins: List<LocalPluginData>,
     isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     onRunToggle: (String, Boolean) -> Unit,
     onAutoLoadToggle: (String, Boolean) -> Unit,
     onDelete: (String) -> Unit,
     onReload: (String) -> Unit,
-    onUpload: (String) -> Unit,
-    onRefresh: () -> Unit
+    onUpload: (String) -> Unit
 ) {
     val listState = rememberLazyListState()
     val showScrollToTop by remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
@@ -109,7 +108,7 @@ fun LocalPluginPage(
 }
 
 @Composable
-internal fun ScrollToTopButton(
+fun ScrollToTopButton(
     visible: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier

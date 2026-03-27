@@ -1,6 +1,5 @@
 package me.yxp.qfun.ui.pages.plugin
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
@@ -47,7 +45,7 @@ import me.yxp.qfun.ui.viewmodel.PluginListUiState
 @Composable
 fun OnlinePluginPage(
     uiState: PluginListUiState,
-    isOnlineRefreshing: Boolean,
+    isRefreshing: Boolean,
     downloadingPlugins: Set<String>,
     onDownload: (String) -> Unit,
     onRefresh: () -> Unit
@@ -57,13 +55,14 @@ fun OnlinePluginPage(
     val scope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        PullRefreshBox(isRefreshing = isOnlineRefreshing, onRefresh = onRefresh) {
+        PullRefreshBox(isRefreshing = isRefreshing, onRefresh = onRefresh) {
             when (uiState) {
                 is PluginListUiState.Loading -> LoadingIndicator(message = "正在获取在线脚本...")
                 is PluginListUiState.Error -> EmptyStateView(
                     "获取失败: ${uiState.message}\n点击重试",
                     onClick = onRefresh
                 )
+
                 is PluginListUiState.Success -> OnlinePluginList(
                     uiState.data,
                     downloadingPlugins,
@@ -90,7 +89,7 @@ private fun OnlinePluginList(
     downloadingPlugins: Set<String>,
     onDownload: (String) -> Unit,
     onRefresh: () -> Unit,
-    listState: LazyListState
+    listState: androidx.compose.foundation.lazy.LazyListState
 ) {
     if (plugins.isEmpty()) {
         EmptyStateView("暂无在线脚本\n点击刷新", onClick = onRefresh)
@@ -104,7 +103,9 @@ private fun OnlinePluginList(
             items(plugins, key = { "online_${plugins.indexOf(it)}_${it.id}" }) { plugin ->
                 AnimatedListItem(plugins.indexOf(plugin)) {
                     OnlinePluginCard(plugin, downloadingPlugins.contains(plugin.id)) {
-                        onDownload(plugin.id)
+                        onDownload(
+                            plugin.id
+                        )
                     }
                 }
             }
