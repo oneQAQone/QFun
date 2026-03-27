@@ -89,7 +89,7 @@ private fun OnlinePluginList(
     downloadingPlugins: Set<String>,
     onDownload: (String) -> Unit,
     onRefresh: () -> Unit,
-    listState: androidx.compose.foundation.lazy.LazyListState
+    listState: LazyListState
 ) {
     if (plugins.isEmpty()) {
         EmptyStateView("暂无在线脚本\n点击刷新", onClick = onRefresh)
