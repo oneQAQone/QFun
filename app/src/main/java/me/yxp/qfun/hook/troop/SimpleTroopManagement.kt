@@ -20,7 +20,6 @@ import me.yxp.qfun.utils.qq.TroopTool
 import me.yxp.qfun.utils.reflect.getObjectByType
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.base.BaseQuery
-import org.luckypray.dexkit.query.matchers.MethodMatcher
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
@@ -178,7 +177,7 @@ object SimpleTroopManagement : BaseSwitchHookItem(), DexKitTask {
             matcher {
                 addInterface(View.OnClickListener::class.java.name)
                 methods {
-                    add(MethodMatcher().name("onClick"))
+                    add { name("onClick") }
                 }
             }
         }

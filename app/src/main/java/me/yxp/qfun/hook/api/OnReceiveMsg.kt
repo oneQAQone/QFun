@@ -13,7 +13,6 @@ import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.reflect.findMethod
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.base.BaseQuery
-import org.luckypray.dexkit.query.matchers.MethodMatcher
 import java.lang.reflect.Modifier
 
 @HookItemAnnotation("监听接收消息")
@@ -68,12 +67,8 @@ object OnReceiveMsg : BaseApiHookItem<ReceiveMsgListener>(), DexKitTask {
             matcher {
                 modifiers(Modifier.FINAL)
                 methods {
-                    methods(
-                        listOf(
-                            MethodMatcher().name("onRecvMsg"),
-                            MethodMatcher().name("onAddSendMsg")
-                        )
-                    )
+                    add { name("onRecvMsg") }
+                    add { name("onAddSendMsg") }
                 }
             }
         }
