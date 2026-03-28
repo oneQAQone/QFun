@@ -13,7 +13,6 @@ import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.getObjectByTypeOrNull
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.base.BaseQuery
-import org.luckypray.dexkit.query.matchers.MethodMatcher
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
@@ -56,12 +55,8 @@ object RemoveReplyAt : BaseSwitchHookItem(), DexKitTask {
             searchPackages("com.tencent.mobileqq.aio.input.reply")
             matcher {
                 methods {
-                    methods(
-                        listOf(
-                            MethodMatcher().name("onDestroy"),
-                            MethodMatcher().returnType(Set::class.java)
-                        )
-                    )
+                    add { name("onDestroy") }
+                    add { returnType(Set::class.java) }
                 }
             }
         }

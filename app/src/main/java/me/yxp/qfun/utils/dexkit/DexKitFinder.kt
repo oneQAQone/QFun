@@ -79,16 +79,14 @@ object DexKitFinder {
                 tasks.forEach { task ->
                     runCatching {
                         task.getQueryMap().forEach { (name, query) ->
+                            val tip = "${task.TAG}->$name"
+                            progressText = tip
                             when (query) {
                                 is FindClass -> bridge.findClass(query).singleOrNull()?.let {
-                                    val tip = "${task.TAG}->$name"
-                                    progressText = tip
                                     DexKitCache.cacheMap[tip] = it.descriptor
                                 }
 
                                 is FindMethod -> bridge.findMethod(query).singleOrNull()?.let {
-                                    val tip = "${task.TAG}->$name"
-                                    progressText = tip
                                     DexKitCache.cacheMap[tip] = it.descriptor
                                 }
                             }

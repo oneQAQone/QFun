@@ -8,9 +8,15 @@ import com.tencent.mobileqq.troop.file.data.TroopFileShowAdapter
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
+import me.yxp.qfun.utils.dexkit.DexKitTask
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.reflect.ClassUtils
 import me.yxp.qfun.utils.reflect.findMethod
+import me.yxp.qfun.utils.reflect.findMethodOrNull
+import me.yxp.qfun.utils.reflect.getObjectOrNull
+import me.yxp.qfun.utils.reflect.setObject
+import org.luckypray.dexkit.query.FindClass
+import org.luckypray.dexkit.query.base.BaseQuery
 import java.lang.reflect.Method
 import java.util.regex.Pattern
 
@@ -19,9 +25,11 @@ import java.util.regex.Pattern
     "群文件显示具体下载次数",
     HookCategory.FILE
 )
-object ShowDownloadTimes : BaseSwitchHookItem() {
+object ShowDownloadTimes : BaseSwitchHookItem(), DexKitTask {
 
-    private lateinit var getView: Method
+    private var getView: Method? = null
+
+    private var putValue: Method? = null
 
     private const val ADAPTER_CLASS_NAME = "com.tencent.mobileqq.troop.data.TroopFileShowAdapter"
 
@@ -29,14 +37,25 @@ object ShowDownloadTimes : BaseSwitchHookItem() {
 
         if (!isInTargetProcess()) return false
 
-        val adapter = runCatching {
+        runCatching {
             TroopFileShowAdapter::class.java
-        }.getOrElse {
+        }.recoverCatching {
             ClassUtils.loadFromPlugin("troop_plugin.apk", ADAPTER_CLASS_NAME)
+        }.onSuccess {
+            getView = it.findMethod {
+                name = "getView"
+            }
         }
-        getView = adapter.findMethod {
-            name = "getView"
+
+        runCatching {
+            requireClass("ProtoModel")
+        }.onSuccess {
+            putValue = it.findMethodOrNull {
+                returnType = void
+                paramTypes(int, obj)
+            }
         }
+
         return super.onInit()
     }
 
@@ -44,7 +63,7 @@ object ShowDownloadTimes : BaseSwitchHookItem() {
     @SuppressLint("SetTextI18n")
     override fun onHook() {
 
-        getView.hookAfter(this) { param ->
+        getView?.hookAfter(this) { param ->
 
             val adapter = param.thisObject as BaseAdapter
             val fileItem = adapter.getItem(param.args[0] as Int).toString()
@@ -68,10 +87,32 @@ object ShowDownloadTimes : BaseSwitchHookItem() {
                 }
             }
         }
+
+        putValue?.hookAfter(this) { param ->
+            val index = param.args[0] as Int
+            val value = param.args[1]
+            val fileName = param.thisObject.getObjectOrNull("e") ?: return@hookAfter
+            if (index == 9) param.thisObject.setObject("e", "(下载: $value) $fileName")
+        }
     }
 
     private fun extract(source: String, regex: String): String? {
         val matcher = Pattern.compile(regex).matcher(source)
         return if (matcher.find()) matcher.group(1) else null
     }
+
+    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+        "ProtoModel" to FindClass().apply {
+            matcher {
+                usingEqStrings("u", "v")
+                methods {
+                    add { usingNumbers(4194303) }
+                    add {
+                        returnType(Map::class.java)
+                        usingNumbers((1..17) + (20..24))
+                    }
+                }
+            }
+        }
+    )
 }
