@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.PowerManager
+import com.tencent.mobileqq.msf.core.NetConnInfoCenter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,17 +17,16 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import me.yxp.qfun.BuildConfig
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.utils.qq.HostInfo
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.Calendar
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
 object PrecisionScheduler {
 
-    private const val ACTION_ALARM = "me.yxp.qfun.action.PRECISION_ALARM"
+    private const val ACTION_ALARM = "${BuildConfig.APPLICATION_ID}.action.PRECISION_ALARM"
     private const val WAKELOCK_TAG = "QFun:Scheduler"
     private const val PRE_WAKE_SECONDS = 120
 
@@ -39,9 +39,10 @@ object PrecisionScheduler {
 
     private var processingJob: Job? = null
 
-    var diffTime: Long = 0L
-        private set
-
+    
+    private val diffTime: Long 
+        get() = NetConnInfoCenter.servetTimeSecondInterv * 1000
+        
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == ACTION_ALARM) {
@@ -59,40 +60,11 @@ object PrecisionScheduler {
             } else {
                 context.registerReceiver(receiver, filter)
             }
-            syncTime()
         } catch (_: Exception) {
         }
     }
 
-    fun currentServerTime(): Long {
-        return System.currentTimeMillis() + diffTime
-    }
-
-    fun syncTime() {
-        ModuleScope.launchIO("TimeSync") {
-            try {
-                val url = URL("https://www.baidu.com")
-                val conn = url.openConnection() as HttpURLConnection
-                conn.connectTimeout = 3000
-                conn.readTimeout = 3000
-                conn.requestMethod = "HEAD"
-                conn.instanceFollowRedirects = false
-
-                val startTick = System.currentTimeMillis()
-                conn.connect()
-                val serverDateHeader = conn.date
-                val endTick = System.currentTimeMillis()
-
-                if (serverDateHeader > 0) {
-                    val latency = (endTick - startTick) / 2
-                    val estimatedServerTime = serverDateHeader + latency
-                    diffTime = estimatedServerTime - endTick
-                }
-                conn.disconnect()
-            } catch (_: Exception) {
-            }
-        }
-    }
+    fun currentServerTime(): Long = NetConnInfoCenter.getServerTimeMillis()
 
     fun getNextMidnight(): Long {
         val c = Calendar.getInstance()
@@ -153,7 +125,6 @@ object PrecisionScheduler {
 
         processingJob = scope.launch {
             try {
-                syncTime()
 
                 while (isActive) {
                     val nextTask = taskQueue.peek()
