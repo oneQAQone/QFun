@@ -41,24 +41,25 @@ class ModernInvoker(
     private val method: Member
 ) : Invoker {
 
- 
     override fun invokeOrigin(thisObject: Any?, vararg args: Any?): Any? {
-        return if (method is Method) {
-            val invoker = base.getInvoker(method)
-            invoker.setType(XposedInterface.Invoker.Type.ORIGIN).invoke(thisObject, *args)
-        } else {
-            val invoker = base.getInvoker(method as Constructor<*>)
-            invoker.setType(XposedInterface.Invoker.Type.ORIGIN).invoke(thisObject, *args)
+        val type = XposedInterface.Invoker.Type.ORIGIN
+        return when (method) {
+            is Method -> base.getInvoker(method).setType(type).invoke(thisObject, *args)
+
+            is Constructor<*> -> base.getInvoker(method).setType(type).newInstance(*args)
+
+            else -> throw IllegalArgumentException("Unsupported method type")
         }
     }
 
     override fun invokeWithMaxPriority(maxPriority: Int, thisObject: Any?, vararg args: Any?): Any? {
-        return if (method is Method) {
-            val invoker = base.getInvoker(method)
-            invoker.setType(XposedInterface.Invoker.Type.Chain(maxPriority)).invoke(thisObject, *args)
-        } else {
-            val invoker = base.getInvoker(method as Constructor<*>)
-            invoker.setType(XposedInterface.Invoker.Type.Chain(maxPriority)).invoke(thisObject, *args)
+        val type = XposedInterface.Invoker.Type.Chain(maxPriority)
+        return when (method) {
+            is Method -> base.getInvoker(method).setType(type).invoke(thisObject, *args)
+
+            is Constructor<*> -> base.getInvoker(method).setType(type).newInstance(*args)
+
+            else -> throw IllegalArgumentException("Unsupported method type")
         }
     }
 }

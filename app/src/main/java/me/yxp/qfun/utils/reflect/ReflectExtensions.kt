@@ -1,19 +1,12 @@
-@file:Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-
 package me.yxp.qfun.utils.reflect
 
 import me.yxp.qfun.loader.hookapi.HookEngineManager
-import java.lang.Byte
-import java.lang.Double
-import java.lang.Float
-import java.lang.Long
-import java.lang.Short
 import java.lang.reflect.Member
 
 val Any.TAG: String
     get() = this.javaClass.simpleName
 
-fun Member.callOriginal(obj: Any, vararg args: Any?): Any? {
+fun Member.callOriginal(obj: Any?, vararg args: Any?): Any? {
     return HookEngineManager.engine.getInvoker(this).invokeOrigin(obj, *args)
 }
 
@@ -130,14 +123,14 @@ fun Class<*>.newInstanceWithArgs(vararg args: Any?): Any {
 }
 
 private val primitiveWrapperMap = mapOf(
-    Integer.TYPE to Integer::class.java,
-    Long.TYPE to Long::class.java,
-    java.lang.Boolean.TYPE to java.lang.Boolean::class.java,
-    Double.TYPE to Double::class.java,
-    Float.TYPE to Float::class.java,
-    Short.TYPE to Short::class.java,
-    Byte.TYPE to Byte::class.java,
-    Character.TYPE to Character::class.java
+    Int::class.java to Int::class.javaObjectType,
+    Long::class.java to Long::class.javaObjectType,
+    Boolean::class.java to Boolean::class.javaObjectType,
+    Double::class.java to Double::class.javaObjectType,
+    Float::class.java to Float::class.javaObjectType,
+    Short::class.java to Short::class.javaObjectType,
+    Byte::class.java to Byte::class.javaObjectType,
+    Char::class.java to Char::class.javaObjectType
 )
 
 fun Class<*>.isCompatibleWith(actualType: Class<*>?): Boolean {
