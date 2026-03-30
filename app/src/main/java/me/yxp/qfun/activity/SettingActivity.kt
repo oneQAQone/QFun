@@ -43,6 +43,7 @@ class SettingActivity : BaseComposeActivity() {
                         categories = vm.categories,
                         versionInfo = vm.buildVersionInfo(),
                         themeMode = themeMode,
+                        isDarkTheme = isDarkTheme,
                         onThemeToggle = ::toggleTheme,
                         onImportConfig = ::startImportConfig,
                         onExportConfig = ::startExportConfig,
