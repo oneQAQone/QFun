@@ -10,6 +10,7 @@ import me.yxp.qfun.loader.hookapi.HookParam
 import me.yxp.qfun.loader.hookapi.Chain
 import me.yxp.qfun.loader.hookapi.Unhook
 import me.yxp.qfun.loader.hookapi.HookEngineManager
+import me.yxp.qfun.utils.reflect.callOriginal
 
 fun Member.hookBefore(
     owner: BaseHookItem? = null,
@@ -49,11 +50,7 @@ fun Member.hookReplace(
 }
 
 fun Chain.invokeOriginal(args: Array<Any?> = arrayOf()): Any? {
-    val engine = HookEngineManager.engine
-    val method = this.method
-    val thisObject = this.thisObject
-    return if (args.isNotEmpty()) engine.getInvoker(this.method).invokeOrigin(thisObject, *args)
-    else engine.getInvoker(method).invokeOrigin(thisObject, *this.args)
+    return method.callOriginal(thisObject, *args.ifEmpty { this.args })
 }
 
 fun Member.returnConstant(owner: BaseHookItem? = null, constant: Any?): Unhook {
