@@ -77,6 +77,7 @@ fun SettingsScreen(
     categories: List<CategoryData>,
     versionInfo: String,
     themeMode: Int,
+    isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
     onImportConfig: () -> Unit,
     onExportConfig: () -> Unit,
@@ -131,6 +132,7 @@ fun SettingsScreen(
                         categories = categories,
                         versionInfo = versionInfo,
                         themeMode = themeMode,
+                        isDarkTheme = isDarkTheme,
                         onThemeToggle = onThemeToggle,
                         onUpdateLogClick = onUpdateLogClick,
                         onImportConfig = onImportConfig,
@@ -147,6 +149,7 @@ fun SettingsScreen(
                         DetailPage(
                             category = category,
                             themeMode = themeMode,
+                            isDarkTheme = isDarkTheme,
                             onThemeToggle = onThemeToggle,
                             onBackClick = { selectedCategoryName = null },
                             onFunctionToggle = onFunctionToggle,
@@ -230,6 +233,7 @@ private fun MainPage(
     categories: List<CategoryData>,
     versionInfo: String,
     themeMode: Int,
+    isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
     onUpdateLogClick: () -> Unit,
     onImportConfig: () -> Unit,
@@ -250,6 +254,7 @@ private fun MainPage(
             QFunTopBar(
                 title = "QFun",
                 themeMode = themeMode,
+                isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,
                 actions = {
                     TopBarCapsuleButton(
@@ -342,6 +347,7 @@ private fun AboutSection(
 private fun DetailPage(
     category: CategoryData,
     themeMode: Int,
+    isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
     onBackClick: () -> Unit,
     onFunctionToggle: (String, Boolean) -> Unit,
@@ -353,6 +359,7 @@ private fun DetailPage(
             showBackButton = true,
             onBackClick = onBackClick,
             themeMode = themeMode,
+            isDarkTheme = isDarkTheme,
             onThemeToggle = onThemeToggle
         )
         LazyColumn(

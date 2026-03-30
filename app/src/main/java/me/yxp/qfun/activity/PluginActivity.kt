@@ -40,6 +40,7 @@ class PluginActivity : BaseComposeActivity() {
                         isLocalRefreshing = vm.isLocalRefreshing,
                         isOnlineRefreshing = vm.isOnlineRefreshing,
                         themeMode = themeMode,
+                        isDarkTheme = isDarkTheme,
                         onThemeToggle = ::toggleTheme,
                         onBackClick = ::finish,
                         onCreatePlugin = vm::showCreatePluginDialog,

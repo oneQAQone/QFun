@@ -43,6 +43,7 @@ fun QFunTopBar(
     showBackButton: Boolean = false,
     onBackClick: () -> Unit = {},
     themeMode: Int = 0,
+    isDarkTheme: Boolean = false,
     onThemeToggle: () -> Unit = {},
     actions: @Composable () -> Unit = {}
 ) {
@@ -94,13 +95,11 @@ fun QFunTopBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val iconRes = when(themeMode) {
-                    1 -> R.drawable.ic_sun
-                    2 -> R.drawable.ic_moon
+                    0 -> if (isDarkTheme) R.drawable.ic_sun else R.drawable.ic_moon
                     else -> R.drawable.ic_theme_auto
                 }
                 val themeText = when(themeMode) {
-                    1 -> "浅色"
-                    2 -> "深色"
+                    0 -> if (isDarkTheme) "浅色" else "深色"
                     else -> "跟随"
                 }
 

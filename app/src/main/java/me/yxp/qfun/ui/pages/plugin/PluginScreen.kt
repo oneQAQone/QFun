@@ -97,6 +97,7 @@ fun PluginScreen(
     isLocalRefreshing: Boolean,
     isOnlineRefreshing: Boolean,
     themeMode: Int,
+    isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
     onBackClick: () -> Unit,
     onCreatePlugin: () -> Unit,
@@ -131,6 +132,7 @@ fun PluginScreen(
             showBackButton = true,
             onBackClick = onBackClick,
             themeMode = themeMode,
+            isDarkTheme = isDarkTheme,
             onThemeToggle = onThemeToggle,
             actions = {
                 TopBarCapsuleButton(

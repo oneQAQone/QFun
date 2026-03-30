@@ -35,13 +35,23 @@ abstract class BaseComposeActivity : ComponentActivity() {
         updateStatusBarAppearance()
     }
 
+    override fun onResume() {
+        super.onResume()
+        checkAndUpdateTheme()
+    }
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus && Build.VERSION.SDK_INT < 30) {
             (lifecycle as LifecycleRegistry).handleLifecycleEvent(Lifecycle.Event.ON_START)
         }
-        
-        if (hasFocus && themeMode == ThemeHelper.MODE_AUTO) {
+        if (hasFocus) {
+            checkAndUpdateTheme()
+        }
+    }
+
+    private fun checkAndUpdateTheme() {
+        if (themeMode == ThemeHelper.MODE_AUTO) {
             val newNightMode = ThemeHelper.isNightMode()
             if (isDarkTheme != newNightMode) {
                 isDarkTheme = newNightMode
@@ -64,8 +74,12 @@ abstract class BaseComposeActivity : ComponentActivity() {
     }
 
     protected fun toggleTheme() {
-        
-        themeMode = (themeMode + 1) % 3
+        // 如果当前是自动模式，点击后根据当前状态切换为强制深色或浅色
+        // 如果当前是强制模式，点击后恢复为自动模式
+        themeMode = when (themeMode) {
+            ThemeHelper.MODE_AUTO -> if (isDarkTheme) ThemeHelper.MODE_LIGHT else ThemeHelper.MODE_DARK
+            else -> ThemeHelper.MODE_AUTO
+        }
         ThemeHelper.setThemeMode(themeMode)
         isDarkTheme = ThemeHelper.isNightMode()
         ThemeHelper.applyTheme(this)
