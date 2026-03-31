@@ -46,7 +46,7 @@ object SortEmoticonsByUsage : BaseSwitchHookItem(), DexKitTask {
             }
             .hookBefore(this) { param ->
                 val msg = param.args[0] as ToServiceMsg
-                if (msg.extraData.getInt("cmd_fav_subcmd") == 6) param.returnEarly(null)
+                if (msg.extraData.getInt("cmd_fav_subcmd") == 6) param.result = null
             }
         onClick.hookAfter(this) { param ->
             val adapter = param.thisObject as FavoriteEmotionAdapter

@@ -20,12 +20,12 @@ class ModernHookParam(val chain: XposedInterface.Chain) : HookParam {
         private set
         
     override var result: Any? = null
+        set(value) {
+            field = value
+            isReturnEarly = true
+        }
     override var throwable: Throwable? = null
 
-    override fun returnEarly(result: Any?) {
-        this.result = result
-        this.isReturnEarly = true
-    }
 }
 
 class ModernChain(private val modernParam: ModernHookParam) : Chain, HookParam by modernParam {
