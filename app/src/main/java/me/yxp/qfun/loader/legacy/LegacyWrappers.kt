@@ -25,9 +25,6 @@ class LegacyHookParam(val param: XC_MethodHook.MethodHookParam) : HookParam {
         get() = param.throwable
         set(value) { param.throwable = value }
 
-    override fun returnEarly(result: Any?) {
-        param.result = result
-    }
 }
 
 class LegacyChain(private val legacyParam: LegacyHookParam) : Chain, HookParam by legacyParam {
