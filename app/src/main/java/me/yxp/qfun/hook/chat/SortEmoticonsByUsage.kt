@@ -7,12 +7,13 @@ import com.tencent.mobileqq.emosm.api.IFavroamingDBManagerService
 import com.tencent.mobileqq.emoticonview.FavoriteEmoticonInfo
 import com.tencent.mobileqq.emoticonview.FavoriteEmotionAdapter
 import com.tencent.mobileqq.emoticonview.api.IEmosmService
+import com.tencent.qphone.base.remote.ToServiceMsg
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
 import me.yxp.qfun.utils.dexkit.DexKitTask
-import me.yxp.qfun.utils.hook.doNothing
 import me.yxp.qfun.utils.hook.hookAfter
+import me.yxp.qfun.utils.hook.hookBefore
 import me.yxp.qfun.utils.qq.api
 import me.yxp.qfun.utils.qq.handler
 import me.yxp.qfun.utils.qq.runtime
@@ -43,7 +44,10 @@ object SortEmoticonsByUsage : BaseSwitchHookItem(), DexKitTask {
             .findMethod {
                 name = "onReceive"
             }
-            .doNothing(this)
+            .hookBefore(this) { param ->
+                val msg = param.args[0] as ToServiceMsg
+                if (msg.extraData.getInt("cmd_fav_subcmd") == 6) param.returnEarly(null)
+            }
         onClick.hookAfter(this) { param ->
             val adapter = param.thisObject as FavoriteEmotionAdapter
             val view = param.args[0] as View
