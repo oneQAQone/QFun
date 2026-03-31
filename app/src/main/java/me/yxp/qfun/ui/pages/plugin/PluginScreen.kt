@@ -30,8 +30,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -238,7 +236,7 @@ internal fun ScrollToTopButton(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Rounded.KeyboardArrowUp,
+                painter = painterResource(R.drawable.ic_arrow_up),
                 contentDescription = null,
                 tint = QFunTheme.colors.textSecondary,
                 modifier = Modifier.size(22.dp)

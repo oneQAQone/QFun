@@ -1,5 +1,5 @@
 [versions]
-agp = "9.0.0"
+agp = "9.1.0"
 annotation = "1.9.1"
 dalvikDx = "16.0.1"
 dexkit = "2.0.7"
@@ -12,11 +12,11 @@ xposed = "82"
 libxposed = "101.0.0"
 jetbrainsKotlinJvm = "2.3.10"
 kotlinx-coroutines = "1.10.2"
-ktx = "1.17.0"
+ktx = "1.18.0"
 serialization = "1.10.0"
-compose-bom = "2024.12.01"
-activity-compose = "1.9.3"
-lifecycle = "2.8.7"
+compose-bom = "2026.03.01"
+activity-compose = "1.13.0"
+lifecycle = "2.10.0"
 
 [libraries]
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }

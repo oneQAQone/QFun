@@ -161,6 +161,7 @@ class PluginView(private val activity: Activity) {
                     isDragging = false
                     true
                 }
+
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.rawX - touchStartX
                     val dy = event.rawY - touchStartY
@@ -172,6 +173,7 @@ class PluginView(private val activity: Activity) {
                     }
                     true
                 }
+
                 MotionEvent.ACTION_UP -> {
                     if (isDragging) {
                         prefs.edit().apply {
@@ -184,6 +186,7 @@ class PluginView(private val activity: Activity) {
                     }
                     true
                 }
+
                 else -> false
             }
         }
@@ -263,19 +266,19 @@ private fun PluginMenuContent(
             .padding(Dimens.PaddingLarge)
     ) {
         Text(
-            "脚本菜单",
-            Modifier.fillMaxWidth(),
-            colors.textPrimary,
-            22.sp,
+            text = "脚本菜单",
+            modifier = Modifier.fillMaxWidth(),
+            color = colors.textPrimary,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(Dimens.PaddingSmall))
         Text(
-            "点击脚本名称可重新加载",
-            Modifier.fillMaxWidth(),
-            colors.textSecondary,
-            12.sp,
+            text = "点击脚本名称可重新加载",
+            modifier = Modifier.fillMaxWidth(),
+            color = colors.textSecondary,
+            fontSize = 12.sp,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(20.dp))
@@ -316,14 +319,14 @@ private fun PluginMenuContent(
 @Composable
 private fun PluginHeaderItem(name: String, onClick: () -> Unit) {
     Text(
-        name,
-        Modifier
+        text = name,
+        modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(12.dp, 14.dp),
-        AccentGreen,
-        16.sp,
+        color = AccentGreen,
+        fontSize = 16.sp,
         fontWeight = FontWeight.Bold
     )
 }
