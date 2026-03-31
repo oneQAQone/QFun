@@ -119,15 +119,12 @@ abstract class XposedComposeDialog(
     override fun onStop() {
         dialogLifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
         dialogLifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+        dialogLifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         super.onStop()
     }
 
     override fun dismiss() {
-        try {
-            dialogLifecycleOwner.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-            composeView = null
-        } catch (_: Exception) {
-        }
+        composeView = null
         super.dismiss()
     }
 }
@@ -148,6 +145,9 @@ class XposedDialogLifecycleOwner : LifecycleOwner, SavedStateRegistryOwner {
         get() = savedStateRegistryController.savedStateRegistry
 
     fun handleLifecycleEvent(event: Lifecycle.Event) {
+        if (lifecycleRegistry.currentState == Lifecycle.State.DESTROYED) {
+            return
+        }
         lifecycleRegistry.handleLifecycleEvent(event)
     }
 }
