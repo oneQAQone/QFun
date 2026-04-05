@@ -134,3 +134,12 @@ protobuf {
         }
     }
 }
+
+val adb: String = androidComponents.sdkComponents.adb.get().asFile.absolutePath
+val packageName = "com.tencent.mobileqq"
+// adb shell am force-stop com.tencent.mobileqq
+val killQQ = tasks.register<Exec>("killQQ") {
+    group = "qfun"
+    commandLine(adb, "shell", "am", "force-stop", packageName)
+    isIgnoreExitValue = true
+}
