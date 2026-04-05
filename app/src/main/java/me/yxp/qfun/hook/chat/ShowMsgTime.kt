@@ -1,5 +1,6 @@
 package me.yxp.qfun.hook.chat
 
+import android.util.TypedValue
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.TextView
@@ -11,6 +12,7 @@ import me.yxp.qfun.conf.TimeConfig
 import me.yxp.qfun.hook.api.AIOViewUpdateListener
 import me.yxp.qfun.hook.base.BaseClickableHookItem
 import me.yxp.qfun.ui.pages.configs.ShowMsgTimePage
+import me.yxp.qfun.utils.qq.QQCurrentEnv.activity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -33,7 +35,7 @@ object ShowMsgTime : BaseClickableHookItem<TimeConfig>(TimeConfig.serializer()),
         if (timeView == null) {
             timeView = TextView(frameLayout.context).apply {
                 tag = VIEW_TAG
-                textSize = 10f
+                textSize = config.textSize.toFloat()
                 layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT
@@ -56,6 +58,7 @@ object ShowMsgTime : BaseClickableHookItem<TimeConfig>(TimeConfig.serializer()),
             "Format Error"
         }
     }
+
 
     @Composable
     override fun ConfigContent(onDismiss: () -> Unit) {
