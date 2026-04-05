@@ -3,6 +3,7 @@ package me.yxp.qfun.ui.pages.configs
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,6 +35,11 @@ fun ShowMsgTimePage(
             )
         )
     }
+    var textSize by remember(currentConfig) {
+        mutableStateOf(
+                currentConfig.textSize
+        )
+    }
     var errorMsg by remember { mutableStateOf<String?>(null) }
     val colors = QFunTheme.colors
 
@@ -62,7 +68,7 @@ fun ShowMsgTimePage(
     fun buildConfig(): TimeConfig {
         val parsedColor = parseColor(colorText) ?: currentConfig.color
         val finalFormat = if (validateFormat(formatText)) formatText else currentConfig.format
-        return TimeConfig(format = finalFormat, color = parsedColor)
+        return TimeConfig(format = finalFormat, color = parsedColor, textSize = textSize)
     }
 
     val previewColor = parseColor(colorText) ?: currentConfig.color
@@ -99,6 +105,17 @@ fun ShowMsgTimePage(
             },
             placeholder = "HH:mm:ss"
         )
+        InputItem(
+            title = "文本大小（sp）",
+            value = textSize,
+            onValueChange = { newValue ->
+                textSize = newValue
+                errorMsg = if (newValue.isNotEmpty() && newValue.toFloatOrNull() == null) {
+                    "文本大小无效"
+                } else { null }
+            },
+            placeholder = "10.0"
+        )
 
         Text("预览", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.textPrimary)
         Text(
@@ -107,7 +124,11 @@ fun ShowMsgTimePage(
             } else {
                 "格式错误"
             },
-            fontSize = 16.sp,
+            fontSize = try {
+                textSize.toFloat().sp
+            }catch (_: Exception) {
+                10.sp
+            },
             color = ComposeColor(previewColor)
         )
 
