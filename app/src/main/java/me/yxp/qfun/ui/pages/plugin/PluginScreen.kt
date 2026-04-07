@@ -11,34 +11,18 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,15 +34,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import me.yxp.qfun.R
-import me.yxp.qfun.ui.components.atoms.DialogButton
-import me.yxp.qfun.ui.components.atoms.DialogTextField
-import me.yxp.qfun.ui.components.atoms.QFunCard
+import me.yxp.qfun.ui.components.atoms.*
 import me.yxp.qfun.ui.components.dialogs.BaseDialogSurface
 import me.yxp.qfun.ui.components.dialogs.CenterDialog
-import me.yxp.qfun.ui.components.molecules.QFunTopBar
-import me.yxp.qfun.ui.components.molecules.TabItem
-import me.yxp.qfun.ui.components.molecules.TopBarCapsuleButton
+import me.yxp.qfun.ui.components.molecules.*
 import me.yxp.qfun.ui.core.theme.AccentGreen
 import me.yxp.qfun.ui.core.theme.Dimens
 import me.yxp.qfun.ui.core.theme.QFunTheme
@@ -73,7 +54,9 @@ data class LocalPluginData(
     val author: String,
     val description: String,
     val isRunning: Boolean,
-    val isAutoLoad: Boolean
+    val isAutoLoad: Boolean,
+    val createdAt: Long = 0L,
+    val modifiedAt: Long = 0L
 )
 
 @Immutable
@@ -86,6 +69,12 @@ data class OnlinePluginData(
     val downloads: Int,
     val uploadTime: String
 )
+
+enum class PluginSortType {
+    NAME_A_TO_Z,
+    CREATED_TIME,
+    MODIFIED_TIME
+}
 
 @Composable
 fun PluginScreen(
@@ -119,6 +108,28 @@ fun PluginScreen(
     val colors = QFunTheme.colors
     var selectedTab by remember { mutableIntStateOf(0) }
 
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("QFun_Config_global", Context.MODE_PRIVATE) }
+    val KEY_SORT_TYPE = "plugin_sort_type"
+
+    val savedSortType = remember {
+        prefs.getString(KEY_SORT_TYPE, PluginSortType.NAME_A_TO_Z.name) ?: PluginSortType.NAME_A_TO_Z.name
+    }
+    var sortType by remember { mutableStateOf(PluginSortType.valueOf(savedSortType)) }
+    var showSortMenu by remember { mutableStateOf(false) }
+
+    LaunchedEffect(sortType) {
+        prefs.edit().putString(KEY_SORT_TYPE, sortType.name).apply()
+    }
+
+    val sortedLocalPlugins = remember(localPlugins, sortType) {
+        when (sortType) {
+            PluginSortType.NAME_A_TO_Z -> localPlugins.sortedBy { it.name.lowercase() }
+            PluginSortType.CREATED_TIME -> localPlugins.sortedByDescending { it.createdAt }
+            PluginSortType.MODIFIED_TIME -> localPlugins.sortedByDescending { it.modifiedAt }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -145,14 +156,15 @@ fun PluginScreen(
             selectedTab = selectedTab,
             onTabSelected = { selectedTab = it },
             onCreatePlugin = onCreatePlugin,
-            onDocsClick = onDocsClick
+            onDocsClick = onDocsClick,
+            onLongPressLocalTab = { showSortMenu = true }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         when (selectedTab) {
             0 -> LocalPluginPage(
-                plugins = localPlugins,
+                plugins = sortedLocalPlugins,
                 isRefreshing = isLocalRefreshing,
                 onRunToggle = onPluginRunToggle,
                 onAutoLoadToggle = onPluginAutoLoadToggle,
@@ -182,6 +194,13 @@ fun PluginScreen(
         path = createdPluginPath,
         onDismiss = onDismissSuccessDialog
     )
+
+    SortMenuDialog(
+        visible = showSortMenu,
+        currentSortType = sortType,
+        onDismiss = { showSortMenu = false },
+        onSortSelected = { sortType = it; showSortMenu = false }
+    )
 }
 
 @Composable
@@ -189,7 +208,8 @@ private fun PluginTabBar(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     onCreatePlugin: () -> Unit,
-    onDocsClick: () -> Unit
+    onDocsClick: () -> Unit,
+    onLongPressLocalTab: () -> Unit
 ) {
     QFunCard(
         modifier = Modifier
@@ -202,10 +222,130 @@ private fun PluginTabBar(
                 .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            TabItem("本地脚本", selectedTab == 0, { onTabSelected(0) })
-            TabItem("在线脚本", selectedTab == 1, { onTabSelected(1) })
-            TabItem("创建脚本", false, onCreatePlugin)
-            TabItem("开发文档", false, onDocsClick)
+            // 本地脚本：支持长按
+            Text(
+                text = "本地脚本",
+                fontSize = 14.sp,
+                fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal,
+                color = if (selectedTab == 0) QFunTheme.colors.accentGreen else QFunTheme.colors.textSecondary,
+                modifier = Modifier
+                    .combinedClickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { onTabSelected(0) },
+                        onLongClick = onLongPressLocalTab
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+            // 在线脚本
+            Text(
+                text = "在线脚本",
+                fontSize = 14.sp,
+                fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal,
+                color = if (selectedTab == 1) QFunTheme.colors.accentGreen else QFunTheme.colors.textSecondary,
+                modifier = Modifier
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { onTabSelected(1) }
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+            // 创建脚本
+            Text(
+                text = "创建脚本",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+                color = QFunTheme.colors.textSecondary,
+                modifier = Modifier
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onCreatePlugin
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+            // 开发文档
+            Text(
+                text = "开发文档",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+                color = QFunTheme.colors.textSecondary,
+                modifier = Modifier
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onDocsClick
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SortMenuDialog(
+    visible: Boolean,
+    currentSortType: PluginSortType,
+    onDismiss: () -> Unit,
+    onSortSelected: (PluginSortType) -> Unit
+) {
+    if (!visible) return
+
+    CenterDialog(visible = visible, onDismiss = onDismiss) {
+        BaseDialogSurface(
+            title = "排序方式",
+            bottomBar = {
+                DialogButton("取消", onDismiss, false)
+            }
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SortOptionItem(
+                    title = "按名称 A-Z",
+                    isSelected = currentSortType == PluginSortType.NAME_A_TO_Z,
+                    onClick = { onSortSelected(PluginSortType.NAME_A_TO_Z) }
+                )
+                SortOptionItem(
+                    title = "按创建时间（新到旧）",
+                    isSelected = currentSortType == PluginSortType.CREATED_TIME,
+                    onClick = { onSortSelected(PluginSortType.CREATED_TIME) }
+                )
+                SortOptionItem(
+                    title = "按修改时间（新到旧）",
+                    isSelected = currentSortType == PluginSortType.MODIFIED_TIME,
+                    onClick = { onSortSelected(PluginSortType.MODIFIED_TIME) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SortOptionItem(title: String, isSelected: Boolean, onClick: () -> Unit) {
+    val colors = QFunTheme.colors
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(12.dp, 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            fontSize = 15.sp,
+            color = if (isSelected) colors.accentGreen else colors.textPrimary
+        )
+        if (isSelected) {
+            Icon(
+                painter = painterResource(R.drawable.ic_logo_check),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = colors.accentGreen
+            )
         }
     }
 }
