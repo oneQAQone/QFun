@@ -29,11 +29,13 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="de.robv.android.xposed.category.MODULE_SETTINGS" />
             </intent-filter>
         </activity>
+
+        <!-- 存储空间清理 Activity -->
+        <activity android:name=".hook.device.StorageCleanActivity" />
 
         <meta-data
             android:name="xposedmodule"
