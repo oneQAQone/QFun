@@ -88,7 +88,7 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
                 itemClass,
                 context,
                 10,
-                "垃圾清理",
+                "缓存清理",
                 deleteIconRes
             )
             setOnClickListener.invoke(
