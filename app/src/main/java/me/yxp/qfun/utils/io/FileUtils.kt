@@ -50,6 +50,17 @@ object FileUtils {
         }.getOrElse { false }
     }
 
+// 添加
+fun getDirSize(file: File): Long {
+    if (!file.exists()) return 0L
+    if (file.isFile) return file.length()
+    var size = 0L
+    file.listFiles()?.forEach {
+        size += getDirSize(it)
+    }
+    return size
+}
+
     fun move(src: File, dest: File, overwrite: Boolean = true): Boolean {
         if (!src.exists()) return false
         if (src.renameTo(dest)) return true
