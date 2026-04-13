@@ -2,4 +2,5 @@
     <string name="plugin_name">JavaPlugin</string>
     <string name="app_name">QFun</string>
     <string name="xposed_description">Adapted for QQ9.1.25+ and TIM4.0.95+</string>
+    <string name="storage_clean">QQ垃圾清理(QTool)</string>
 </resources>
