@@ -58,12 +58,11 @@ object QQPlusInject : BaseApiHookItem<Listener>() {
                             R.drawable.ic_launcher
                         )
                     )
-               
                     add(
                         2,
                         MenuItem(
                             R.string.storage_clean,
-                            "垃圾清理",
+                            "缓存清理",
                             "StorageClean",
                             deleteIconRes
                         )
