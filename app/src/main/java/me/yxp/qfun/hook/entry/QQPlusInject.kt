@@ -7,10 +7,12 @@ import com.tencent.widget.PopupMenuDialog.OnClickActionListener
 import me.yxp.qfun.R
 import me.yxp.qfun.activity.PluginActivity
 import me.yxp.qfun.activity.SettingActivity
+import me.yxp.qfun.activity.StorageCleanActivity
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseApiHookItem
 import me.yxp.qfun.hook.base.Listener
 import me.yxp.qfun.utils.hook.hookBefore
+import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.reflect.findMethod
 
@@ -27,8 +29,27 @@ object QQPlusInject : BaseApiHookItem<Listener>() {
 
                 val activity = QQCurrentEnv.activity ?: return@hookBefore
                 val menuItemList = param.args[1] as MutableList<MenuItem>
+                
+                val deleteIconRes = try {
+                    HostInfo.hostContext.resources.getIdentifier(
+                        "qui_delete_oversized",
+                        "drawable",
+                        HostInfo.packageName
+                    )
+                } catch (e: Exception) {
+                    R.drawable.ic_launcher
+                }
 
                 menuItemList.apply {
+                    add(
+                        0,
+                        MenuItem(
+                            R.string.storage_clean,
+                            "缓存清理",
+                            "缓存清理",
+                            deleteIconRes
+                        )
+                    )
                     add(
                         0,
                         MenuItem(
@@ -65,6 +86,13 @@ object QQPlusInject : BaseApiHookItem<Listener>() {
                             Intent(
                                 activity,
                                 PluginActivity::class.java
+                            )
+                        )
+                        
+                        R.string.storage_clean -> activity.startActivity(
+                            Intent(
+                                activity,
+                                StorageCleanActivity::class.java
                             )
                         )
 

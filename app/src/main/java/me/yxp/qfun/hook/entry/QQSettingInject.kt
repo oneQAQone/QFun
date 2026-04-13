@@ -5,6 +5,7 @@ import android.content.Intent
 import me.yxp.qfun.R
 import me.yxp.qfun.activity.PluginActivity
 import me.yxp.qfun.activity.SettingActivity
+import me.yxp.qfun.activity.StorageCleanActivity
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseApiHookItem
 import me.yxp.qfun.hook.base.Listener
@@ -31,6 +32,16 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
 
     @Suppress("UNCHECKED_CAST")
     override fun loadHook() {
+    
+        val deleteIconRes = try {
+            HostInfo.hostContext.resources.getIdentifier(
+                "qui_delete_oversized",
+                "drawable",
+                HostInfo.packageName
+            )
+        } catch (e: Exception) {
+            R.drawable.ic_launcher
+        }
 
         val providerClass =
             if (HostInfo.isQQ && HostInfo.versionCode >= 12288) requireClass("provider")
@@ -80,11 +91,25 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
                     PluginActivity::class.java
                 )
             )
+            
+            val cleanEntry = makeItem(
+                itemClass,
+                context,
+                MODULE_ORDER,
+                "缓存清理",
+                deleteIconRes
+            )
+            setOnClickListener.invoke(
+                cleanEntry, makeProxy(
+                    context,
+                    StorageCleanActivity::class.java
+                )
+            )
 
             result.add(
                 1,
                 result[0].javaClass.newInstanceWithArgs(
-                    listOf(settingEntry, pluginEntry),
+                    listOf(settingEntry, pluginEntry, cleanEntry),
                     TOP_TITLE,
                     BOTTOM_TITLE,
                     0,
