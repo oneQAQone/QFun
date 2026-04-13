@@ -21,15 +21,6 @@ object QQPlusInject : BaseApiHookItem<Listener>() {
 
     @Suppress("UNCHECKED_CAST")
     override fun loadHook() {
-        val deleteIconRes = try {
-            HostInfo.hostContext.resources.getIdentifier(
-                "qui_delete_oversized",
-                "drawable",
-                HostInfo.packageName
-            )
-        } catch (e: Exception) {
-            R.drawable.ic_launcher
-        }
 
         PopupMenuDialog::class.java
             .findMethod {
@@ -38,8 +29,27 @@ object QQPlusInject : BaseApiHookItem<Listener>() {
 
                 val activity = QQCurrentEnv.activity ?: return@hookBefore
                 val menuItemList = param.args[1] as MutableList<MenuItem>
+                
+                val deleteIconRes = try {
+                    HostInfo.hostContext.resources.getIdentifier(
+                        "qui_delete_oversized",
+                        "drawable",
+                        HostInfo.packageName
+                    )
+                } catch (e: Exception) {
+                    R.drawable.ic_launcher
+                }
 
                 menuItemList.apply {
+                    add(
+                        0,
+                        MenuItem(
+                            R.string.storage_clean,
+                            "缓存清理",
+                            "缓存清理",
+                            deleteIconRes
+                        )
+                    )
                     add(
                         0,
                         MenuItem(
@@ -58,33 +68,41 @@ object QQPlusInject : BaseApiHookItem<Listener>() {
                             R.drawable.ic_launcher
                         )
                     )
-                    add(
-                        2,
-                        MenuItem(
-                            R.string.storage_clean,
-                            "缓存清理",
-                            "StorageClean",
-                            deleteIconRes
-                        )
-                    )
                 }
 
                 val origin = param.args[2] as OnClickActionListener
 
                 param.args[2] = OnClickActionListener { menuItem ->
+
                     when (menuItem.id) {
                         R.string.app_name -> activity.startActivity(
-                            Intent(activity, SettingActivity::class.java)
+                            Intent(
+                                activity,
+                                SettingActivity::class.java
+                            )
                         )
+
                         R.string.plugin_name -> activity.startActivity(
-                            Intent(activity, PluginActivity::class.java)
+                            Intent(
+                                activity,
+                                PluginActivity::class.java
+                            )
                         )
+                        
                         R.string.storage_clean -> activity.startActivity(
-                            Intent(activity, StorageCleanActivity::class.java)
+                            Intent(
+                                activity,
+                                StorageCleanActivity::class.java
+                            )
                         )
+
                         else -> origin.onClickAction(menuItem)
                     }
+
                 }
+
             }
+
     }
+
 }
