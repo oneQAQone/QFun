@@ -58,7 +58,7 @@ object QQPlusInject : BaseApiHookItem<Listener>() {
                             R.drawable.ic_launcher
                         )
                     )
-                    // 在原有两项之后添加垃圾清理（此时前两项索引为0和1，新项索引2）
+               
                     add(
                         2,
                         MenuItem(
