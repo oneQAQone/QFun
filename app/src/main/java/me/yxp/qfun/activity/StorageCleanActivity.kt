@@ -162,9 +162,9 @@ class StorageCleanActivity : BaseComposeActivity() {
                 try {
                     FileUtils.delete(File(path))
                     sizeMap[name] = 0L
-                        Toasts.qqToast(4, "已清理: $name")
+                   Toasts.qqToast(4, "已清理: $name")
                 } catch (e: Exception) {
-                        Toasts.qqToast(1, "清理失败: ${e.message}")
+                   Toasts.qqToast(1, "清理失败: ${e.message}")
                 } finally {
                     cleaningItem = null
                 }
