@@ -5,6 +5,7 @@ import android.content.Intent
 import me.yxp.qfun.R
 import me.yxp.qfun.activity.PluginActivity
 import me.yxp.qfun.activity.SettingActivity
+import me.yxp.qfun.activity.StorageCleanActivity
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseApiHookItem
 import me.yxp.qfun.hook.base.Listener
@@ -27,10 +28,18 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
 
     private const val TOP_TITLE = "模块"
     private const val BOTTOM_TITLE = ""
-    private const val MODULE_ORDER = 10
 
     @Suppress("UNCHECKED_CAST")
     override fun loadHook() {
+        val deleteIconRes = try {
+            HostInfo.hostContext.resources.getIdentifier(
+                "qui_delete_oversized",
+                "drawable",
+                HostInfo.packageName
+            )
+        } catch (e: Exception) {
+            R.drawable.ic_launcher
+        }
 
         val providerClass =
             if (HostInfo.isQQ && HostInfo.versionCode >= 12288) requireClass("provider")
@@ -53,47 +62,50 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
             val context = param.args[0] as Context
             val result = param.result as MutableList<Any>
 
-            val settingEntry = makeItem(
+            val qfunEntry = makeItem(
                 itemClass,
                 context,
-                MODULE_ORDER,
+                10,
                 "QFun",
                 R.drawable.ic_launcher
             )
             setOnClickListener.invoke(
-                settingEntry, makeProxy(
-                    context,
-                    SettingActivity::class.java
-                )
+                qfunEntry, makeProxy(context, SettingActivity::class.java)
             )
 
             val pluginEntry = makeItem(
                 itemClass,
                 context,
-                MODULE_ORDER,
+                10,
                 "JavaPlugin",
                 R.drawable.ic_float_ball
             )
             setOnClickListener.invoke(
-                pluginEntry, makeProxy(
-                    context,
-                    PluginActivity::class.java
-                )
+                pluginEntry, makeProxy(context, PluginActivity::class.java)
+            )
+
+            val cleanEntry = makeItem(
+                itemClass,
+                context,
+                10,
+                "垃圾清理",
+                deleteIconRes
+            )
+            setOnClickListener.invoke(
+                cleanEntry, makeProxy(context, StorageCleanActivity::class.java)
             )
 
             result.add(
                 1,
                 result[0].javaClass.newInstanceWithArgs(
-                    listOf(settingEntry, pluginEntry),
+                    listOf(qfunEntry, pluginEntry, cleanEntry),
                     TOP_TITLE,
                     BOTTOM_TITLE,
                     0,
                     null
                 )
             )
-
         }
-
     }
 
     private fun makeItem(itemClass: Class<*>, vararg args: Any?): Any {
@@ -104,13 +116,8 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
         }
     }
 
-    private fun makeProxy(
-        context: Context,
-        activityClass: Class<*>
-    ): Any {
-
+    private fun makeProxy(context: Context, activityClass: Class<*>): Any {
         val unit = "kotlin.Unit".toClass.getStaticObject("INSTANCE")
-
         return Proxy.newProxyInstance(
             ClassUtils.hostClassLoader,
             arrayOf("kotlin.jvm.functions.Function0".toClass)
@@ -140,5 +147,4 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
             }
         }
     )
-
 }
