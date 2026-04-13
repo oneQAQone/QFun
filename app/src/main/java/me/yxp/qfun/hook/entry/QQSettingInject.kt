@@ -5,6 +5,7 @@ import android.content.Intent
 import me.yxp.qfun.R
 import me.yxp.qfun.activity.PluginActivity
 import me.yxp.qfun.activity.SettingActivity
+import me.yxp.qfun.hook.device.StorageCleanActivity
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseApiHookItem
 import me.yxp.qfun.hook.base.Listener
@@ -32,6 +33,17 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
     @Suppress("UNCHECKED_CAST")
     override fun loadHook() {
 
+        // 获取 QQ 自带的删除图标
+        val deleteIconRes = try {
+            HostInfo.hostContext.resources.getIdentifier(
+                "qui_delete_oversized",
+                "drawable",
+                HostInfo.packageName
+            )
+        } catch (e: Exception) {
+            R.drawable.ic_launcher
+        }
+
         val providerClass =
             if (HostInfo.isQQ && HostInfo.versionCode >= 12288) requireClass("provider")
             else "com.tencent.mobileqq.setting.main.NewSettingConfigProvider".clazz
@@ -53,6 +65,7 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
             val context = param.args[0] as Context
             val result = param.result as MutableList<Any>
 
+            // QFun 模块入口
             val settingEntry = makeItem(
                 itemClass,
                 context,
@@ -67,6 +80,7 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
                 )
             )
 
+            // JavaPlugin 入口
             val pluginEntry = makeItem(
                 itemClass,
                 context,
@@ -81,19 +95,32 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
                 )
             )
 
+            // QQ垃圾清理入口（使用 QQ 自带清理图标）
+            val storageCleanEntry = makeItem(
+                itemClass,
+                context,
+                MODULE_ORDER,
+                "QQ垃圾清理(QTool)",
+                deleteIconRes
+            )
+            setOnClickListener.invoke(
+                storageCleanEntry, makeProxy(
+                    context,
+                    StorageCleanActivity::class.java
+                )
+            )
+
             result.add(
                 1,
                 result[0].javaClass.newInstanceWithArgs(
-                    listOf(settingEntry, pluginEntry),
+                    listOf(settingEntry, pluginEntry, storageCleanEntry),
                     TOP_TITLE,
                     BOTTOM_TITLE,
                     0,
                     null
                 )
             )
-
         }
-
     }
 
     private fun makeItem(itemClass: Class<*>, vararg args: Any?): Any {
@@ -140,5 +167,4 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
             }
         }
     )
-
 }
