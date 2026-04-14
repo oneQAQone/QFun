@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed  // 改为 itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import me.yxp.qfun.activity.BaseComposeActivity
 import me.yxp.qfun.common.ModuleScope
@@ -37,8 +42,8 @@ import me.yxp.qfun.ui.components.atoms.ActionButton
 import me.yxp.qfun.ui.components.atoms.ActionButtonStyle
 import me.yxp.qfun.ui.components.atoms.QFunCard
 import me.yxp.qfun.ui.components.dialogs.ConfirmDialog
+import me.yxp.qfun.ui.components.molecules.AnimatedListItem  // 新增导入
 import me.yxp.qfun.ui.components.molecules.QFunTopBar
-import me.yxp.qfun.ui.core.theme.AccentGreen
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.utils.io.FileUtils
 import me.yxp.qfun.utils.qq.HostInfo
@@ -140,19 +145,26 @@ class StorageCleanActivity : BaseComposeActivity() {
     @Composable
     private fun StorageCleanScreen() {
         val colors = QFunTheme.colors
-        val sizeMap = remember { mutableStateMapOf<String, Long>() }
-        var isLoading by remember { mutableStateOf(true) }
+        val sizeMap = remember { mutableStateMapOf<String, Long?>() }
         var cleaningItem by remember { mutableStateOf<String?>(null) }
         var confirmItem by remember { mutableStateOf<String?>(null) }
 
         LaunchedEffect(Unit) {
-            withContext(Dispatchers.IO) {
-                cleanPaths.forEach { (name, template) ->
-                    val path = getRealPath(template)
-                    val size = FileUtils.getDirSize(File(path))
-                    sizeMap[name] = size
+            val semaphore = Semaphore(4)
+            cleanPaths.keys.forEach { name ->
+                ModuleScope.launch {
+                    semaphore.withPermit {
+                        val path = getRealPath(cleanPaths[name]!!)
+                        val size = withContext(Dispatchers.IO) {
+                            try {
+                                FileUtils.getDirSize(File(path))
+                            } catch (e: Exception) {
+                                0L
+                            }
+                        }
+                        sizeMap[name] = size
+                    }
                 }
-                isLoading = false
             }
         }
 
@@ -162,9 +174,9 @@ class StorageCleanActivity : BaseComposeActivity() {
                 try {
                     FileUtils.delete(File(path))
                     sizeMap[name] = 0L
-                   Toasts.qqToast(4, "已清理: $name")
+                    Toasts.qqToast(4, "已清理: $name")
                 } catch (e: Exception) {
-                   Toasts.qqToast(1, "清理失败: ${e.message}")
+                    Toasts.qqToast(1, "清理失败: ${e.message}")
                 } finally {
                     cleaningItem = null
                 }
@@ -180,25 +192,15 @@ class StorageCleanActivity : BaseComposeActivity() {
                     themeMode = themeMode,
                     onThemeToggle = ::toggleTheme
                 )
-                if (isLoading) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator(color = AccentGreen)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("正在计算缓存大小...", color = colors.textSecondary)
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(sizeMap.keys.toList()) { name ->
-                            val size = sizeMap[name] ?: 0L
-                            val path = getRealPath(cleanPaths[name]!!)
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(cleanPaths.keys.toList()) { index, name ->
+                        val size = sizeMap[name]
+                        val path = getRealPath(cleanPaths[name]!!)
+                        AnimatedListItem(index) {
                             QFunCard(
                                 modifier = Modifier.fillMaxWidth(),
                                 animateContentSize = true
@@ -216,11 +218,27 @@ class StorageCleanActivity : BaseComposeActivity() {
                                             fontSize = 15.sp,
                                             color = colors.textPrimary
                                         )
-                                        Text(
-                                            text = formatSize(size),
-                                            fontSize = 12.sp,
-                                            color = colors.textSecondary
-                                        )
+                                        if (size == null) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(16.dp),
+                                                    strokeWidth = 2.dp,
+                                                    color = colors.textSecondary
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text = "计算中...",
+                                                    fontSize = 12.sp,
+                                                    color = colors.textSecondary
+                                                )
+                                            }
+                                        } else {
+                                            Text(
+                                                text = formatSize(size),
+                                                fontSize = 12.sp,
+                                                color = colors.textSecondary
+                                            )
+                                        }
                                     }
                                     ActionButton(
                                         text = if (cleaningItem == name) "清理中..." else "清理",
@@ -251,7 +269,7 @@ class StorageCleanActivity : BaseComposeActivity() {
                 onDismiss = { confirmItem = null },
                 onConfirm = {
                     confirmItem = null
-                    ModuleScope.launchIO("clean_$name") {
+                    ModuleScope.launch {
                         cleanItem(name, path)
                     }
                 }
