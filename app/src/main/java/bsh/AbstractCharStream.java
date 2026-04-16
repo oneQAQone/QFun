@@ -214,7 +214,6 @@ abstract class AbstractCharStream
             m_aBufColumn = newbufcolumn;
 
             bufpos += nPreservedChars;
-            maxNextCharInd = bufpos;
         } else {
             // Move from offset "tokenBegin" to offset 0
 
@@ -228,7 +227,6 @@ abstract class AbstractCharStream
             m_aBufColumn = newbufcolumn;
 
             bufpos -= tokenBegin;
-            maxNextCharInd = bufpos;
         }
 
         // Increase buffer size
