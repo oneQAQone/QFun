@@ -18,11 +18,12 @@ import java.lang.reflect.Method
 )
 object AntiInteractivePop : BaseSwitchHookItem() {
 
-    private lateinit var popup: Method
+    private lateinit var interactivePop: Method
+    private lateinit var pagEasterEggPop: Method
 
     override fun onInit(): Boolean {
         if (HostInfo.isTIM) return false
-        popup = InteractivePopManager::class.java
+        interactivePop = InteractivePopManager::class.java
             .findMethod {
                 returnType = void
                 paramTypes(
@@ -32,11 +33,21 @@ object AntiInteractivePop : BaseSwitchHookItem() {
                     "kotlin.jvm.functions.Function0".toClass
                 )
             }
+        pagEasterEggPop = "com.tencent.mobileqq.aio.animation.pag.PagEasterEggPopManager".toClass
+            .findMethod {
+                returnType = void
+                paramTypes(
+                    "androidx.fragment.app.Fragment".toClass,
+                    null,
+                    "kotlin.jvm.functions.Function0".toClass,
+                    "kotlin.jvm.functions.Function0".toClass
+                )
+            }
         return super.onInit()
-
     }
 
     override fun onHook() {
-        popup.doNothing(this)
+        interactivePop.doNothing(this)
+        pagEasterEggPop.doNothing(this)
     }
 }
