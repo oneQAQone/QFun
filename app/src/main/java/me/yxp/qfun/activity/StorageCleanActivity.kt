@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -149,12 +148,14 @@ class StorageCleanActivity : BaseComposeActivity() {
         var cleaningItem by remember { mutableStateOf<String?>(null) }
         var confirmItem by remember { mutableStateOf<String?>(null) }
 
+        val pathCache = remember { cleanPaths.mapValues { (_, template) -> getRealPath(template) } }
+
         LaunchedEffect(Unit) {
             val semaphore = Semaphore(4)
             cleanPaths.keys.forEach { name ->
                 launch {
                     semaphore.withPermit {
-                        val path = getRealPath(cleanPaths[name]!!)
+                        val path = pathCache[name]!!
                         val size = withContext(Dispatchers.IO) {
                             try {
                                 FileUtils.getDirSize(File(path))
@@ -199,7 +200,7 @@ class StorageCleanActivity : BaseComposeActivity() {
                 ) {
                     itemsIndexed(cleanPaths.keys.toList()) { index, name ->
                         val size = sizeMap[name]
-                        val path = getRealPath(cleanPaths[name]!!)
+                        val path = pathCache[name]!!
                         AnimatedListItem(index) {
                             QFunCard(
                                 modifier = Modifier.fillMaxWidth(),
@@ -259,7 +260,7 @@ class StorageCleanActivity : BaseComposeActivity() {
 
         if (confirmItem != null) {
             val name = confirmItem!!
-            val path = getRealPath(cleanPaths[name]!!)
+            val path = pathCache[name]!!
             ConfirmDialog(
                 visible = true,
                 title = "确认清理",
