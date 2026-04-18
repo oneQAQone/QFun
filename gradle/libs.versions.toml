@@ -1,6 +1,6 @@
 [versions]
 agp = "9.1.0"
-annotation = "1.9.1"
+annotation = "1.10.0"
 dalvikDx = "16.0.1"
 dexkit = "2.0.7"
 kotlin = "2.3.10"
