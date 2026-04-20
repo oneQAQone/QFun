@@ -16,7 +16,7 @@ import me.yxp.qfun.utils.reflect.findMethodOrNull
 import me.yxp.qfun.utils.reflect.getObjectOrNull
 import me.yxp.qfun.utils.reflect.setObject
 import org.luckypray.dexkit.query.FindClass
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 import java.util.regex.Pattern
 
@@ -101,7 +101,7 @@ object ShowDownloadTimes : BaseSwitchHookItem(), DexKitTask {
         return if (matcher.find()) matcher.group(1) else null
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "ProtoModel" to FindClass().apply {
             matcher {
                 usingEqStrings("u", "v")

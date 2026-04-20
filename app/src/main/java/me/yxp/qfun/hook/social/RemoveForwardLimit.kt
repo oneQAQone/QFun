@@ -11,7 +11,7 @@ import me.yxp.qfun.utils.reflect.setObject
 import me.yxp.qfun.utils.reflect.setObjectByType
 import me.yxp.qfun.utils.reflect.toClass
 import org.luckypray.dexkit.query.FindClass
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 
 @HookItemAnnotation(
     "移除转发数量限制",
@@ -71,7 +71,7 @@ object RemoveForwardLimit : BaseSwitchHookItem(), DexKitTask {
         }
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "ChatSelectorConfig" to FindClass().apply {
             matcher {
                 usingStrings("ChatSelectorConfig")

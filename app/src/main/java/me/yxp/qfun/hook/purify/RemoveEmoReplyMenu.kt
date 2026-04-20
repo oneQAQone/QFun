@@ -10,7 +10,7 @@ import me.yxp.qfun.utils.hook.doNothing
 import me.yxp.qfun.utils.hook.returnConstant
 import me.yxp.qfun.utils.reflect.findMethod
 import org.luckypray.dexkit.query.FindMethod
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
@@ -37,7 +37,7 @@ object RemoveEmoReplyMenu : BaseSwitchHookItem(), DexKitTask {
     }
 
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "check" to FindMethod().apply {
             searchPackages("com.tencent.mobileqq.aio.msglist.holder.component.msgtail")
             matcher {

@@ -1,44 +1,33 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import com.android.build.api.dsl.LibraryExtension
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
 }
 
-android {
+extensions.configure<LibraryExtension> {
     namespace = "com.owo233.qqinterface"
     compileSdk = 36
 
-    defaultConfig {
-        minSdk = 27
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+    sourceSets {
+        val main by getting
+        main.apply {
+            manifest.srcFile("src/main/AndroidManifest.xml")
+            java.directories += "src/main/java"
         }
     }
+
+    defaultConfig {
+        minSdk = 27
+        lint.targetSdk = 36
+        buildToolsVersion = "36.1.0"
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
-            freeCompilerArgs.set(listOf(
-                "-Xno-call-assertions",
-                "-Xno-param-assertions",
-                "-Xno-receiver-assertions"
-            ))
-        }
-    }
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.17.0")
+    compileOnly(libs.androidx.core.ktx)
 }

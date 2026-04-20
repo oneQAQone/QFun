@@ -29,7 +29,7 @@ import me.yxp.qfun.utils.reflect.setObject
 import me.yxp.qfun.utils.reflect.toClass
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.FindMethod
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -212,7 +212,7 @@ object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
         }
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
 
         "ForwardMenuItem" to FindClass().apply {
             searchPackages("com.tencent.qqnt.aio.menu")
