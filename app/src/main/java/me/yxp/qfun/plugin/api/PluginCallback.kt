@@ -18,7 +18,7 @@ class PluginCallback(val compiler: PluginCompiler) {
     private val info = compiler.info
     val receiveMsgListener = ReceiveMsgListener { msgRecord ->
         runOnBackground(
-            "onMsg", arrayOf(Object::class.java), arrayOf(MsgData(msgRecord))
+            "onMsg", arrayOf(Any::class.java), arrayOf(MsgData(msgRecord))
         )
     }
 
@@ -86,7 +86,7 @@ class PluginCallback(val compiler: PluginCompiler) {
     }
 
     fun invokeMsgMenuItem(methodName: String, msgData: MsgData) {
-        runOnBackground(methodName, arrayOf(Object::class.java), arrayOf(msgData))
+        runOnBackground(methodName, arrayOf(Any::class.java), arrayOf(msgData))
     }
 
     fun invokeMenuItem(

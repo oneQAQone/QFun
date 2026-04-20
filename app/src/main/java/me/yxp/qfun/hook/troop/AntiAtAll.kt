@@ -17,7 +17,7 @@ import me.yxp.qfun.utils.json.walk
 import me.yxp.qfun.utils.reflect.findMethod
 import mqq.app.AppRuntime
 import org.luckypray.dexkit.query.FindMethod
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 import java.net.URI
 
@@ -84,7 +84,7 @@ object AntiAtAll : BaseClickableHookItem<TroopSetConfig>(TroopSetConfig.serializ
         )
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "troopToDo" to FindMethod().apply {
             searchPackages("com.tencent.mobileqq.notification.modularize")
             matcher {

@@ -10,7 +10,7 @@ import me.yxp.qfun.utils.hook.returnConstant
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.reflect.findMethod
 import org.luckypray.dexkit.query.FindClass
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
@@ -38,7 +38,7 @@ object RecordsReplyCheck : BaseSwitchHookItem(), DexKitTask {
         check.returnConstant(this, 1L)
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "repo" to FindClass().apply {
             searchPackages("com.tencent.mobileqq.aio.msglist.msgrepo")
             matcher {

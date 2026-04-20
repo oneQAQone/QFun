@@ -12,7 +12,7 @@ import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.reflect.findMethod
 import org.luckypray.dexkit.query.FindClass
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Modifier
 
 @HookItemAnnotation("监听接收消息")
@@ -60,7 +60,7 @@ object OnReceiveMsg : BaseApiHookItem<ReceiveMsgListener>(), DexKitTask {
         }
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "msgService" to FindClass().apply {
             searchPackages("com.tencent.qqnt.msg")
             excludePackages("com.tencent.qqnt.msg.migration")

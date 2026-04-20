@@ -25,7 +25,7 @@ import me.yxp.qfun.utils.reflect.newInstanceWithArgs
 import me.yxp.qfun.utils.reflect.setObjectByType
 import me.yxp.qfun.utils.ui.ThemeHelper
 import org.luckypray.dexkit.query.FindClass
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 
 @HookItemAnnotation("监听消息菜单")
 object OnMenuBuild : BaseApiHookItem<MenuClickListener>(), DexKitTask {
@@ -143,7 +143,7 @@ object OnMenuBuild : BaseApiHookItem<MenuClickListener>(), DexKitTask {
         }.getOrElse { false }
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         MENU_TYPE to FindClass().apply {
             searchPackages("com.tencent.qqnt.aio.menu")
             matcher {

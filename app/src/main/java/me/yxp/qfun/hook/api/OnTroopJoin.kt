@@ -18,7 +18,7 @@ import me.yxp.qfun.utils.qq.api
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.toClass
 import org.luckypray.dexkit.query.FindMethod
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
@@ -75,7 +75,7 @@ object OnTroopJoin : BaseApiHookItem<TroopJoinListener>(), DexKitTask {
         return completableFuture.get(500L, TimeUnit.MILLISECONDS)
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> {
+    override fun getQueryMap(): Map<String, BaseMatcher> {
         val clazz = String::class.java
         return mapOf(
             "handleJoin" to FindMethod().apply {

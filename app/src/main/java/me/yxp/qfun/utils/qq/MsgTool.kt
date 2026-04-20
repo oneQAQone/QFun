@@ -16,7 +16,7 @@ import me.yxp.qfun.utils.reflect.callOriginal
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.findMethodOrNull
 import org.luckypray.dexkit.query.FindClass
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.io.File
 
 object MsgTool : DexKitTask {
@@ -272,7 +272,7 @@ object MsgTool : DexKitTask {
         return Contact(chatType, peerUid, "")
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "json" to FindClass().apply {
             searchPackages("com.tencent.qqnt.msg")
             matcher {

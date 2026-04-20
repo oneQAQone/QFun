@@ -24,7 +24,7 @@ import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.findMethodOrNull
 import mqq.observer.BusinessObserver
 import org.luckypray.dexkit.query.FindClass
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Proxy
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -323,7 +323,7 @@ object TroopTool : DexKitTask {
         return forbidList
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "setting" to FindClass().apply {
             searchPackages("com.tencent.mobileqq.troop.membersetting.part")
             matcher {

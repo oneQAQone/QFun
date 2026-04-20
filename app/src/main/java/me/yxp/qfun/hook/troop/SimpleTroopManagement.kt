@@ -19,7 +19,7 @@ import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.qq.TroopTool
 import me.yxp.qfun.utils.reflect.getObjectByType
 import org.luckypray.dexkit.query.FindClass
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
@@ -171,7 +171,7 @@ object SimpleTroopManagement : BaseSwitchHookItem(), DexKitTask {
         runCatching { action() }.onFailure { LogUtils.e(this, it) }
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "listener" to FindClass().apply {
             searchPackages("com.tencent.mobileqq.aio.msglist.holder.component.avatar")
             matcher {

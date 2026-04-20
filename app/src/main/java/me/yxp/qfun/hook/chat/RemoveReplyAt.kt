@@ -12,7 +12,7 @@ import me.yxp.qfun.utils.hook.invokeOriginal
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.getObjectByTypeOrNull
 import org.luckypray.dexkit.query.FindClass
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
@@ -50,7 +50,7 @@ object RemoveReplyAt : BaseSwitchHookItem(), DexKitTask {
         }
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "reply" to FindClass().apply {
             searchPackages("com.tencent.mobileqq.aio.input.reply")
             matcher {

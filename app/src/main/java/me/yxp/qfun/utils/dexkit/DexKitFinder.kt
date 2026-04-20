@@ -26,7 +26,7 @@ import me.yxp.qfun.utils.reflect.TAG
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.FindMethod
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 
 object DexKitFinder {
@@ -104,7 +104,7 @@ object DexKitFinder {
 
 interface DexKitTask {
 
-    fun getQueryMap(): Map<String, BaseQuery>
+    fun getQueryMap(): Map<String, BaseMatcher>
 
     fun requireClass(name: String): Class<*> {
         return DexKitCache.getClass("${TAG}->$name")

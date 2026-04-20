@@ -20,7 +20,7 @@ import me.yxp.qfun.utils.qq.runtime
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.getObject
 import org.luckypray.dexkit.query.FindMethod
-import org.luckypray.dexkit.query.base.BaseQuery
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
@@ -81,7 +81,7 @@ object SortEmoticonsByUsage : BaseSwitchHookItem(), DexKitTask {
         }
     }
 
-    override fun getQueryMap(): Map<String, BaseQuery> = mapOf(
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "roamReportMethod" to FindMethod().apply {
             matcher {
                 declaredClass(FavEmoRoamingHandler::class.java)
