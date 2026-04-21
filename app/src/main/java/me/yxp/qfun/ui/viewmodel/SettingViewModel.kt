@@ -2,6 +2,7 @@ package me.yxp.qfun.ui.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -51,6 +52,26 @@ class SettingViewModel : ViewModel() {
 
     var updateLogState by mutableStateOf(UpdateLogState())
         private set
+
+    var isSearchActive by mutableStateOf(false)
+
+    var searchQuery by mutableStateOf("")
+
+    val searchResults by derivedStateOf {
+        if (searchQuery.isEmpty()) {
+            emptyList()
+        } else {
+            categories.flatMap { category ->
+                category.items
+                    .filter { item ->
+                        item.name.contains(searchQuery, ignoreCase = true) ||
+                                item.description.contains(searchQuery, ignoreCase = true)
+                    }
+                    .map { it to category.name }
+            }
+        }
+    }
+
 
     private val allHookItems = MainHook.switchHookItemList
 

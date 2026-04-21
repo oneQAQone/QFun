@@ -2,11 +2,8 @@ package me.yxp.qfun.ui.pages.settings
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,20 +40,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.yxp.qfun.R
-import me.yxp.qfun.ui.components.atoms.ConfigButton
 import me.yxp.qfun.ui.components.atoms.SocialButton
 import me.yxp.qfun.ui.components.dialogs.BaseDialogSurface
 import me.yxp.qfun.ui.components.dialogs.CenterDialog
 import me.yxp.qfun.ui.components.listitems.SwitchActionCard
 import me.yxp.qfun.ui.components.molecules.AnimatedListItem
-import me.yxp.qfun.ui.components.molecules.QFunTopBar
-import me.yxp.qfun.ui.components.molecules.TopBarCapsuleButton
+import me.yxp.qfun.ui.components.molecules.SearchTopBar
+import me.yxp.qfun.ui.components.molecules.TopBarMenuItem
 import me.yxp.qfun.ui.core.theme.AccentBlue
 import me.yxp.qfun.ui.core.theme.Dimens
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.ui.pages.configs.ConfigUiRegistry
 import me.yxp.qfun.ui.pages.settings.components.CategoryCard
 import me.yxp.qfun.ui.viewmodel.UpdateLogState
+import me.yxp.qfun.utils.ui.HighlightUtils
 
 @Immutable
 data class CategoryData(val name: String, val items: List<FunctionData>)
@@ -75,6 +72,11 @@ data class FunctionData(
 @Composable
 fun SettingsScreen(
     categories: List<CategoryData>,
+    searchResults: List<Pair<FunctionData, String>>,
+    searchQuery: String,
+    onQueryChange: (String) -> Unit,
+    isSearchActive: Boolean,
+    onSearchActiveChange: (Boolean) -> Unit,
     versionInfo: String,
     themeMode: Int,
     isDarkTheme: Boolean,
@@ -100,7 +102,8 @@ fun SettingsScreen(
     val mainListState = rememberLazyListState()
 
     BackHandler(activeConfigKey != null, onDismissDialog)
-    BackHandler(activeConfigKey == null && selectedCategoryName != null) {
+    BackHandler(activeConfigKey == null && isSearchActive) { onSearchActiveChange(false) }
+    BackHandler(activeConfigKey == null && !isSearchActive && selectedCategoryName != null) {
         selectedCategoryName = null
     }
 
@@ -108,53 +111,60 @@ fun SettingsScreen(
         modifier = modifier
             .fillMaxSize()
             .background(colors.background)
+            .windowInsetsPadding(WindowInsets.statusBars)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.statusBars)
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            SearchTopBar(
+                title = selectedCategoryName ?: "QFun",
+                searchQuery = searchQuery,
+                onQueryChange = onQueryChange,
+                isSearchActive = isSearchActive,
+                onSearchActiveChange = onSearchActiveChange,
+                showBackButton = selectedCategoryName != null,
+                onBackClick = { selectedCategoryName = null },
+                themeMode = themeMode,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle,
+                searchHint = "搜索功能名称或描述...",
+                menuItems = listOf(
+                    TopBarMenuItem("导入配置", R.drawable.ic_file_import, onImportConfig),
+                    TopBarMenuItem("导出配置", R.drawable.ic_file_export, onExportConfig),
+                    TopBarMenuItem("更新日志", R.drawable.ic_update_log, onUpdateLogClick)
+                )
+            )
+
             AnimatedContent(
-                targetState = selectedCategoryName,
-                transitionSpec = {
-                    if (targetState != null) {
-                        slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) togetherWith
-                                slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300))
-                    } else {
-                        slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300)) togetherWith
-                                slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300))
-                    }
-                },
-                label = "pageTransition"
-            ) { categoryName ->
-                if (categoryName == null) {
-                    MainPage(
-                        categories = categories,
-                        versionInfo = versionInfo,
-                        themeMode = themeMode,
-                        isDarkTheme = isDarkTheme,
-                        onThemeToggle = onThemeToggle,
-                        onUpdateLogClick = onUpdateLogClick,
-                        onImportConfig = onImportConfig,
-                        onExportConfig = onExportConfig,
-                        onCategoryClick = { selectedCategoryName = it.name },
-                        onGithubClick = onGithubClick,
-                        onTelegramClick = onTelegramClick,
-                        onGroupClick = onGroupClick,
-                        onDonateClick = onDonateClick,
-                        listState = mainListState
+                targetState = isSearchActive,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "ContentTransition"
+            ) { searching ->
+                if (searching) {
+                    SearchModeContent(
+                        searchResults = searchResults,
+                        searchQuery = searchQuery,
+                        onFunctionToggle = onFunctionToggle,
+                        onFunctionClick = onFunctionClick
                     )
                 } else {
-                    categories.find { it.name == categoryName }?.let { category ->
-                        DetailPage(
-                            category = category,
-                            themeMode = themeMode,
-                            isDarkTheme = isDarkTheme,
-                            onThemeToggle = onThemeToggle,
-                            onBackClick = { selectedCategoryName = null },
-                            onFunctionToggle = onFunctionToggle,
-                            onFunctionClick = onFunctionClick
+                    if (selectedCategoryName == null) {
+                        MainPage(
+                            categories = categories,
+                            versionInfo = versionInfo,
+                            onCategoryClick = { selectedCategoryName = it.name },
+                            onGithubClick = onGithubClick,
+                            onTelegramClick = onTelegramClick,
+                            onGroupClick = onGroupClick,
+                            onDonateClick = onDonateClick,
+                            listState = mainListState
                         )
+                    } else {
+                        categories.find { it.name == selectedCategoryName }?.let { category ->
+                            DetailPage(
+                                category = category,
+                                onFunctionToggle = onFunctionToggle,
+                                onFunctionClick = onFunctionClick
+                            )
+                        }
                     }
                 }
             }
@@ -168,6 +178,129 @@ fun SettingsScreen(
         state = updateLogState,
         onDismiss = onDismissUpdateLog
     )
+}
+
+@Composable
+private fun SearchModeContent(
+    searchResults: List<Pair<FunctionData, String>>,
+    searchQuery: String,
+    onFunctionToggle: (String, Boolean) -> Unit,
+    onFunctionClick: (String) -> Unit
+) {
+    val colors = QFunTheme.colors
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(Dimens.PaddingMedium, Dimens.PaddingSmall),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        if (searchQuery.isNotEmpty() && searchResults.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "未找到相关功能",
+                        color = colors.textSecondary,
+                        fontSize = 15.sp
+                    )
+                }
+            }
+        }
+
+        items(searchResults, key = { it.first.id }) { (item, categoryName) ->
+            val highlightedTitle = HighlightUtils.highlightText(
+                text = item.name,
+                query = searchQuery,
+                highlightColor = colors.accentBlue,
+                baseColor = colors.textPrimary
+            )
+            val highlightedDesc = HighlightUtils.highlightText(
+                text = "[$categoryName] · ${item.description}",
+                query = searchQuery,
+                highlightColor = colors.accentBlue,
+                baseColor = colors.textSecondary
+            )
+
+            SwitchActionCard(
+                title = highlightedTitle,
+                subtitle = highlightedDesc,
+                isChecked = item.isEnabled,
+                onCheckedChange = { onFunctionToggle(item.id, it) },
+                isAvailable = item.isAvailable,
+                onClick = if (item.isClickable) { { onFunctionClick(item.id) } } else null
+            )
+        }
+    }
+}
+
+@Composable
+private fun MainPage(
+    categories: List<CategoryData>,
+    versionInfo: String,
+    onCategoryClick: (CategoryData) -> Unit,
+    onGithubClick: () -> Unit,
+    onTelegramClick: () -> Unit,
+    onGroupClick: () -> Unit,
+    onDonateClick: () -> Unit,
+    listState: LazyListState
+) {
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 32.dp)
+    ) {
+        item { Spacer(modifier = Modifier.height(12.dp)) }
+        items(categories, key = { it.name }) { category ->
+            AnimatedListItem(categories.indexOf(category)) {
+                CategoryCard(
+                    name = category.name,
+                    totalCount = category.items.size,
+                    enabledCount = category.items.count { it.isEnabled },
+                    onClick = { onCategoryClick(category) },
+                    modifier = Modifier.padding(Dimens.PaddingMedium, 6.dp)
+                )
+            }
+        }
+        item {
+            AboutSection(
+                versionInfo = versionInfo,
+                onGithubClick = onGithubClick,
+                onTelegramClick = onTelegramClick,
+                onGroupClick = onGroupClick,
+                onDonateClick = onDonateClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun DetailPage(
+    category: CategoryData,
+    onFunctionToggle: (String, Boolean) -> Unit,
+    onFunctionClick: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(Dimens.PaddingMedium, Dimens.PaddingSmall),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items(category.items, key = { it.id }) { item ->
+            AnimatedListItem(category.items.indexOf(item)) {
+                SwitchActionCard(
+                    title = item.name,
+                    subtitle = item.description,
+                    isChecked = item.isEnabled,
+                    onCheckedChange = { onFunctionToggle(item.id, it) },
+                    isAvailable = item.isAvailable,
+                    onClick = if (item.isClickable) { { onFunctionClick(item.id) } } else null
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -194,7 +327,6 @@ private fun UpdateLogDialogContent(
                             color = AccentBlue
                         )
                     }
-
                     state.error != null -> {
                         Text(
                             text = state.error,
@@ -203,7 +335,6 @@ private fun UpdateLogDialogContent(
                             modifier = Modifier.padding(16.dp)
                         )
                     }
-
                     else -> {
                         state.logs.forEach { (version, log) ->
                             Text(
@@ -229,81 +360,6 @@ private fun UpdateLogDialogContent(
 }
 
 @Composable
-private fun MainPage(
-    categories: List<CategoryData>,
-    versionInfo: String,
-    themeMode: Int,
-    isDarkTheme: Boolean,
-    onThemeToggle: () -> Unit,
-    onUpdateLogClick: () -> Unit,
-    onImportConfig: () -> Unit,
-    onExportConfig: () -> Unit,
-    onCategoryClick: (CategoryData) -> Unit,
-    onGithubClick: () -> Unit,
-    onTelegramClick: () -> Unit,
-    onGroupClick: () -> Unit,
-    onDonateClick: () -> Unit,
-    listState: LazyListState
-) {
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 32.dp)
-    ) {
-        item {
-            QFunTopBar(
-                title = "QFun",
-                themeMode = themeMode,
-                isDarkTheme = isDarkTheme,
-                onThemeToggle = onThemeToggle,
-                actions = {
-                    TopBarCapsuleButton(
-                        iconRes = R.drawable.ic_update_log,
-                        label = "更新日志",
-                        onClick = onUpdateLogClick
-                    )
-                }
-            )
-        }
-        item { ConfigButtonRow(onImportConfig, onExportConfig) }
-        item { Spacer(modifier = Modifier.height(12.dp)) }
-        items(categories, key = { it.name }) { category ->
-            AnimatedListItem(categories.indexOf(category)) {
-                CategoryCard(
-                    name = category.name,
-                    totalCount = category.items.size,
-                    enabledCount = category.items.count { it.isEnabled },
-                    onClick = { onCategoryClick(category) },
-                    modifier = Modifier.padding(Dimens.PaddingMedium, 6.dp)
-                )
-            }
-        }
-        item {
-            AboutSection(
-                versionInfo = versionInfo,
-                onGithubClick = onGithubClick,
-                onTelegramClick = onTelegramClick,
-                onGroupClick = onGroupClick,
-                onDonateClick = onDonateClick
-            )
-        }
-    }
-}
-
-@Composable
-private fun ConfigButtonRow(onImportConfig: () -> Unit, onExportConfig: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(Dimens.PaddingLarge, Dimens.PaddingSmall),
-        horizontalArrangement = Arrangement.spacedBy(Dimens.PaddingMedium)
-    ) {
-        ConfigButton("导入配置", onImportConfig, Modifier.weight(1f))
-        ConfigButton("导出配置", onExportConfig, Modifier.weight(1f))
-    }
-}
-
-@Composable
 private fun AboutSection(
     versionInfo: String,
     onGithubClick: () -> Unit,
@@ -312,7 +368,6 @@ private fun AboutSection(
     onDonateClick: () -> Unit
 ) {
     val colors = QFunTheme.colors
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -320,14 +375,14 @@ private fun AboutSection(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "关于",
+            text = "关于",
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary,
             letterSpacing = 0.5.sp
         )
         Spacer(modifier = Modifier.height(Dimens.PaddingMedium))
-        Row(horizontalArrangement = Arrangement.spacedBy(Dimens.PaddingLarge)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             SocialButton(R.drawable.ic_logo_github, "Github", onGithubClick)
             SocialButton(R.drawable.ic_logo_telegram, "Channel", onTelegramClick)
             SocialButton(R.drawable.ic_logo_qq, "Group", onGroupClick)
@@ -335,7 +390,7 @@ private fun AboutSection(
         }
         Spacer(modifier = Modifier.height(Dimens.PaddingLarge))
         Text(
-            versionInfo,
+            text = versionInfo,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary
@@ -344,52 +399,9 @@ private fun AboutSection(
 }
 
 @Composable
-private fun DetailPage(
-    category: CategoryData,
-    themeMode: Int,
-    isDarkTheme: Boolean,
-    onThemeToggle: () -> Unit,
-    onBackClick: () -> Unit,
-    onFunctionToggle: (String, Boolean) -> Unit,
-    onFunctionClick: (String) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        QFunTopBar(
-            category.name,
-            showBackButton = true,
-            onBackClick = onBackClick,
-            themeMode = themeMode,
-            isDarkTheme = isDarkTheme,
-            onThemeToggle = onThemeToggle
-        )
-        LazyColumn(
-            state = rememberLazyListState(),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(Dimens.PaddingMedium, Dimens.PaddingSmall),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(category.items, key = { it.id }) { item ->
-                AnimatedListItem(category.items.indexOf(item)) {
-                    SwitchActionCard(
-                        title = item.name,
-                        isChecked = item.isEnabled,
-                        onCheckedChange = { onFunctionToggle(item.id, it) },
-                        subtitle = item.description,
-                        isAvailable = item.isAvailable,
-                        onClick = if (item.isClickable) {
-                            { onFunctionClick(item.id) }
-                        } else null
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun ConfigDialogOverlay(activeConfigKey: String?, onDismiss: () -> Unit) {
     val configUi = activeConfigKey?.let { ConfigUiRegistry.getConfigUi(it) }
-    CenterDialog(activeConfigKey != null && configUi != null, onDismiss) {
+    CenterDialog(visible = activeConfigKey != null && configUi != null, onDismiss = onDismiss) {
         configUi?.invoke(onDismiss)
     }
 }

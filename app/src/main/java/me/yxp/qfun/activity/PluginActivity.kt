@@ -17,12 +17,10 @@ import me.yxp.qfun.utils.net.HttpUtils
 
 @Suppress("DEPRECATION")
 class PluginActivity : BaseComposeActivity() {
-    companion object {
-        const val REQUEST_CODE_PICK_ICON = 1004
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             val vm: PluginViewModel = viewModel()
             val appMetrics = applicationContext.resources.displayMetrics
@@ -34,8 +32,8 @@ class PluginActivity : BaseComposeActivity() {
             CompositionLocalProvider(LocalDensity provides stableDensity) {
                 QFunTheme(isDarkTheme) {
                     PluginScreen(
-                        localPlugins = vm.localPlugins,
-                        onlineUiState = vm.onlineUiState,
+                        localPlugins = vm.filteredLocalPlugins,
+                        onlineUiState = vm.filteredOnlineUiState,
                         downloadingPlugins = vm.downloadingPlugins,
                         isLocalRefreshing = vm.isLocalRefreshing,
                         isOnlineRefreshing = vm.isOnlineRefreshing,
@@ -59,7 +57,11 @@ class PluginActivity : BaseComposeActivity() {
                         onConfirmCreatePlugin = vm::createPlugin,
                         showSuccessDialog = vm.showSuccessDialog,
                         createdPluginPath = vm.createdPluginPath,
-                        onDismissSuccessDialog = vm::dismissSuccessDialog
+                        onDismissSuccessDialog = vm::dismissSuccessDialog,
+                        isSearchActive = vm.isSearchActive,
+                        onSearchActiveChange = { vm.isSearchActive = it },
+                        searchQuery = vm.searchQuery,
+                        onQueryChange = { vm.searchQuery = it }
                     )
 
                     ConfirmDialog(
@@ -91,6 +93,7 @@ class PluginActivity : BaseComposeActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode != RESULT_OK || data == null) return
         val uri = data.data ?: return
+
         if (requestCode == REQUEST_CODE_PICK_ICON) {
             val vm = ViewModelProvider(this)[PluginViewModel::class.java]
             vm.handleIconSelection(this, uri)
@@ -107,5 +110,9 @@ class PluginActivity : BaseComposeActivity() {
 
     private fun openDocs() = runCatching {
         startActivity(Intent(Intent.ACTION_VIEW, "${HttpUtils.HOST}/doc.php".toUri()))
+    }
+
+    companion object {
+        const val REQUEST_CODE_PICK_ICON = 1004
     }
 }
