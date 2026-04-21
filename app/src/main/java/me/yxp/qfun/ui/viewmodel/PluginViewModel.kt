@@ -2,6 +2,7 @@ package me.yxp.qfun.ui.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -29,30 +30,73 @@ sealed interface PluginListUiState {
 }
 
 class PluginViewModel : ViewModel() {
+
     var localPlugins by mutableStateOf<List<LocalPluginData>>(emptyList())
         private set
+
     var onlineUiState by mutableStateOf<PluginListUiState>(PluginListUiState.Loading)
         private set
+
     var downloadingPlugins by mutableStateOf<Set<String>>(emptySet())
         private set
+
     var showDeleteDialog by mutableStateOf(false)
         private set
+
     var showUploadDialog by mutableStateOf(false)
         private set
+
     var pendingDeletePluginId by mutableStateOf<String?>(null)
         private set
+
     var pendingUploadPluginId by mutableStateOf<String?>(null)
         private set
+
     var showCreateDialog by mutableStateOf(false)
         private set
+
     var showSuccessDialog by mutableStateOf(false)
         private set
+
     var createdPluginPath by mutableStateOf("")
         private set
+
     var isLocalRefreshing by mutableStateOf(false)
         private set
+
     var isOnlineRefreshing by mutableStateOf(false)
         private set
+
+
+    var isSearchActive by mutableStateOf(false)
+
+    var searchQuery by mutableStateOf("")
+
+    val filteredLocalPlugins by derivedStateOf {
+        if (searchQuery.isEmpty()) {
+            localPlugins
+        } else {
+            localPlugins.filter { 
+                it.name.contains(searchQuery, ignoreCase = true) || 
+                        it.author.contains(searchQuery, ignoreCase = true) ||
+                        it.description.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
+
+    val filteredOnlineUiState by derivedStateOf {
+        val currentState = onlineUiState
+        if (searchQuery.isEmpty() || currentState !is PluginListUiState.Success) {
+            currentState
+        } else {
+            val filteredList = currentState.data.filter {
+                it.name.contains(searchQuery, ignoreCase = true) ||
+                        it.author.contains(searchQuery, ignoreCase = true) ||
+                        it.description.contains(searchQuery, ignoreCase = true)
+            }
+            PluginListUiState.Success(filteredList)
+        }
+    }
 
     private val scriptList = mutableListOf<ScriptInfo>()
 
@@ -65,6 +109,7 @@ class PluginViewModel : ViewModel() {
     fun reloadLocalPlugins() {
         if (isLocalRefreshing) return
         isLocalRefreshing = true
+        
         viewModelScope.launch(Dispatchers.IO) {
             val startTime = System.currentTimeMillis()
             PluginManager.loadAll()
@@ -79,6 +124,7 @@ class PluginViewModel : ViewModel() {
     fun reloadOnlinePlugins() {
         if (isOnlineRefreshing) return
         isOnlineRefreshing = true
+        
         viewModelScope.launch(Dispatchers.IO) {
             val startTime = System.currentTimeMillis()
             try {
@@ -216,10 +262,12 @@ class PluginViewModel : ViewModel() {
     private fun uploadPlugin(id: String) {
         val plugin = PluginManager.plugins.find { it.id == id } ?: return
         val scriptZip = File(QQCurrentEnv.currentDir + "cache", "${plugin.name}.zip")
+        
         if (!FileUtils.zip(File(plugin.dirPath), scriptZip)) {
             Toasts.qqToast(1, "打包失败")
             return
         }
+        
         viewModelScope.launch(Dispatchers.IO) {
             val result = ScriptService.uploadScript(
                 plugin.id,
@@ -240,6 +288,7 @@ class PluginViewModel : ViewModel() {
     private fun fetchOnlinePlugins() {
         if (onlineUiState is PluginListUiState.Loading && scriptList.isNotEmpty()) return
         onlineUiState = PluginListUiState.Loading
+        
         viewModelScope.launch(Dispatchers.IO) {
             ScriptService.fetchScriptList().fold(
                 onSuccess = { list ->
@@ -269,8 +318,10 @@ class PluginViewModel : ViewModel() {
     fun downloadPlugin(id: String) {
         val script = scriptList.find { it.id == id } ?: return
         if (downloadingPlugins.contains(id)) return
+        
         downloadingPlugins = downloadingPlugins + id
         Toasts.qqToast(0, "开始下载: ${script.name}")
+        
         viewModelScope.launch(Dispatchers.IO) {
             ScriptService.downloadAndInstall(script).fold(
                 onSuccess = {

@@ -40,9 +40,9 @@ import me.yxp.qfun.ui.core.theme.QFunTheme
 
 @Composable
 fun CommonActionCard(
-    title: String,
+    title: Any,
     modifier: Modifier = Modifier,
-    subtitle: String? = null,
+    subtitle: Any? = null,
     leadingIcon: Painter? = null,
     isAvailable: Boolean = true,
     onClick: (() -> Unit)? = null,
@@ -72,17 +72,17 @@ fun CommonActionCard(
 
 @Composable
 fun SwitchActionCard(
-    title: String,
+    title: Any,
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    subtitle: String? = null,
+    subtitle: Any? = null,
     leadingIcon: Painter? = null,
     isAvailable: Boolean = true,
     onClick: (() -> Unit)? = null
 ) {
     val displaySubtitle = when {
-        !isAvailable && subtitle.isNullOrEmpty() -> "当前环境不可用"
+        !isAvailable && subtitle == null -> "当前环境不可用"
         !isAvailable -> "$subtitle (当前环境不可用)"
         else -> subtitle
     }
@@ -138,7 +138,7 @@ fun ActionItem(
         leadingIcon = icon,
         trailingContent = trailingContent ?: {
             Text(
-                "›",
+                text = "›",
                 fontSize = 20.sp,
                 color = colors.textSecondary
             )
@@ -174,7 +174,7 @@ fun SelectionItem(
             Text(text = subtitle, fontSize = 12.sp, color = colors.textSecondary)
         }
         if (isSelected) {
-            Text("✓", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = AccentBlue)
+            Text(text = "✓", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = AccentBlue)
         }
     }
 }
@@ -226,7 +226,6 @@ fun InputItem(
             ),
             keyboardActions = KeyboardActions(onDone = { onDone?.invoke() }),
             decorationBox = { innerTextField ->
-
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.CenterStart
@@ -245,7 +244,6 @@ fun InputItem(
         )
     }
 }
-
 
 @Composable
 fun SelectionGroup(modifier: Modifier = Modifier, content: @Composable () -> Unit) {

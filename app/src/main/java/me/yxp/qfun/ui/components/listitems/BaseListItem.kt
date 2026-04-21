@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,9 +28,9 @@ import me.yxp.qfun.ui.core.theme.QFunTheme
 
 @Composable
 fun BaseListItem(
-    title: String,
+    title: Any,
     modifier: Modifier = Modifier,
-    subtitle: String? = null,
+    subtitle: Any? = null,
     leadingIcon: Painter? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
@@ -54,20 +55,53 @@ fun BaseListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (leadingIcon != null) {
-            Icon(leadingIcon, null, Modifier.size(24.dp), colors.textPrimary)
+            Icon(
+                painter = leadingIcon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = colors.textPrimary
+            )
             Spacer(modifier = Modifier.width(12.dp))
         }
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                color = colors.textPrimary
-            )
-            if (!subtitle.isNullOrEmpty()) {
+            when (title) {
+                is AnnotatedString -> {
+                    Text(
+                        text = title,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = colors.textPrimary
+                    )
+                }
+                else -> {
+                    Text(
+                        text = title.toString(),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = colors.textPrimary
+                    )
+                }
+            }
+            
+            if (subtitle != null) {
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(text = subtitle, fontSize = 12.sp, color = colors.textSecondary)
+                when (subtitle) {
+                    is AnnotatedString -> {
+                        Text(
+                            text = subtitle,
+                            fontSize = 12.sp,
+                            color = colors.textSecondary
+                        )
+                    }
+                    else -> {
+                        Text(
+                            text = subtitle.toString(),
+                            fontSize = 12.sp,
+                            color = colors.textSecondary
+                        )
+                    }
+                }
             }
         }
 

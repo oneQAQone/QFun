@@ -1,6 +1,7 @@
 package me.yxp.qfun.activity
 
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -36,20 +36,21 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import me.yxp.qfun.activity.BaseComposeActivity
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.ui.components.atoms.ActionButton
 import me.yxp.qfun.ui.components.atoms.ActionButtonStyle
 import me.yxp.qfun.ui.components.atoms.QFunCard
 import me.yxp.qfun.ui.components.dialogs.ConfirmDialog
 import me.yxp.qfun.ui.components.molecules.AnimatedListItem
-import me.yxp.qfun.ui.components.molecules.QFunTopBar
+import me.yxp.qfun.ui.components.molecules.SearchTopBar
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.utils.io.FileUtils
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.qq.Toasts
+import me.yxp.qfun.utils.ui.HighlightUtils
 import java.io.File
+import java.util.Locale
 import kotlin.math.ln
 import kotlin.math.pow
 
@@ -114,25 +115,6 @@ class StorageCleanActivity : BaseComposeActivity() {
         "礼物,花里胡哨的VIP图标缓存" to "%private%/files/vas_material_folder"
     )
 
-    private fun getRealPath(template: String): String {
-        val extra = HostInfo.hostContext.getExternalFilesDir(null)?.parentFile?.absolutePath
-            ?: "/storage/emulated/0/Android/data/${HostInfo.packageName}"
-        val private = HostInfo.hostContext.filesDir.parent ?: HostInfo.hostContext.filesDir.absolutePath
-        val uin = QQCurrentEnv.currentUin
-        return template
-            .replace("%extra%", extra)
-            .replace("%private%", private)
-            .replace("%uin%", uin)
-    }
-
-    private fun formatSize(bytes: Long): String {
-        if (bytes <= 0) return "0 B"
-        val units = arrayOf("B", "KB", "MB", "GB")
-        val digitGroups = (ln(bytes.toDouble()) / ln(1024.0)).toInt()
-        val size = bytes / 1024.0.pow(digitGroups)
-        return String.format("%.2f %s", size, units[digitGroups])
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -146,8 +128,25 @@ class StorageCleanActivity : BaseComposeActivity() {
     private fun StorageCleanScreen() {
         val colors = QFunTheme.colors
         val sizeMap = remember { mutableStateMapOf<String, Long?>() }
+        
         var cleaningItem by remember { mutableStateOf<String?>(null) }
         var confirmItem by remember { mutableStateOf<String?>(null) }
+        
+        var isSearchActive by remember { mutableStateOf(false) }
+        var searchQuery by remember { mutableStateOf("") }
+
+        val filteredPaths = remember(searchQuery) {
+            if (searchQuery.isEmpty()) {
+                cleanPaths.keys.toList()
+            } else {
+                cleanPaths.keys.filter { it.contains(searchQuery, ignoreCase = true) }
+            }
+        }
+
+        BackHandler(isSearchActive) {
+            isSearchActive = false
+            searchQuery = ""
+        }
 
         LaunchedEffect(Unit) {
             val semaphore = Semaphore(4)
@@ -156,11 +155,7 @@ class StorageCleanActivity : BaseComposeActivity() {
                     semaphore.withPermit {
                         val path = getRealPath(cleanPaths[name]!!)
                         val size = withContext(Dispatchers.IO) {
-                            try {
-                                FileUtils.getDirSize(File(path))
-                            } catch (e: Exception) {
-                                0L
-                            }
+                            runCatching { FileUtils.getDirSize(File(path)) }.getOrDefault(0L)
                         }
                         sizeMap[name] = size
                     }
@@ -183,72 +178,103 @@ class StorageCleanActivity : BaseComposeActivity() {
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize().background(colors.background)) {
-            Column(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
-                QFunTopBar(
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .systemBarsPadding()
+            ) {
+                SearchTopBar(
                     title = "存储空间清理",
+                    searchQuery = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    isSearchActive = isSearchActive,
+                    onSearchActiveChange = { isSearchActive = it },
                     showBackButton = true,
                     onBackClick = { finish() },
                     themeMode = themeMode,
-                    onThemeToggle = ::toggleTheme
+                    isDarkTheme = isDarkTheme,
+                    onThemeToggle = ::toggleTheme,
+                    searchHint = "搜索缓存项..."
                 )
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    itemsIndexed(cleanPaths.keys.toList()) { index, name ->
-                        val size = sizeMap[name]
-                        val path = getRealPath(cleanPaths[name]!!)
-                        AnimatedListItem(index) {
-                            QFunCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                animateContentSize = true
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+
+                if (filteredPaths.isEmpty() && searchQuery.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "未找到匹配项", 
+                            color = colors.textSecondary
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        itemsIndexed(filteredPaths, key = { _, name -> name }) { index, name ->
+                            val size = sizeMap[name]
+
+                            val highlightedName = HighlightUtils.highlightText(
+                                text = name, 
+                                query = searchQuery, 
+                                highlightColor = colors.accentBlue, 
+                                baseColor = colors.textPrimary
+                            )
+
+                            AnimatedListItem(index) {
+                                QFunCard(
+                                    modifier = Modifier.fillMaxWidth(), 
+                                    animateContentSize = true
                                 ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = name,
-                                            fontSize = 15.sp,
-                                            color = colors.textPrimary
-                                        )
-                                        if (size == null) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                CircularProgressIndicator(
-                                                    modifier = Modifier.size(16.dp),
-                                                    strokeWidth = 2.dp,
-                                                    color = colors.textSecondary
-                                                )
-                                                Spacer(modifier = Modifier.width(4.dp))
-                                                Text(
-                                                    text = "计算中...",
-                                                    fontSize = 12.sp,
-                                                    color = colors.textSecondary
-                                                )
-                                            }
-                                        } else {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
                                             Text(
-                                                text = formatSize(size),
-                                                fontSize = 12.sp,
-                                                color = colors.textSecondary
+                                                text = highlightedName, 
+                                                fontSize = 15.sp
                                             )
-                                        }
-                                    }
-                                    ActionButton(
-                                        text = if (cleaningItem == name) "清理中..." else "清理",
-                                        onClick = {
-                                            if (cleaningItem == null) {
-                                                confirmItem = name
+                                            
+                                            if (size == null) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(14.dp), 
+                                                        strokeWidth = 2.dp, 
+                                                        color = colors.textSecondary
+                                                    )
+                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Text(
+                                                        text = "计算中...", 
+                                                        fontSize = 12.sp, 
+                                                        color = colors.textSecondary
+                                                    )
+                                                }
+                                            } else {
+                                                Text(
+                                                    text = formatSize(size), 
+                                                    fontSize = 12.sp, 
+                                                    color = colors.textSecondary
+                                                )
                                             }
-                                        },
-                                        style = ActionButtonStyle.Success
-                                    )
+                                        }
+                                        
+                                        ActionButton(
+                                            text = if (cleaningItem == name) "清理中..." else "清理",
+                                            onClick = { if (cleaningItem == null) confirmItem = name },
+                                            style = ActionButtonStyle.Success
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -259,7 +285,6 @@ class StorageCleanActivity : BaseComposeActivity() {
 
         if (confirmItem != null) {
             val name = confirmItem!!
-            val path = getRealPath(cleanPaths[name]!!)
             ConfirmDialog(
                 visible = true,
                 title = "确认清理",
@@ -269,11 +294,36 @@ class StorageCleanActivity : BaseComposeActivity() {
                 onDismiss = { confirmItem = null },
                 onConfirm = {
                     confirmItem = null
-                    ModuleScope.launch {
-                        cleanItem(name, path)
+                    ModuleScope.launch { 
+                        cleanItem(name, getRealPath(cleanPaths[name]!!)) 
                     }
                 }
             )
         }
+    }
+
+    private fun getRealPath(template: String): String {
+        val extra = HostInfo.hostContext.getExternalFilesDir(null)?.parentFile?.absolutePath 
+            ?: "/storage/emulated/0/Android/data/${HostInfo.packageName}"
+            
+        val private = HostInfo.hostContext.filesDir.parent 
+            ?: HostInfo.hostContext.filesDir.absolutePath
+            
+        return template
+            .replace("%extra%", extra)
+            .replace("%private%", private)
+            .replace("%uin%", QQCurrentEnv.currentUin)
+    }
+
+    private fun formatSize(bytes: Long): String {
+        if (bytes <= 0) return "0 B"
+        val units = arrayOf("B", "KB", "MB", "GB")
+        val digitGroups = (ln(bytes.toDouble()) / ln(1024.0)).toInt()
+        return String.format(
+            Locale.getDefault(),
+            "%.2f %s", 
+            bytes / 1024.0.pow(digitGroups.toDouble()), 
+            units[digitGroups]
+        )
     }
 }
