@@ -1,15 +1,10 @@
 package me.yxp.qfun.ui.components.molecules
 
-import android.graphics.RenderEffect
-import android.graphics.RuntimeShader
 import android.os.Build
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -25,76 +20,41 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.graphics.asComposeRenderEffect
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberCombinedBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
+import com.kyant.backdrop.shadow.InnerShadow
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import kotlin.math.abs
 import kotlin.math.min
-
-
-private const val LIQUID_GLASS_AGSL = """
-    uniform shader content;
-    uniform float2 size;
-    uniform float2 center;
-    uniform float radius;
-    uniform float stretchAmount;
-    uniform float isDarkMode;
-
-    half4 main(float2 fragCoord) {
-        float2 distanceVector = (fragCoord - center) / radius;
-        float distanceFromCenter = length(distanceVector);
-
-        float borderMask = smoothstep(1.0, 0.96, distanceFromCenter);
-        
-        if (distanceFromCenter < 1.0) {
-            float surfaceZ = sqrt(1.0 - distanceFromCenter * distanceFromCenter);
-
-            float refractionPower = 0.22 + stretchAmount * 0.55;
-            float2 refractionOffset = distanceVector * (1.0 - surfaceZ) * refractionPower * 42.0;
-
-            float dispersionEffect = 0.02 + stretchAmount * 0.08;
-            half redChannel = content.eval(fragCoord + refractionOffset * (1.0 + dispersionEffect)).r;
-            half greenChannel = content.eval(fragCoord + refractionOffset).g;
-            half blueChannel = content.eval(fragCoord + refractionOffset * (1.0 - dispersionEffect)).b;
-            half alphaChannel = content.eval(fragCoord + refractionOffset).a;
-            
-            half4 baseColor = half4(redChannel, greenChannel, blueChannel, alphaChannel);
-
-            float fresnelReflection = pow(1.0 - surfaceZ, 3.5);
-            float rimIntensity = isDarkMode > 0.5 ? 0.15 : 0.25;
-            baseColor.rgb += fresnelReflection * rimIntensity * borderMask;
-
-            float2 lightDirection = float2(-0.4, -0.4);
-            float3 surfaceNormal = float3(distanceVector, surfaceZ);
-            float specularHighlight = pow(max(0.0, dot(surfaceNormal, normalize(float3(lightDirection, 1.1)))), 16.0);
-            baseColor.rgb += specularHighlight * 0.45 * borderMask;
-            
-            return baseColor;
-        }
-        return content.eval(fragCoord);
-    }
-"""
 
 @Composable
 fun FloatingLiquidTabs(
     options: List<String>,
     selectedIndex: Int,
     onOptionSelected: (Int) -> Unit,
+    backdrop: Backdrop,
     modifier: Modifier = Modifier
 ) {
     val colors = QFunTheme.colors
     val hapticFeedback = LocalHapticFeedback.current
+    val density = LocalDensity.current
+    val isGlassSupported = Build.VERSION.SDK_INT >= 31
 
     val headPosition by animateFloatAsState(
         targetValue = selectedIndex.toFloat(),
@@ -119,80 +79,109 @@ fun FloatingLiquidTabs(
     val centeringOffset = (segmentWidth * (1f - widthFactor)) / 2f
     val currentSliderOffset = (segmentWidth * leftBoundary) + centeringOffset
 
-    val currentSliderHeight = 38.dp + (stretchAmount * 30).dp
+    val tabsBackdrop = rememberLayerBackdrop()
 
     Box(
-        modifier = modifier.width(trackWidth).height(80.dp),
+        modifier = modifier
+            .width(trackWidth)
+            .height(80.dp),
         contentAlignment = Alignment.Center
     ) {
-
         Box(
             modifier = Modifier
-                .width(trackWidth).height(trackHeight)
-                .clip(CircleShape)
-                .shadow(elevation = if (colors.isDark) 0.dp else 4.dp, shape = CircleShape)
-                .graphicsLayer {
-                    if (Build.VERSION.SDK_INT >= 31) {
-                        renderEffect = RenderEffect.createBlurEffect(120f, 120f, android.graphics.Shader.TileMode.CLAMP).asComposeRenderEffect()
+                .width(trackWidth)
+                .height(trackHeight)
+                .drawBackdrop(
+                    backdrop = backdrop,
+                    exportedBackdrop = tabsBackdrop,
+                    shape = { CircleShape },
+                    effects = {
+                        if (isGlassSupported) {
+                            vibrancy()
+                            blur(with(density) { 12f.dp.toPx() })
+                        }
+                    },
+                    onDrawSurface = {
+                        val containerColor = if (colors.isDark) Color(0xFF1C1C1E).copy(alpha = 0.5f) 
+                                             else Color(0xFFFFFFFF).copy(alpha = 0.6f)
+                        drawRect(containerColor)
+                        drawRect(
+                            color = Color.White.copy(alpha = if (colors.isDark) 0.05f else 0.2f),
+                            style = Stroke(width = 0.5.dp.toPx())
+                        )
                     }
-                }
-                .background(
-                    color = if (colors.isDark) Color(0xFF18181A).copy(alpha = 0.95f) 
-                            else Color.White.copy(alpha = 0.97f),
-                    shape = CircleShape
                 )
-                .border(0.5.dp, Color.White.copy(alpha = 0.08f), CircleShape)
-        )
+        ) {}
 
-        val liquidShader = remember { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) RuntimeShader(LIQUID_GLASS_AGSL) else null }
+        Row(
+            modifier = Modifier
+                .width(trackWidth)
+                .height(trackHeight)
+                .alpha(0f)
+                .then(if (isGlassSupported) Modifier.layerBackdrop(tabsBackdrop) else Modifier)
+        ) {
+            options.forEach { title ->
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = title,
+                        color = if (colors.isDark) Color.White else Color.Black,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = (0.5 + stretchAmount * 2.2).sp 
+                    )
+                }
+            }
+        }
 
+        val currentSliderHeight = 36.dp + (stretchAmount * 12).dp
+        
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .offset(x = currentSliderOffset, y = (stretchAmount * 2).dp)
+                .offset(x = currentSliderOffset)
                 .width(currentSliderWidth)
                 .height(currentSliderHeight)
-                .clip(CircleShape)
-                .shadow(
-                    elevation = (stretchAmount * 18).dp, 
-                    shape = CircleShape,
-                    spotColor = (if (colors.isDark) Color.Transparent else Color.Black).copy(alpha = 0.12f)
-                )
-                .drawWithCache {
-                    onDrawWithContent {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && liquidShader != null) {
-                            liquidShader.setFloatUniform("size", size.width, size.height)
-                            liquidShader.setFloatUniform("center", size.width / 2f, size.height / 2f)
-                            liquidShader.setFloatUniform("radius", size.width / 1.7f) 
-                            liquidShader.setFloatUniform("stretchAmount", stretchAmount)
-                            liquidShader.setFloatUniform("isDarkMode", if (colors.isDark) 1.0f else 0.0f)
-                            drawRect(brush = ShaderBrush(liquidShader))
+                .drawBackdrop(
+                    backdrop = if (isGlassSupported) rememberCombinedBackdrop(backdrop, tabsBackdrop) else backdrop,
+                    shape = { CircleShape },
+                    effects = {
+                        if (isGlassSupported) {
+                            lens(
+                                refractionHeight = with(density) { 6f.dp.toPx() },
+                                refractionAmount = with(density) { 8f.dp.toPx() }
+                            )
                         }
-                        drawContent()
+                    },
+                    innerShadow = { 
+                        if (isGlassSupported) {
+                            InnerShadow(
+                                radius = 4.dp,
+                                color = Color.White.copy(alpha = 0.2f),
+                                alpha = 0.4f
+                            )
+                        } else null
+                    },
+                    onDrawSurface = {
+                        val sliderColor = if (colors.isDark) Color.White.copy(0.12f)
+                                          else Color.Black.copy(0.04f)
+                        drawRect(sliderColor)
+                        drawRect(
+                            brush = Brush.verticalGradient(
+                                listOf(
+                                    Color.White.copy(alpha = if (colors.isDark) 0.2f else 0.4f),
+                                    Color.Transparent
+                                )
+                            ),
+                            style = Stroke(width = 1.dp.toPx())
+                        )
                     }
-                }
-                .background(
-                    color = if (colors.isDark) colors.accentGreen.copy(alpha = 0.22f)
-                            else colors.accentBlue.copy(alpha = 0.15f),
-                    shape = CircleShape
-                )
-                .background(
-                    brush = Brush.verticalGradient(
-                        0.00f to Color.White.copy(alpha = if (colors.isDark) 0.35f else 0.85f),
-                        0.30f to Color.Transparent
-                    ),
-                    shape = CircleShape
-                )
-                .border(
-                    width = (0.8 + stretchAmount * 1.0).dp, 
-                    brush = Brush.verticalGradient(listOf(Color.White.copy(0.95f), Color.White.copy(0.15f))),
-                    shape = CircleShape
                 )
         )
 
-        Row(
-            modifier = Modifier.width(trackWidth).height(trackHeight)
-        ) {
+        Row(modifier = Modifier.width(trackWidth).height(trackHeight)) {
             options.forEachIndexed { index, title ->
                 val isSelected = index == selectedIndex
                 val tabTextColor by animateColorAsState(
@@ -206,19 +195,10 @@ fun FloatingLiquidTabs(
                     label = "TextFade"
                 )
 
-                val textScaleFactor by animateFloatAsState(
-                    targetValue = if (isSelected && stretchAmount > 0.05f) 0.96f else 1f,
-                    animationSpec = spring(stiffness = Spring.StiffnessLow),
-                    label = "TextParallax"
-                )
-
                 Box(
                     modifier = Modifier
-                        .weight(1f).fillMaxHeight()
-                        .graphicsLayer { 
-                            scaleX = textScaleFactor
-                            scaleY = textScaleFactor
-                        }
+                        .weight(1f)
+                        .fillMaxHeight()
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -235,7 +215,7 @@ fun FloatingLiquidTabs(
                         text = title,
                         color = tabTextColor,
                         fontSize = 14.sp,
-                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.ExtraBold,
+                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
                         letterSpacing = (0.5 + stretchAmount * 2.2).sp 
                     )
                 }

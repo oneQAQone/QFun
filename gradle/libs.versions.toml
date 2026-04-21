@@ -2,6 +2,7 @@
 agp = "9.1.1"
 annotation = "1.10.0"
 dalvikDx = "16.0.1"
+kyant0-backdrop = "2.0.0-alpha03"
 dexkit = "2.2.0"
 kotlin = "2.3.20"
 kotlinpoet = "2.3.0"
@@ -22,6 +23,7 @@ lifecycle = "2.10.0"
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "ktx" }
 dalvik-dx = { module = "com.jakewharton.android.repackaged:dalvik-dx", version.ref = "dalvikDx" }
+kyant0-backdrop = { group = "io.github.kyant0", name = "backdrop", version.ref = "kyant0-backdrop" }
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
 ksp = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }

@@ -110,6 +110,7 @@ dependencies {
     implementation(libs.compose.animation)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.kyant0.backdrop )
 
     ksp(projects.processor)
 
