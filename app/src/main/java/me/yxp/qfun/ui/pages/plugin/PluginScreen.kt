@@ -60,6 +60,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import me.yxp.qfun.R
 import me.yxp.qfun.ui.components.atoms.DialogButton
 import me.yxp.qfun.ui.components.atoms.DialogTextField
@@ -180,6 +182,8 @@ fun PluginScreen(
         onSearchActiveChange(false) 
     }
 
+    val screenBackdrop = rememberLayerBackdrop()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -246,6 +250,9 @@ fun PluginScreen(
                         animationSpec = tween(durationMillis = 300)
                     ) 
                 },
+                modifier = Modifier
+                    .weight(1f)
+                    .layerBackdrop(screenBackdrop),
                 label = "PluginTabContent"
             ) { tabIndex ->
                 when (tabIndex) {
@@ -282,6 +289,7 @@ fun PluginScreen(
                 selectedTab = it
                 isBottomBarVisible = true
             },
+            backdrop = screenBackdrop,
             modifier = Modifier
                 .align(
                     alignment = Alignment.BottomCenter
