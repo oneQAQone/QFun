@@ -95,6 +95,7 @@ fun SettingsScreen(
     updateLogState: UpdateLogState,
     onUpdateLogClick: () -> Unit,
     onDismissUpdateLog: () -> Unit,
+    onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colors = QFunTheme.colors
@@ -120,16 +121,30 @@ fun SettingsScreen(
                 onQueryChange = onQueryChange,
                 isSearchActive = isSearchActive,
                 onSearchActiveChange = onSearchActiveChange,
-                showBackButton = selectedCategoryName != null,
-                onBackClick = { selectedCategoryName = null },
+                showBackButton = true,
+                onBackClick = {
+                    if (selectedCategoryName != null) selectedCategoryName = null else onBackClick()
+                },
                 themeMode = themeMode,
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,
                 searchHint = "搜索功能名称或描述...",
                 menuItems = listOf(
-                    TopBarMenuItem("导入配置", R.drawable.ic_file_import, onImportConfig),
-                    TopBarMenuItem("导出配置", R.drawable.ic_file_export, onExportConfig),
-                    TopBarMenuItem("更新日志", R.drawable.ic_update_log, onUpdateLogClick)
+                    TopBarMenuItem(
+                        "导入配置",
+                        R.drawable.ic_file_import,
+                        onImportConfig
+                    ),
+                    TopBarMenuItem(
+                        "导出配置",
+                        R.drawable.ic_file_export,
+                        onExportConfig
+                    ),
+                    TopBarMenuItem(
+                        "更新日志",
+                        R.drawable.ic_update_log,
+                        onUpdateLogClick
+                    )
                 )
             )
 
@@ -383,10 +398,26 @@ private fun AboutSection(
         )
         Spacer(modifier = Modifier.height(Dimens.PaddingMedium))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            SocialButton(R.drawable.ic_logo_github, "Github", onGithubClick)
-            SocialButton(R.drawable.ic_logo_telegram, "Channel", onTelegramClick)
-            SocialButton(R.drawable.ic_logo_qq, "Group", onGroupClick)
-            SocialButton(R.drawable.ic_logo_donate, "Donate", onDonateClick)
+            SocialButton(
+                R.drawable.ic_logo_github,
+                "Github",
+                onGithubClick
+            )
+            SocialButton(
+                R.drawable.ic_logo_telegram,
+                "Channel",
+                onTelegramClick
+            )
+            SocialButton(
+                R.drawable.ic_logo_qq,
+                "Group",
+                onGroupClick
+            )
+            SocialButton(
+                R.drawable.ic_logo_donate,
+                "Donate",
+                onDonateClick
+            )
         }
         Spacer(modifier = Modifier.height(Dimens.PaddingLarge))
         Text(
