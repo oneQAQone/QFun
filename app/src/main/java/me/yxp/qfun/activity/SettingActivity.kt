@@ -66,7 +66,8 @@ class SettingActivity : BaseComposeActivity() {
                         showUpdateLogDialog = vm.showUpdateLogDialog,
                         updateLogState = vm.updateLogState,
                         onUpdateLogClick = vm::showUpdateLog,
-                        onDismissUpdateLog = vm::dismissUpdateLog
+                        onDismissUpdateLog = vm::dismissUpdateLog,
+                        onBackClick = ::finish
                     )
 
                     ConfirmDialog(
