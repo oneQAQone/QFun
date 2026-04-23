@@ -8,12 +8,13 @@ import me.yxp.qfun.loader.hookapi.HookParam
 import me.yxp.qfun.loader.hookapi.IHookEngine
 import me.yxp.qfun.loader.hookapi.Invoker
 import me.yxp.qfun.loader.hookapi.Unhook
+import me.yxp.qfun.utils.reflect.getStaticObject
 import java.lang.reflect.Member
 
 class LegacyHookEngine : IHookEngine {
 
     override val apiLevel: Int = XposedBridge.getXposedVersion()
-    override val frameworkName: String = "Xposed (Legacy)"
+    override val frameworkName: String = XposedBridge::class.java.getStaticObject("TAG") as String
     override val frameworkVersion: String = XposedBridge.getXposedVersion().toString()
     override val frameworkVersionCode: Long = XposedBridge.getXposedVersion().toLong()
     override val bridgeClass: Class<*> = XposedBridge::class.java
