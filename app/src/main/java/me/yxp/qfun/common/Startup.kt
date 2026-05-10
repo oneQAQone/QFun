@@ -12,7 +12,7 @@ import me.yxp.qfun.loader.hookapi.Unhook
 import me.yxp.qfun.utils.dexkit.DexKitCache
 import me.yxp.qfun.utils.dexkit.DexKitFinder
 import me.yxp.qfun.utils.hook.hookAfter
-import me.yxp.qfun.utils.hook.hookReplace
+import me.yxp.qfun.utils.hook.hookBefore
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.reflect.ClassUtils
@@ -34,10 +34,9 @@ object Startup {
     }
 
     private fun hookQFixAttach(attach: Method) {
+        val constructorUnhooks = mutableListOf<Unhook>()
 
-        attach.hookReplace { chain ->
-            val constructorUnhooks = mutableListOf<Unhook>()
-
+        attach.hookBefore {
             BaseDexClassLoader::class.java.declaredConstructors.forEach { ctor ->
                 val unhook = ctor.hookAfter { param ->
                     val loader = param.thisObject as ClassLoader
@@ -61,19 +60,15 @@ object Startup {
                 }
                 constructorUnhooks.add(unhook)
             }
+        }
 
+        attach.hookAfter { param ->
+            constructorUnhooks.forEach { it.unhook() }
+            constructorUnhooks.clear()
 
-            try {
-                return@hookReplace chain.proceed()
-            } finally {
-
-                constructorUnhooks.forEach { it.unhook() }
-                constructorUnhooks.clear()
-
-                if (!hasCapturedTinker.get()) {
-                    val context = chain.args[0] as Context
-                    doRealStartup(context.classLoader)
-                }
+            if (!hasCapturedTinker.get()) {
+                val context = param.args[0] as Context
+                doRealStartup(context.classLoader)
             }
         }
     }
