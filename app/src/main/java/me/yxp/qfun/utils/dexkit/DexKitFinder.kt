@@ -2,6 +2,8 @@ package me.yxp.qfun.utils.dexkit
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.Process
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
@@ -11,16 +13,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import com.tencent.mobileqq.activity.SplashActivity
-import kotlinx.coroutines.delay
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.generated.HookRegistry
-import me.yxp.qfun.ui.components.dialogs.CenterDialogContainerNoButton
+import me.yxp.qfun.ui.components.atoms.DialogButton
+import me.yxp.qfun.ui.components.dialogs.BaseDialogSurface
 import me.yxp.qfun.ui.core.compatibility.QFunCenterDialog
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.MsgTool
+import me.yxp.qfun.utils.qq.Toasts
 import me.yxp.qfun.utils.qq.TroopTool
 import me.yxp.qfun.utils.reflect.TAG
 import org.luckypray.dexkit.DexKitBridge
@@ -28,10 +31,14 @@ import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.FindMethod
 import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
+import kotlin.system.exitProcess
 
 object DexKitFinder {
 
+    private var titleText by mutableStateOf("查找方法中")
     private var progressText by mutableStateOf("准备开始查找...")
+    private var isFinding by mutableStateOf(true)
+    private var isRestarting by mutableStateOf(false)
 
     fun doFind() {
         System.loadLibrary("dexkit")
@@ -42,11 +49,28 @@ object DexKitFinder {
     private fun showFindDialog() {
         SplashActivity::class.java
             .getDeclaredMethod("doOnCreate", Bundle::class.java)
-            .hookAfter {
-                val context = it.thisObject as Context
+            .hookAfter { param ->
+                val context = param.thisObject as Context
 
-                QFunCenterDialog(context) {
-                    CenterDialogContainerNoButton(title = "查找方法中") {
+                QFunCenterDialog(context) { dismiss ->
+                    BaseDialogSurface(
+                        title = titleText,
+                        bottomBar = {
+                            if (isFinding) return@BaseDialogSurface
+                            DialogButton(
+                                text = "重启应用",
+                                onClick = {
+                                    if (isRestarting) {
+                                        return@DialogButton
+                                    }
+
+                                    isRestarting = true
+                                    restartApp(context)
+                                },
+                                isPrimary = true
+                            )
+                        }
+                    ) {
                         val colors = QFunTheme.colors
                         Text(
                             text = progressText,
@@ -64,6 +88,26 @@ object DexKitFinder {
 
                 startFind()
             }
+    }
+
+    private fun restartApp(context: Context) {
+        val activity = context as? android.app.Activity
+        if (activity == null) {
+            Toasts.qqToast(1, "重启失败")
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                Process.killProcess(Process.myPid())
+            }, 2000)
+            return
+        }
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            val pm = activity.packageManager
+            val intent = pm.getLaunchIntentForPackage(activity.packageName)
+            activity.finishAffinity()
+            activity.startActivity(intent)
+            exitProcess(0)
+        }, 300)
     }
 
     private fun startFind() {
@@ -94,10 +138,13 @@ object DexKitFinder {
                     }.onFailure { LogUtils.e(task.TAG, it) }
                 }
             }
-            progressText = "查找完成，保存并关闭应用"
+
             DexKitCache.saveCache()
-            delay(500)
-            Process.killProcess(Process.myPid())
+            ModuleScope.launchMain {
+                titleText = "查找完成"
+                progressText = "查找完成，请点击重启应用"
+                isFinding = false
+            }
         }
     }
 }
