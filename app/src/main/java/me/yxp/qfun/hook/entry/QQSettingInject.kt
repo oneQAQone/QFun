@@ -47,12 +47,19 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
     @Suppress("UNCHECKED_CAST")
     override fun loadHook() {
 
-        val providerClass =
-            if (HostInfo.isQQ && HostInfo.versionCode >= 12288) requireClass("provider")
-            else "com.tencent.mobileqq.setting.main.NewSettingConfigProvider".clazz
-                ?: "com.tencent.mobileqq.setting.main.MainSettingConfigProvider".clazz
+        val providerList = mutableListOf<Class<*>?>()
+        val newProvider = "com.tencent.mobileqq.setting.main.NewSettingConfigProvider".clazz
+        val mainProvider = "com.tencent.mobileqq.setting.main.MainSettingConfigProvider".clazz
 
-        if (providerClass == null) throw ClassNotFoundException("SettingConfigProvider")
+        if (HostInfo.isQQ && HostInfo.versionCode >= 12288) {
+            val obfProvider = requireClass("provider")
+            providerList.add(obfProvider)
+        } else {
+            providerList.add(newProvider)
+            providerList.add(mainProvider)
+        }
+
+        if (providerList.isEmpty()) throw ClassNotFoundException("SettingConfigProvider")
 
         val itemClass = requireClass("item")
 
@@ -61,65 +68,68 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
             paramTypes("kotlin.jvm.functions.Function0".toClass)
         }
 
-        providerClass.findMethod {
-            returnType = list
-            paramTypes(context)
-        }.hookAfter(this) { param ->
-            val context = param.args[0] as Context
-            val result = param.result as MutableList<Any>
+        providerList.forEach {
+            it?.findMethod {
+                returnType = list
+                paramTypes(context)
+            }?.hookAfter(this) { param ->
+                val context = param.args[0] as Context
+                val result = param.result as MutableList<Any>
 
-            val settingEntry = makeItem(
-                itemClass,
-                context,
-                MODULE_ORDER,
-                "QFun",
-                R.drawable.ic_launcher
-            )
-            setOnClickListener.invoke(
-                settingEntry, makeProxy(
+                val settingEntry = makeItem(
+                    itemClass,
                     context,
-                    SettingActivity::class.java
+                    MODULE_ORDER,
+                    "QFun",
+                    R.drawable.ic_launcher
                 )
-            )
+                setOnClickListener.invoke(
+                    settingEntry, makeProxy(
+                        context,
+                        SettingActivity::class.java
+                    )
+                )
 
-            val pluginEntry = makeItem(
-                itemClass,
-                context,
-                MODULE_ORDER,
-                "JavaPlugin",
-                R.drawable.ic_float_ball
-            )
-            setOnClickListener.invoke(
-                pluginEntry, makeProxy(
+                val pluginEntry = makeItem(
+                    itemClass,
                     context,
-                    PluginActivity::class.java
+                    MODULE_ORDER,
+                    "JavaPlugin",
+                    R.drawable.ic_float_ball
                 )
-            )
-            
-            val cleanEntry = makeItem(
-                itemClass,
-                context,
-                MODULE_ORDER,
-                "缓存清理",
-                deleteIconRes
-            )
-            setOnClickListener.invoke(
-                cleanEntry, makeProxy(
-                    context,
-                    StorageCleanActivity::class.java
+                setOnClickListener.invoke(
+                    pluginEntry, makeProxy(
+                        context,
+                        PluginActivity::class.java
+                    )
                 )
-            )
 
-            result.add(
-                1,
-                result[0].javaClass.newInstanceWithArgs(
-                    listOf(settingEntry, pluginEntry, cleanEntry),
-                    TOP_TITLE,
-                    BOTTOM_TITLE,
-                    0,
-                    null
+                val cleanEntry = makeItem(
+                    itemClass,
+                    context,
+                    MODULE_ORDER,
+                    "缓存清理",
+                    deleteIconRes
                 )
-            )
+                setOnClickListener.invoke(
+                    cleanEntry, makeProxy(
+                        context,
+                        StorageCleanActivity::class.java
+                    )
+                )
+
+                result.add(
+                    1,
+                    result[0].javaClass.newInstanceWithArgs(
+                        listOf(settingEntry, pluginEntry, cleanEntry),
+                        TOP_TITLE,
+                        BOTTOM_TITLE,
+                        0,
+                        null
+                    )
+                )
+
+            }
 
         }
 
