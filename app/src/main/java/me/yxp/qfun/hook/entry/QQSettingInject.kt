@@ -1,5 +1,6 @@
 package me.yxp.qfun.hook.entry
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import me.yxp.qfun.R
@@ -30,18 +31,21 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
     private const val BOTTOM_TITLE = ""
     private const val MODULE_ORDER = 10
 
-    @Suppress("UNCHECKED_CAST")
-    override fun loadHook() {
-    
-        val deleteIconRes = try {
+    @delegate:SuppressLint("DiscouragedApi")
+    private val deleteIconRes by lazy {
+        try {
             HostInfo.hostContext.resources.getIdentifier(
-                "qui_delete_oversized",
+                "qui_delete_light_selector",
                 "drawable",
                 HostInfo.packageName
             )
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             R.drawable.ic_launcher
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun loadHook() {
 
         val providerClass =
             if (HostInfo.isQQ && HostInfo.versionCode >= 12288) requireClass("provider")

@@ -1,5 +1,6 @@
 package me.yxp.qfun.hook.entry
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import com.tencent.widget.PopupMenuDialog
 import com.tencent.widget.PopupMenuDialog.MenuItem
@@ -19,6 +20,19 @@ import me.yxp.qfun.utils.reflect.findMethod
 @HookItemAnnotation("QQ加号入口")
 object QQPlusInject : BaseApiHookItem<Listener>() {
 
+    @delegate:SuppressLint("DiscouragedApi")
+    private val deleteIconRes by lazy {
+        try {
+            HostInfo.hostContext.resources.getIdentifier(
+                "qui_delete_light_selector",
+                "drawable",
+                HostInfo.packageName
+            )
+        } catch (_: Exception) {
+            R.drawable.ic_launcher
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun loadHook() {
 
@@ -29,16 +43,6 @@ object QQPlusInject : BaseApiHookItem<Listener>() {
 
                 val activity = QQCurrentEnv.activity ?: return@hookBefore
                 val menuItemList = param.args[1] as MutableList<MenuItem>
-                
-                val deleteIconRes = try {
-                    HostInfo.hostContext.resources.getIdentifier(
-                        "qui_delete_oversized",
-                        "drawable",
-                        HostInfo.packageName
-                    )
-                } catch (e: Exception) {
-                    R.drawable.ic_launcher
-                }
 
                 menuItemList.apply {
                     add(
