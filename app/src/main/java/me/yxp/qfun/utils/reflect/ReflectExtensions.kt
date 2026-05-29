@@ -39,7 +39,7 @@ private fun Class<*>.findMethodAndCall(
         method.invoke(obj, *args)
     } catch (e: Exception) {
         try {
-            HookEngineManager.engine.getInvoker(method).invokeOrigin(obj, args)
+            HookEngineManager.engine.getInvoker(method).invokeOrigin(obj, *args)
         } catch (_: Exception) {
             throw e
         }
