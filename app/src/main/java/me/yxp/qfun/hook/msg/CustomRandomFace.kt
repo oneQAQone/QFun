@@ -24,6 +24,7 @@ import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
+import me.yxp.qfun.loader.hookapi.Chain
 import me.yxp.qfun.ui.components.dialogs.CenterDialogContainerNoButton
 import me.yxp.qfun.ui.core.compatibility.QFunCenterDialog
 import me.yxp.qfun.ui.core.theme.QFunTheme
@@ -41,7 +42,7 @@ import kotlin.math.abs
 
 @HookItemAnnotation(
     "自定义随机表情",
-    "发送猜拳/骰子时显示选择框，可自定义点数结果",
+    "发送猜拳/骰子/投篮时显示选择框，可自定义点数结果",
     HookCategory.MSG
 )
 object CustomRandomFace : BaseSwitchHookItem() {
@@ -72,11 +73,12 @@ object CustomRandomFace : BaseSwitchHookItem() {
                 if (element.elementType == 6) {
                     val faceText = element.faceElement.faceText
                     val (title, values) = when (faceText) {
-                        "/骰子" -> "自定义骰子" to arrayOf("1点", "2点", "3点", "4点", "5点", "6点")
-                        "/包剪锤" -> "自定义猜拳" to arrayOf("布", "剪刀", "石头")
+                        "/骰子" -> "自定义骰子" to arrayOf("随机", "一直转", "1点", "2点", "3点", "4点", "5点", "6点")
+                        "/包剪锤" -> "自定义猜拳" to arrayOf("随机", "无结果", "布", "剪刀", "石头")
+                        "/篮球" -> "自定义投篮" to arrayOf("随机", "原地拍", "空心球", "转圈进", "卡篮筐", "转圈出", "三不沾")
                         else -> return@hookReplace param.invokeOriginal()
                     }
-                    showSelectionDialog(title, values, faceText, contact.peerUid, chatType)
+                    showSelectionDialog(title, values, faceText, contact.peerUid, chatType, param)
                     return@hookReplace null
                 }
             }
@@ -91,7 +93,8 @@ object CustomRandomFace : BaseSwitchHookItem() {
         values: Array<String>,
         faceText: String,
         peerUid: String,
-        chatType: Int
+        chatType: Int,
+        param: Chain
     ) {
         ModuleScope.launchMain {
             val activity = QQCurrentEnv.activity ?: return@launchMain
@@ -102,7 +105,11 @@ object CustomRandomFace : BaseSwitchHookItem() {
                         Toasts.qqToast(2, "已发送: ${values[index]}")
                         dismiss()
                         try {
-                            val bytes = makeBytes(faceText, index + 1, peerUid, chatType)
+                            if (index == 0) {
+                                param.invokeOriginal()
+                                return@SelectionList
+                            }
+                            val bytes = makeBytes(faceText, index - 1, peerUid, chatType)
                             if (bytes.isNotEmpty()) sendBuffer(bytes)
                             ModuleScope.launchDelayed(1000) {
                                 QQCurrentEnv.kernelMsgService?.startMsgSync()
@@ -137,12 +144,15 @@ object CustomRandomFace : BaseSwitchHookItem() {
     }
 
     private fun makeBytes(type: String, value: Int, peer: String, chatType: Int): ByteArray {
-        val isDice = type == "/骰子"
 
         val formattedPeer = if (chatType == 1) "\"$peer\"" else peer
 
-        val v1 = if (isDice) "33" else "34"
-        val v2 = if (isDice) "358" else "359"
+        val (v1, v2) = when(type) {
+            "/骰子" -> "33" to 358
+            "/包剪锤" -> "34" to 359
+            "/篮球" -> "114" to 114
+            else -> "" to 0
+        }
 
         val random1 = abs(Random().nextInt())
         val random2 = abs(Random().nextInt())
@@ -165,7 +175,7 @@ object CustomRandomFace : BaseSwitchHookItem() {
                                     "3": $v2,
                                     "4": 1,
                                     "5": 2,
-                                    "6": "$value",
+                                    "6": "${value.takeUnless { it == 0 } ?: ""}",
                                     "7": "$type",
                                     "9": 1
                                 },
