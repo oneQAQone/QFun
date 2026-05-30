@@ -41,7 +41,7 @@ import kotlin.math.abs
 
 @HookItemAnnotation(
     "自定义随机表情",
-    "发送猜拳/骰子时显示选择框，可自定义点数结果",
+    "发送猜拳/骰子/投篮时显示选择框，可自定义点数结果",
     HookCategory.MSG
 )
 object CustomRandomFace : BaseSwitchHookItem() {
@@ -74,6 +74,7 @@ object CustomRandomFace : BaseSwitchHookItem() {
                     val (title, values) = when (faceText) {
                         "/骰子" -> "自定义骰子" to arrayOf("1点", "2点", "3点", "4点", "5点", "6点")
                         "/包剪锤" -> "自定义猜拳" to arrayOf("布", "剪刀", "石头")
+                        "/投篮", "/篮球", "[投篮]", "[篮球]" -> "自定义投篮" to arrayOf("没进", "投进")
                         else -> return@hookReplace param.invokeOriginal()
                     }
                     showSelectionDialog(title, values, faceText, contact.peerUid, chatType)
@@ -138,11 +139,25 @@ object CustomRandomFace : BaseSwitchHookItem() {
 
     private fun makeBytes(type: String, value: Int, peer: String, chatType: Int): ByteArray {
         val isDice = type == "/骰子"
+        val isRps = type == "/包剪锤"
+        val isBasketball = type == "/投篮" || type == "/篮球" || type == "[投篮]" || type == "[篮球]"
 
         val formattedPeer = if (chatType == 1) "\"$peer\"" else peer
 
-        val v1 = if (isDice) "33" else "34"
-        val v2 = if (isDice) "358" else "359"
+        val v1 = when {
+            isDice -> "33"
+            isRps -> "34"
+            isBasketball -> "114"
+            else -> "114"
+        }
+        val v2 = when {
+            isDice -> "358"
+            isRps -> "359"
+            isBasketball -> "114"
+            else -> "114"
+        }
+
+        val pbType = if (isBasketball) "[篮球]" else type
 
         val random1 = abs(Random().nextInt())
         val random2 = abs(Random().nextInt())
@@ -166,7 +181,7 @@ object CustomRandomFace : BaseSwitchHookItem() {
                                     "4": 1,
                                     "5": 2,
                                     "6": "$value",
-                                    "7": "$type",
+                                    "7": "$pbType",
                                     "9": 1
                                 },
                                 "3": 20
