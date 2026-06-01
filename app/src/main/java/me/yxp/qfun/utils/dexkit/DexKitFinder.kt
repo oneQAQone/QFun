@@ -2,7 +2,6 @@ package me.yxp.qfun.utils.dexkit
 
 import android.content.Context
 import android.os.Bundle
-import android.os.Process
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
@@ -11,7 +10,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import com.tencent.mobileqq.activity.SplashActivity
-import kotlinx.coroutines.delay
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.generated.HookRegistry
 import me.yxp.qfun.ui.components.dialogs.CenterDialogContainerNoButton
@@ -19,7 +17,7 @@ import me.yxp.qfun.ui.core.compatibility.QFunCenterDialog
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.log.LogUtils
-import me.yxp.qfun.utils.qq.HostInfo
+import me.yxp.qfun.utils.qq.AppRestartUtils
 import me.yxp.qfun.utils.qq.MsgTool
 import me.yxp.qfun.utils.qq.TroopTool
 import me.yxp.qfun.utils.reflect.TAG
@@ -62,11 +60,11 @@ object DexKitFinder {
                     show()
                 }
 
-                startFind()
+                startFind(context)
             }
     }
 
-    private fun startFind() {
+    private fun startFind(context: Context) {
         ModuleScope.launchIO(TAG) {
             val tasks = HookRegistry.hookItems.filterIsInstance<DexKitTask>().toMutableList()
             tasks.apply {
@@ -74,7 +72,7 @@ object DexKitFinder {
                 add(MsgTool)
             }
 
-            val sourceDir = HostInfo.hostContext.applicationInfo.sourceDir
+            val sourceDir = context.applicationInfo.sourceDir
             DexKitBridge.create(sourceDir).use { bridge ->
                 tasks.forEach { task ->
                     runCatching {
@@ -94,10 +92,11 @@ object DexKitFinder {
                     }.onFailure { LogUtils.e(task.TAG, it) }
                 }
             }
-            progressText = "查找完成，保存并关闭应用"
+            progressText = "查找完成，保存并重启应用"
             DexKitCache.saveCache()
-            delay(500)
-            Process.killProcess(Process.myPid())
+            ModuleScope.launchMain {
+                AppRestartUtils.restartApp(context)
+            }
         }
     }
 }

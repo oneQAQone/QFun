@@ -1,11 +1,11 @@
 package me.yxp.qfun.activity
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.ui.pages.crash.CrashScreen
+import me.yxp.qfun.utils.qq.AppRestartUtils
 import me.yxp.qfun.utils.qq.HostInfo
 
 class CrashActivity : BaseComposeActivity() {
@@ -42,10 +42,7 @@ class CrashActivity : BaseComposeActivity() {
     }
 
     private fun restartApp() {
-        val launchIntent = packageManager.getLaunchIntentForPackage(HostInfo.packageName)
-        launchIntent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(launchIntent)
-        finish()
+        AppRestartUtils.restartApp(this, "恢复中...")
     }
 
 }
