@@ -18,6 +18,7 @@ import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.ui.pages.settings.SettingsScreen
 import me.yxp.qfun.ui.viewmodel.SettingViewModel
 import me.yxp.qfun.utils.net.SocialConfigManager
+import me.yxp.qfun.utils.qq.AppRestartUtils
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.qq.Toasts
 import java.text.SimpleDateFormat
@@ -67,6 +68,8 @@ class SettingActivity : BaseComposeActivity() {
                         updateLogState = vm.updateLogState,
                         onUpdateLogClick = vm::showUpdateLog,
                         onDismissUpdateLog = vm::dismissUpdateLog,
+                        isNeedRestart = vm.isRestartRequired,
+                        onRestartStateChange = { vm.showRestartDialog = true },
                         onBackClick = ::finish
                     )
 
@@ -81,6 +84,16 @@ class SettingActivity : BaseComposeActivity() {
                             vm.dismissDonate()
                             openUrl("http://127.0.0.1/")
                         }
+                    )
+
+                    ConfirmDialog(
+                        visible = vm.showRestartDialog,
+                        title = "保存并重启",
+                        message = "检测到需要重启生效的配置已修改，是否立即重启宿主？",
+                        confirmText = "立即重启",
+                        dismissText = "稍后重启",
+                        onDismiss = ::finish,
+                        onConfirm = ::confirmRestart
                     )
 
                     vm.updateInfo?.let { info ->
@@ -159,6 +172,10 @@ class SettingActivity : BaseComposeActivity() {
 
     private fun openUrl(url: String) =
         runCatching { startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+
+    private fun confirmRestart() {
+        AppRestartUtils.restartApp(this)
+    }
 
     companion object {
         private const val REQUEST_CODE_EXPORT = 1001

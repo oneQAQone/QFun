@@ -10,11 +10,13 @@ import me.yxp.qfun.utils.reflect.toClass
 
 @HookItemAnnotation(
     "屏蔽热更新",
-    "禁用宿主云控热补丁/热更新（重启生效）",
+    "禁用宿主云控热补丁/热更新",
     HookCategory.OTHER,
     "All"
 )
 object DisableHotPatch : BaseSwitchHookItem() {
+
+    override val isNeedRestart: Boolean = true
 
     override fun onHook() {
 

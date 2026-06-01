@@ -75,6 +75,14 @@ class SettingViewModel : ViewModel() {
 
     private val allHookItems = MainHook.switchHookItemList
 
+    private val initialRestart =
+        allHookItems.filter { it.isNeedRestart }.associate { it.name to it.isEnable }
+
+    var showRestartDialog by mutableStateOf(false)
+
+    var isRestartRequired by mutableStateOf(false)
+        private set
+
     companion object {
         private var ignoredVersion: String? = null
     }
@@ -127,6 +135,7 @@ class SettingViewModel : ViewModel() {
                 })
             } else null
         }
+        isRestartRequired = allHookItems.filter { it.isNeedRestart }.any { it.isEnable != initialRestart[it.name] }
     }
 
     fun toggleFunction(id: String, enabled: Boolean) {

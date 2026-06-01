@@ -11,11 +11,13 @@ import me.yxp.qfun.utils.hook.returnConstant
 
 @HookItemAnnotation(
     "伪装设备在线状态",
-    "点击设置机型，可用于设置在线状态机型（包含文字可能无效，重启生效）",
+    "点击设置机型，可用于设置在线状态机型（包含文字可能无效）",
     HookCategory.DEVICE,
     "All"
 )
 object CustomDevice : BaseClickableHookItem<DeviceConfig>(DeviceConfig.serializer()) {
+
+    override val isNeedRestart: Boolean = true
 
     override val defaultConfig: DeviceConfig = DeviceConfig()
 
