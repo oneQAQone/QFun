@@ -14,11 +14,16 @@ import kotlin.reflect.KProperty
 abstract class BaseSwitchHookItem : BaseHookItem() {
 
     val tag: String get() = annotation?.tag ?: "Unknown"
-    val desc: String get() = annotation?.desc ?: ""
+    val desc: String get() {
+        val originalDesc = annotation?.desc ?: ""
+        return if (isNeedRestart) "$originalDesc，重启生效" else originalDesc
+    }
     val category: String get() = annotation?.category ?: HookCategory.OTHER
 
     override var isEnable: Boolean by BooleanPreference(name, false)
     var isAvailable: Boolean = false
+
+    open val isNeedRestart: Boolean = false
 
     fun init() {
         try {

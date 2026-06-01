@@ -95,6 +95,8 @@ fun SettingsScreen(
     updateLogState: UpdateLogState,
     onUpdateLogClick: () -> Unit,
     onDismissUpdateLog: () -> Unit,
+    isNeedRestart: Boolean,
+    onRestartStateChange: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -102,11 +104,17 @@ fun SettingsScreen(
     var selectedCategoryName by remember { mutableStateOf<String?>(null) }
     val mainListState = rememberLazyListState()
 
-    BackHandler(activeConfigKey != null, onDismissDialog)
-    BackHandler(activeConfigKey == null && isSearchActive) { onSearchActiveChange(false) }
-    BackHandler(activeConfigKey == null && !isSearchActive && selectedCategoryName != null) {
-        selectedCategoryName = null
+    val handleBack = {
+        when {
+            activeConfigKey != null -> onDismissDialog()
+            isSearchActive -> onSearchActiveChange(false)
+            selectedCategoryName != null -> selectedCategoryName = null
+            isNeedRestart -> onRestartStateChange()
+            else -> onBackClick()
+        }
     }
+
+    BackHandler(onBack = handleBack)
 
     Box(
         modifier = modifier
@@ -122,9 +130,7 @@ fun SettingsScreen(
                 isSearchActive = isSearchActive,
                 onSearchActiveChange = onSearchActiveChange,
                 showBackButton = true,
-                onBackClick = {
-                    if (selectedCategoryName != null) selectedCategoryName = null else onBackClick()
-                },
+                onBackClick = handleBack,
                 themeMode = themeMode,
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,

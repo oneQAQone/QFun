@@ -11,13 +11,15 @@ import java.lang.reflect.Method
 
 @HookItemAnnotation(
     "平板模式",
-    "让QQ将当前设备识别为平板(重启QQ生效)",
+    "让QQ将当前设备识别为平板",
     HookCategory.DEVICE,
     ":MSF"
 )
 object TabletMode : BaseSwitchHookItem() {
 
     private lateinit var getDeviceType: Method
+
+    override val isNeedRestart: Boolean = true
 
     override fun onInit(): Boolean {
         getDeviceType = PadUtil::class.java
