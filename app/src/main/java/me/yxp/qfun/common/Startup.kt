@@ -85,6 +85,7 @@ object Startup {
                 if (isInit.compareAndSet(false, true)) {
                     val hostContext = param.thisObject as Context
                     HostInfo.init(hostContext)
+                    ModuleUpdateMonitor.init(hostContext)
 
                     if (HostInfo.processName == HostInfo.packageName) {
 
