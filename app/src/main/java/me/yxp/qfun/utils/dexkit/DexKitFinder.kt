@@ -16,6 +16,7 @@ import me.yxp.qfun.ui.components.dialogs.CenterDialogContainerNoButton
 import me.yxp.qfun.ui.core.compatibility.QFunCenterDialog
 import me.yxp.qfun.ui.core.theme.QFunTheme
 import me.yxp.qfun.utils.hook.hookAfter
+import me.yxp.qfun.utils.json.MessageTool
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.AppRestartUtils
 import me.yxp.qfun.utils.qq.MsgTool
@@ -70,6 +71,7 @@ object DexKitFinder {
             tasks.apply {
                 add(TroopTool)
                 add(MsgTool)
+                add(MessageTool)
             }
 
             val sourceDir = context.applicationInfo.sourceDir
