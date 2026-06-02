@@ -10,14 +10,19 @@ import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
 import me.yxp.qfun.utils.dexkit.DexKitTask
 import me.yxp.qfun.utils.hook.hookAfter
+import me.yxp.qfun.utils.json.str
+import me.yxp.qfun.utils.json.toJson
+import me.yxp.qfun.utils.json.walk
 import me.yxp.qfun.utils.reflect.ClassUtils
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.findMethodOrNull
-import me.yxp.qfun.utils.reflect.getObjectOrNull
-import me.yxp.qfun.utils.reflect.setObject
+import me.yxp.qfun.utils.reflect.getObjectByType
+import me.yxp.qfun.utils.reflect.setObjectByType
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
+import java.util.WeakHashMap
+import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 
 @HookItemAnnotation(
@@ -31,7 +36,13 @@ object ShowDownloadTimes : BaseSwitchHookItem(), DexKitTask {
 
     private var putValue: Method? = null
 
+    private var getStatus: Method? = null
+
     private const val ADAPTER_CLASS_NAME = "com.tencent.mobileqq.troop.data.TroopFileShowAdapter"
+
+    private val downloadCountMap = ConcurrentHashMap<String, Int>()
+
+    private val tempIdMap = WeakHashMap<Any, String>()
 
     override fun onInit(): Boolean {
 
@@ -47,16 +58,24 @@ object ShowDownloadTimes : BaseSwitchHookItem(), DexKitTask {
             }
         }
 
-        runCatching {
-            requireClass("ProtoModel")
-        }.onSuccess {
-            putValue = it.findMethodOrNull {
+        putValue = runCatching {
+            requireClass("ProtoModel").findMethod {
                 returnType = void
                 paramTypes(int, obj)
             }
-        }
+        }.getOrNull()
 
-        return super.onInit()
+        getStatus = runCatching {
+            requireClass("QQFileCell").let {
+                it.findMethodOrNull {
+                    paramTypes(null, boolean, null)
+                } ?: it.findMethod {
+                    paramTypes(null, boolean)
+                }
+            }
+        }.getOrNull()
+
+        return getView != null || (getStatus != null && putValue != null)
     }
 
 
@@ -89,11 +108,35 @@ object ShowDownloadTimes : BaseSwitchHookItem(), DexKitTask {
         }
 
         putValue?.hookAfter(this) { param ->
-            val index = param.args[0] as Int
-            val value = param.args[1]
-            val fileName = param.thisObject.getObjectOrNull("e") ?: return@hookAfter
-            if (index == 9) param.thisObject.setObject("e", "(下载: $value) $fileName")
+
+            val instance = param.thisObject
+            val index = param.args[0]
+            val value = param.args[1] ?: return@hookAfter
+
+            if (index == 1) {
+                val fileId = value as String
+                tempIdMap[instance] = fileId
+            } else if (index == 9) {
+                val count = value as Int
+                val fileId = tempIdMap.remove(instance)
+                if (fileId != null) {
+                    downloadCountMap[fileId] = count
+                }
+            }
         }
+
+        getStatus?.hookAfter(this) { param ->
+
+            val fileModel = param.args[0] ?: return@hookAfter
+            val fileId = fileModel.toJson().walk("1", "1").str
+            val count = downloadCountMap[fileId] ?: return@hookAfter
+            val result = param.result ?: return@hookAfter
+
+            val status = result.getObjectByType<String>()
+            result.setObjectByType("$status · $count 次")
+
+        }
+
     }
 
     private fun extract(source: String, regex: String): String? {
@@ -112,6 +155,13 @@ object ShowDownloadTimes : BaseSwitchHookItem(), DexKitTask {
                         usingNumbers((1..17) + (20..24))
                     }
                 }
+            }
+        },
+
+        "QQFileCell" to FindClass().apply {
+            searchPackages("qqfile_common.components")
+            matcher {
+                usingEqStrings("QQFileChooserRedesign_QQFileCell", "feedback_error")
             }
         }
     )
