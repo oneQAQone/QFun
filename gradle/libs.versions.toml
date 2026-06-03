@@ -2,16 +2,17 @@
 agp = "9.2.1"
 annotation = "1.10.0"
 dalvikDx = "16.0.1"
-kyant0-backdrop = "2.0.0-alpha03"
+kyant0-backdrop = "2.0.0"
 dexkit = "2.2.0"
-kotlin = "2.3.21"
+kotlin = "2.4.0"
 kotlinpoet = "2.3.0"
-ksp = "2.3.8"
+ksp = "2.3.9"
 protobuf = "0.10.0"
 protobuf-java = "4.35.0"
 xposed = "82"
-libxposed = "101.0.0"
-jetbrainsKotlinJvm = "2.3.21"
+libxposed-api = "101.0.1"
+libxposed-service = "101.0.0"
+jetbrainsKotlinJvm = "2.4.0"
 kotlinx-coroutines = "1.11.0"
 ktx = "1.18.0"
 serialization = "1.11.0"
@@ -29,8 +30,8 @@ kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlin
 ksp = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
 protobuf-java = { group = "com.google.protobuf", name = "protobuf-java", version.ref = "protobuf-java" }
 xposed = { group = "de.robv.android.xposed", name = "api", version.ref = "xposed" }
-libxposed-api = { group = "io.github.libxposed", name = "api", version.ref = "libxposed" }
-libxposed-service = { group = "io.github.libxposed", name = "service", version.ref = "libxposed" }
+libxposed-api = { group = "io.github.libxposed", name = "api", version.ref = "libxposed-api" }
+libxposed-service = { group = "io.github.libxposed", name = "service", version.ref = "libxposed-service" }
 dexkit = { group= "org.luckypray", name = "dexkit", version.ref = "dexkit"}
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }

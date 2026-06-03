@@ -18,14 +18,14 @@ if (keystorePropertiesFile.exists()) {
 
 extensions.configure<ApplicationExtension> {
     namespace = "me.yxp.qfun"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "me.yxp.qfun"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 23
-        versionName = "1.3.1"
+        targetSdk = 37
+        versionCode = 24
+        versionName = "1.3.2"
 
         ndk {
             abiFilters.add("arm64-v8a")
@@ -87,7 +87,6 @@ extensions.configure<ApplicationExtension> {
         }
     }
 
-    buildToolsVersion = "36.1.0"
 }
 
 dependencies {
@@ -139,6 +138,7 @@ val adb: String = androidComponents.sdkComponents.adb.get().asFile.absolutePath
 val packageName = "com.tencent.mobileqq"
 // adb shell am force-stop com.tencent.mobileqq
 val killQQ = tasks.register<Exec>("killQQ") {
+    description = ""
     group = "qfun"
     commandLine(adb, "shell", "am", "force-stop", packageName)
     isIgnoreExitValue = true
