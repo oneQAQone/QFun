@@ -3,6 +3,7 @@ package me.yxp.qfun.ui.components.atoms
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.ripple
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -129,7 +130,11 @@ fun DialogButton(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(bgColor)
-            .clickable(remember { MutableInteractionSource() }, null, onClick = onClick)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ripple(),
+                onClick = onClick
+            )
             .padding(24.dp, 14.dp),
         contentAlignment = Alignment.Center
     ) {
