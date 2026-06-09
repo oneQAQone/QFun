@@ -26,13 +26,15 @@ private fun Class<*>.findMethodAndCall(
 
     val argTypes: Array<Class<*>?> = args.map { it?.javaClass }.toTypedArray()
 
-    val method =
-        findMethodOrNull {
-            name = methodName
-            paramCount = args.size
-            paramTypes = argTypes
+    val method = generateSequence(this) { it.superclass }
+        .firstNotNullOfOrNull {
+            it.findMethodOrNull {
+                name = methodName
+                paramCount = args.size
+                paramTypes = argTypes
+            }
         }
-            ?: throw NoSuchMethodException("Method $methodName not found in $name with args: ${args.map { it?.javaClass?.simpleName ?: "null" }}")
+        ?: throw NoSuchMethodException("Method $methodName not found in $name with args: ${args.map { it?.javaClass?.simpleName ?: "null" }}")
 
     return try {
 
