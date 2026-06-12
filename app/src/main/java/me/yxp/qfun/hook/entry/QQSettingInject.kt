@@ -52,7 +52,7 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
         val mainProvider = "com.tencent.mobileqq.setting.main.MainSettingConfigProvider".clazz
 
         if (HostInfo.isQQ && HostInfo.versionCode >= 12288) {
-            val obfProvider = requireClass("provider")
+            val obfProvider = requireClass("ConfigProvider")
             providerList.add(obfProvider)
         } else {
             providerList.add(newProvider)
@@ -61,7 +61,7 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
 
         if (providerList.isEmpty()) throw ClassNotFoundException("SettingConfigProvider")
 
-        val itemClass = requireClass("item")
+        val itemClass = requireClass("ItemProcessor")
 
         val setOnClickListener = itemClass.findMethod {
             returnType = void
@@ -165,19 +165,31 @@ object QQSettingInject : BaseApiHookItem<Listener>(), DexKitTask {
         }
     }
 
-    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
-        "provider" to FindClass().apply {
-            searchPackages("com.tencent.mobileqq.setting.main")
-            matcher {
-                superClass("com.tencent.mobileqq.setting.processor.SettingConfigProvider")
+    override fun getQueryMap(): Map<String, BaseMatcher> {
+        val item = if (HostInfo.isQQ && HostInfo.versionCode >= 14498) {
+            FindClass().apply {
+                matcher {
+                    usingStrings("context", "leftText", "SimpleItemProcessor")
+                }
             }
-        },
-        "item" to FindClass().apply {
-            searchPackages("com.tencent.mobileqq.setting.processor")
-            matcher {
-                usingStrings("context", "leftText")
+        } else {
+            FindClass().apply {
+                searchPackages("com.tencent.mobileqq.setting.processor")
+                matcher {
+                    usingStrings("context", "leftText")
+                }
             }
         }
-    )
+
+        return mapOf(
+            "ConfigProvider" to FindClass().apply {
+                searchPackages("com.tencent.mobileqq.setting.main")
+                matcher {
+                    superClass("com.tencent.mobileqq.setting.processor.SettingConfigProvider")
+                }
+            },
+            "ItemProcessor" to item
+        )
+    }
 
 }
