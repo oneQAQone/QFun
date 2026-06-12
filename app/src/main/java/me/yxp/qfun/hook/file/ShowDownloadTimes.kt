@@ -1,6 +1,5 @@
 package me.yxp.qfun.hook.file
 
-import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
@@ -67,7 +66,6 @@ object ShowDownloadTimes : BaseSwitchHookItem() {
         return getView != null || syncExtraInfoMethods.isNotEmpty()
     }
 
-    @SuppressLint("SetTextI18n")
     override fun onHook() {
 
         getView?.hookAfter(this) { param ->
