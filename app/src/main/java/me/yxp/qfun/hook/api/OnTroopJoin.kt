@@ -2,7 +2,7 @@ package me.yxp.qfun.hook.api
 
 import com.tencent.mobileqq.troop.onlinepush.api.impl.TroopOnlinePushHandler
 import com.tencent.qqnt.troopmemberlist.ITroopMemberListRepoApi
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.suspendCancellableCoroutine
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.base.BaseApiHookItem
@@ -19,8 +19,7 @@ import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.toClass
 import org.luckypray.dexkit.query.FindMethod
 import org.luckypray.dexkit.query.base.BaseMatcher
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
 
 @HookItemAnnotation("监听用户入群")
 object OnTroopJoin : BaseApiHookItem<TroopJoinListener>(), DexKitTask {
@@ -49,10 +48,8 @@ object OnTroopJoin : BaseApiHookItem<TroopJoinListener>(), DexKitTask {
                 ModuleScope.launchIO(name) {
                     var uin = ""
                     repeat(10) {
-                        if (uin.isEmpty()) {
-                            uin = getUinFromUid(memberUid)
-                            delay(500)
-                        } else return@repeat
+                        uin = getUinFromUid(memberUid)
+                        if (uin.isNotEmpty()) return@repeat
                     }
                     handleJoin(troopUin, uin)
                 }
@@ -64,16 +61,16 @@ object OnTroopJoin : BaseApiHookItem<TroopJoinListener>(), DexKitTask {
     }
 
     private fun handleJoin(troopUin: String, memberUin: String) {
-       forEachChecked { it.onJoin(troopUin, memberUin) }
+        forEachChecked { it.onJoin(troopUin, memberUin) }
     }
 
-    private fun getUinFromUid(uid: String): String {
-        val completableFuture = CompletableFuture<String>()
-        api<ITroopMemberListRepoApi>().fetchTroopMemberUin(uid) { b, s ->
-            completableFuture.complete(if (b) s else "")
+    private suspend fun getUinFromUid(uid: String): String =
+        suspendCancellableCoroutine { continuation ->
+            api<ITroopMemberListRepoApi>().fetchTroopMemberUin(uid) { b, s ->
+                continuation.resume(if (b) s else "")
+            }
         }
-        return completableFuture.get(500L, TimeUnit.MILLISECONDS)
-    }
+
 
     override fun getQueryMap(): Map<String, BaseMatcher> {
         val clazz = String::class.java
