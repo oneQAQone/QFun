@@ -6,6 +6,7 @@ import android.app.Activity
 import bsh.classpath.BshLoaderManager
 import com.tencent.mobileqq.data.troop.TroopInfo
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
+import kotlinx.coroutines.runBlocking
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.lifecycle.DynamicActivityRegistry
 import me.yxp.qfun.plugin.bean.ForbidInfo
@@ -104,13 +105,25 @@ class PluginMethod(private val compiler: PluginCompiler) {
         runWithErrorHandle(null) { TroopTool.getGroupInfo(troopUin) }
 
     fun getGroupMemberList(troopUin: String): List<MemberInfo>? =
-        runWithErrorHandle(null) { TroopTool.getGroupMemberList(troopUin) }
+        runWithErrorHandle(null) {
+            runBlocking {
+                TroopTool.getGroupMemberList(troopUin)
+            }
+        }
 
     fun getProhibitList(troopUin: String): List<ForbidInfo>? =
-        runWithErrorHandle(null) { TroopTool.getProhibitList(troopUin) }
+        runWithErrorHandle(null) {
+            runBlocking {
+                TroopTool.getProhibitList(troopUin)
+            }
+        }
 
     fun getMemberInfo(troopUin: String, uin: String): MemberInfo? =
-        runWithErrorHandle(null) { TroopTool.getMemberInfo(troopUin, uin) }
+        runWithErrorHandle(null) {
+            runBlocking {
+                TroopTool.getMemberInfo(troopUin, uin)
+            }
+        }
 
     fun isShutUp(troopUin: String): Boolean =
         runWithErrorHandle(false) { TroopTool.isShutUp(troopUin) }

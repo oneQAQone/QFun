@@ -15,6 +15,7 @@ import com.tencent.mobileqq.troop.membersetting.handler.MemberSettingHandler
 import com.tencent.qqnt.troop.ITroopListRepoApi
 import com.tencent.qqnt.troop.ITroopOperationRepoApi
 import com.tencent.qqnt.troopmemberlist.ITroopMemberListRepoApi
+import kotlinx.coroutines.suspendCancellableCoroutine
 import me.yxp.qfun.plugin.bean.ForbidInfo
 import me.yxp.qfun.plugin.bean.GroupInfo
 import me.yxp.qfun.plugin.bean.MemberInfo
@@ -26,8 +27,7 @@ import mqq.observer.BusinessObserver
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Proxy
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
 
 @Suppress("DEPRECATION")
 object TroopTool : DexKitTask {
@@ -248,58 +248,58 @@ object TroopTool : DexKitTask {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun getMemberInfoList(troopUin: String): List<TroopMemberInfo> {
-        val completableFuture = CompletableFuture<ArrayList<TroopMemberInfo>>()
-        val callback = Proxy.newProxyInstance(
-            ClassUtils.hostClassLoader,
-            arrayOf(fetchTroopMemberList.parameterTypes[4])
-        ) { _, method, args ->
-            if (method.returnType == Void.TYPE && method.parameterCount == 2) {
-                val list = when {
-                    args[0] is ArrayList<*> -> args[0]
-                    args[1] is ArrayList<*> -> args[1]
-                    else -> emptyList<TroopMemberInfo>()
+    private suspend fun getMemberInfoList(troopUin: String): List<TroopMemberInfo> =
+        suspendCancellableCoroutine { continuation ->
+            val callback = Proxy.newProxyInstance(
+                ClassUtils.hostClassLoader,
+                arrayOf(fetchTroopMemberList.parameterTypes[4])
+            ) { _, method, args ->
+                if (method.returnType == Void.TYPE && method.parameterCount == 2) {
+                    val list = when {
+                        args[0] is ArrayList<*> -> args[0]
+                        args[1] is ArrayList<*> -> args[1]
+                        else -> emptyList<TroopMemberInfo>()
+                    }
+                    continuation.resume(list as ArrayList<TroopMemberInfo>)
                 }
-                completableFuture.complete(list as ArrayList<TroopMemberInfo>)
+                0
             }
-            0
+            fetchTroopMemberList.invoke(
+                api<ITroopMemberListRepoApi>(),
+                troopUin,
+                null,
+                true,
+                "",
+                callback
+            )
         }
-        fetchTroopMemberList.invoke(
-            api<ITroopMemberListRepoApi>(),
-            troopUin,
-            null,
-            true,
-            "",
-            callback
-        )
-        return completableFuture.get(5, TimeUnit.SECONDS)
-    }
 
-    fun getMemberInfo(troopUin: String, uin: String): MemberInfo {
-        val completableFuture = CompletableFuture<TroopMemberInfo>()
-        val callback = Proxy.newProxyInstance(
-            ClassUtils.hostClassLoader,
-            arrayOf(fetchTroopMemberInfo.parameterTypes[5])
-        ) { _, method, args ->
-            if (method.returnType == Void.TYPE && method.parameterTypes[0] == TroopMemberInfo::class.java) {
-                completableFuture.complete(args[0] as TroopMemberInfo)
+
+    suspend fun getMemberInfo(troopUin: String, uin: String): MemberInfo =
+        suspendCancellableCoroutine { continuation ->
+            val callback = Proxy.newProxyInstance(
+                ClassUtils.hostClassLoader,
+                arrayOf(fetchTroopMemberInfo.parameterTypes[5])
+            ) { _, method, args ->
+                if (method.returnType == Void.TYPE && method.parameterTypes[0] == TroopMemberInfo::class.java) {
+                    val result = processMemberInfo(args[0] as TroopMemberInfo)
+                    continuation.resume(result)
+                }
+                0
             }
-            0
+            fetchTroopMemberInfo.invoke(
+                api<ITroopMemberListRepoApi>(),
+                troopUin,
+                uin,
+                true,
+                null,
+                "",
+                callback
+            )
         }
-        fetchTroopMemberInfo.invoke(
-            api<ITroopMemberListRepoApi>(),
-            troopUin,
-            uin,
-            true,
-            null,
-            "",
-            callback
-        )
-        val troopMemberInfo = completableFuture.get(5, TimeUnit.SECONDS)
-        return processMemberInfo(troopMemberInfo)
-    }
 
-    fun getGroupMemberList(troopUin: String): List<MemberInfo> {
+
+    suspend fun getGroupMemberList(troopUin: String): List<MemberInfo> {
         val memberList = ArrayList<MemberInfo>()
         getMemberInfoList(troopUin).forEach {
             memberList.add(processMemberInfo(it))
@@ -307,7 +307,7 @@ object TroopTool : DexKitTask {
         return memberList
     }
 
-    fun getProhibitList(troopUin: String): List<ForbidInfo> {
+    suspend fun getProhibitList(troopUin: String): List<ForbidInfo> {
         val forbidList = ArrayList<ForbidInfo>()
         getMemberInfoList(troopUin).forEach {
             val gagTime = it.gagTimeStamp

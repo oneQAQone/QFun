@@ -6,5 +6,12 @@ public class TroopInfo {
     public String troopowneruin;
     public long dwGagTimeStamp;
     public long dwGagTimeStamp_me;
+    public boolean isOwnerOrAdmin() {
+        return false;
+    }
+
+    public boolean isOwner() {
+        return false;
+    }
 
 }

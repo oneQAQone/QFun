@@ -15,7 +15,6 @@ import me.yxp.qfun.utils.hook.hookReplace
 import me.yxp.qfun.utils.hook.invokeOriginal
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.MsgTool
-import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.qq.TroopTool
 import me.yxp.qfun.utils.reflect.getObjectByType
 import org.luckypray.dexkit.query.FindClass
@@ -49,10 +48,10 @@ object SimpleTroopManagement : BaseSwitchHookItem(), DexKitTask {
             if (msgRecord.chatType != 2) return@hookReplace param.invokeOriginal()
 
             val troopUin = msgRecord.peerUin.toString()
-            val myInfo = TroopTool.getMemberInfo(troopUin, QQCurrentEnv.currentUin)
-            if (myInfo.role == "MEMBER") return@hookReplace param.invokeOriginal()
+            val troopInfo = TroopTool.getGroupInfo(troopUin)
+            if (!troopInfo.isOwnerOrAdmin) return@hookReplace param.invokeOriginal()
 
-            showManagementSheet(view.context as Activity, msgRecord, param, myInfo.role == "OWNER")
+            showManagementSheet(view.context as Activity, msgRecord, param, troopInfo.isOwner)
             return@hookReplace null
         }
     }
@@ -65,7 +64,7 @@ object SimpleTroopManagement : BaseSwitchHookItem(), DexKitTask {
     ) {
         val troopUin = msgRecord.peerUin.toString()
         val memberUin = msgRecord.senderUin.toString()
-        val nick = msgRecord.sendNickName.ifEmpty { msgRecord.sendMemberName }
+        val nick = msgRecord.sendMemberName.ifEmpty { msgRecord.sendNickName }
 
         fun dismissAndRun(dismiss: () -> Unit, action: () -> Unit) {
             dismiss()
@@ -140,6 +139,7 @@ object SimpleTroopManagement : BaseSwitchHookItem(), DexKitTask {
                             memberUin,
                             card
                         )
+                        msgRecord.sendMemberName = card
                     }
                 },
                 onKick = {
@@ -162,7 +162,7 @@ object SimpleTroopManagement : BaseSwitchHookItem(), DexKitTask {
                 },
                 onMuteAll = { dismissAndRun(dismiss) { TroopTool.shutUpAll(troopUin, true) } },
                 onUnmuteAll = { dismissAndRun(dismiss) { TroopTool.shutUpAll(troopUin, false) } },
-                getCurrentCard = { TroopTool.getMemberInfo(troopUin, memberUin).uinName }
+                getCurrentCard = { nick }
             )
         }.show()
     }
