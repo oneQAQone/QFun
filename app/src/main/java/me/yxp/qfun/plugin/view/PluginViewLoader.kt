@@ -42,12 +42,16 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
                     hideView()
                     showView()
                 }
-
-
             }
+
         AIODelegate::class.java.getDeclaredMethod("hide")
             .hookAfter(this) {
-                if (QQCurrentEnv.activity !is ScaleAIOActivity) hideView()
+                if (QQCurrentEnv.activity !is ScaleAIOActivity) {
+                    hideView()
+                } else {
+                    PluginView.dismissCurrent()
+                    currentPluginView = null
+                }
             }
 
     }
@@ -81,11 +85,12 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
     }
 
     private fun showView() {
-
         ModuleScope.launchMainDelayed(1) {
             val activity = QQCurrentEnv.activity ?: return@launchMainDelayed
 
             if (PluginManager.plugins.any { it.isRunning && it.compiler.menuItems.isNotEmpty() }) {
+                PluginView.dismissCurrent()
+                
                 currentPluginView = PluginView(activity)
                 currentPluginView?.show()
             }
@@ -95,6 +100,7 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
     private fun hideView() {
         currentPluginView?.dismiss()
         currentPluginView = null
+        PluginView.dismissCurrent()
     }
 
 }
