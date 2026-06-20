@@ -1,6 +1,6 @@
 package me.yxp.qfun.plugin.bean
 
-import com.tencent.mobileqq.data.troop.TroopMemberInfo
+import com.tencent.qqnt.kernel.nativeinterface.MemberInfo
 
 data class MemberInfo(
     @JvmField val joinGroupTime: Long,
@@ -9,5 +9,5 @@ data class MemberInfo(
     @JvmField val uinLevel: Int,
     @JvmField val uinName: String,
     @JvmField val role: String,
-    @JvmField val memberInfo: TroopMemberInfo
+    @JvmField val memberInfo: MemberInfo
 )
