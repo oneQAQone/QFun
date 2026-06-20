@@ -20,7 +20,6 @@ import me.yxp.qfun.utils.json.MessageTool
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.AppRestartUtils
 import me.yxp.qfun.utils.qq.MsgTool
-import me.yxp.qfun.utils.qq.TroopTool
 import me.yxp.qfun.utils.reflect.TAG
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.FindClass
@@ -69,7 +68,6 @@ object DexKitFinder {
         ModuleScope.launchIO(TAG) {
             val tasks = HookRegistry.hookItems.filterIsInstance<DexKitTask>().toMutableList()
             tasks.apply {
-                add(TroopTool)
                 add(MsgTool)
                 add(MessageTool)
             }

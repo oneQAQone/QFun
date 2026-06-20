@@ -1,9 +1,26 @@
 package com.tencent.qqnt.kernel.nativeinterface;
 
 
+import com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole;
+
 import java.util.ArrayList;
 
 public interface IKernelGroupService {
+
+    void modifyMemberCardName(long j, String str, String str2, IOperateCallback iOperateCallback);
+
+    void modifyMemberRole(long j, String str, MemberRole memberRole, IOperateCallback iOperateCallback);
+
+    void kickMember(long j, ArrayList<String> arrayList, boolean z, String str, IKickMemberOperateCallback iKickMemberOperateCallback);
+
+    void setMemberShutUp(long j, ArrayList<GroupMemberShutUpInfo> arrayList, IOperateCallback iOperateCallback);
+
+    void setGroupShutUp(long j, boolean z, IOperateCallback iOperateCallback);
+
+    void getMemberInfoForMqq(long j, ArrayList<String> arrayList, boolean z, IGroupMemberListCallback iGroupMemberListCallback);
+
+    void getAllMemberList(long j, boolean z, IGroupMemberListCallback iGroupMemberListCallback);
+
     /*void ForceFetchGroupPartMemberNewExtInfo(long j, ArrayList<Long> arrayList, IGroupMemberNewExtInfoCallback iGroupMemberNewExtInfoCallback);
 
     void GetGroupAllMemberNewExtInfo(long j, IGroupMemberNewExtInfoCallback iGroupMemberNewExtInfoCallback);
@@ -83,8 +100,6 @@ public interface IKernelGroupService {
     void getAllCachedGroupAIOSlotInfos(IGetCachedGroupAIOSlotInfoCallback iGetCachedGroupAIOSlotInfoCallback);
 
     void getAllGroupPrivilegeFlag(ArrayList<Long> arrayList, int i, IGroupPrivilegeFlagCallback iGroupPrivilegeFlagCallback);
-
-    void getAllMemberList(long j, boolean z, IGroupMemberListCallback iGroupMemberListCallback);
 
     void getAllMemberListV2(long j, boolean z, IGroupMemberListCallback iGroupMemberListCallback);
 
@@ -200,8 +215,6 @@ public interface IKernelGroupService {
 
     void getMemberInfo(long j, ArrayList<String> arrayList, boolean z, IOperateCallback iOperateCallback);
 
-    void getMemberInfoForMqq(long j, ArrayList<String> arrayList, boolean z, IGroupMemberListCallback iGroupMemberListCallback);
-
     void getMemberInfoForMqqV2(long j, ArrayList<String> arrayList, boolean z, String str, IGroupMemberListCallback iGroupMemberListCallback);
 
     void getNextMemberList(String str, GroupMemberInfoListId groupMemberInfoListId, int i, IGroupMemberListCallback iGroupMemberListCallback);
@@ -231,12 +244,11 @@ public interface IKernelGroupService {
     void getTopicRecall(TopicRecallReq topicRecallReq, ITopicRecallCallback iTopicRecallCallback);
 
     void getTransferableMemberInfo(long j, IGetTransferableMemberCallback iGetTransferableMemberCallback);
-    */
+
     void getUidByUins(ArrayList<Long> arrayList, IGroupMemberUidCallback iGroupMemberUidCallback);
 
     void getUinByUids(ArrayList<String> arrayList, IGroupMemberUinCallback iGroupMemberUinCallback);
 
-    /*
     void getWxNotifyStatus(ArrayList<Long> arrayList, IGetGroupWxNotifyStatusCallback iGetGroupWxNotifyStatusCallback);
 
     void groupBlacklistDelApply(GroupBlacklistDelApplyReq groupBlacklistDelApplyReq, IGroupBlacklistDelApplyCallback iGroupBlacklistDelApplyCallback);
@@ -262,8 +274,6 @@ public interface IKernelGroupService {
     void joinDragonLadderForAIO(GroupDragonLadderJoinForAIOReq groupDragonLadderJoinForAIOReq, IJoinDragonLadderForAIOCallback iJoinDragonLadderForAIOCallback);
 
     void joinGroup(ReqToGroup reqToGroup, IJoinGroupCallback iJoinGroupCallback);
-
-    void kickMember(long j, ArrayList<String> arrayList, boolean z, String str, IKickMemberOperateCallback iKickMemberOperateCallback);
 
     void kickMemberV2(KickMemberReq kickMemberReq, IKickMemberCallback iKickMemberCallback);
 
@@ -357,13 +367,9 @@ public interface IKernelGroupService {
 
     void setGroupRelationToGuild(SetGroupRelationToGuildReq setGroupRelationToGuildReq, ISetGroupRelationToGuildCallback iSetGroupRelationToGuildCallback);
 
-    void setGroupShutUp(long j, boolean z, IOperateCallback iOperateCallback);
-
     void setIdentityInteractionTag(SetIdentityInteractionTagReq setIdentityInteractionTagReq, IOperateCallback iOperateCallback);
 
     void setIdentityTitleInfo(SetIdentityTitleInfoReq setIdentityTitleInfoReq, IOperateCallback iOperateCallback);
-
-    void setMemberShutUp(long j, ArrayList<GroupMemberShutUpInfo> arrayList, IOperateCallback iOperateCallback);
 
     void setMultiGroupMuteTask(SetMultiGroupMuteTaskReq setMultiGroupMuteTaskReq, ISetMultiGroupMuteTaskCallback iSetMultiGroupMuteTaskCallback);
 

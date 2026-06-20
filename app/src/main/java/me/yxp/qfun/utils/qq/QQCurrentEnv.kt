@@ -71,6 +71,14 @@ object QQCurrentEnv {
 
         }.getOrNull()
 
+    val kernelGroupService
+        get() = runCatching {
+
+            val kernelService = runtime<IKernelService>() as KernelServiceImpl
+            kernelService.groupService.service
+
+        }.getOrNull()
+
 }
 
 
