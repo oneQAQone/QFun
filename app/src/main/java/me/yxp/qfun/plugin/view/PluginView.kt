@@ -49,9 +49,12 @@ import me.yxp.qfun.utils.qq.Toasts
 import me.yxp.qfun.utils.reflect.TAG
 import me.yxp.qfun.utils.ui.ThemeHelper
 import java.io.File
+import java.lang.ref.WeakReference
 import kotlin.math.abs
 
-class PluginView(private val activity: Activity) {
+class PluginView(activity: Activity) {
+    
+    private val activityRef = WeakReference(activity)
     private var popupWindow: PopupWindow? = null
     private var floatBtn: View? = null
     private var lastX = 0
@@ -64,9 +67,25 @@ class PluginView(private val activity: Activity) {
 
     private val prefs by lazy { QQCurrentEnv.globalPreference }
 
+    companion object {
+        private var currentInstance: WeakReference<PluginView>? = null
+
+        fun dismissCurrent() {
+            currentInstance?.get()?.dismiss()
+            currentInstance = null
+        }
+    }
+
     fun show() {
+        val activity = activityRef.get() ?: return
+        if (activity.isFinishing || activity.isDestroyed) return
+
+        dismissCurrent()
+        currentInstance = WeakReference(this)
+
         ThemeHelper.applyTheme(activity)
         if (popupWindow != null) return
+        
         val currentContact = PluginViewLoader.currentContact
         PluginManager.plugins.filter { it.isRunning }
             .forEach {
@@ -119,9 +138,14 @@ class PluginView(private val activity: Activity) {
 
         ModuleScope.launchMain {
             try {
+                val act = activityRef.get()
+                if (act == null || act.isFinishing || act.isDestroyed) {
+                    dismiss()
+                    return@launchMain
+                }
                 ensurePositionInScreen()
                 popupWindow?.showAtLocation(
-                    activity.window.decorView,
+                    act.window.decorView,
                     Gravity.NO_GRAVITY,
                     lastX,
                     lastY
@@ -133,12 +157,18 @@ class PluginView(private val activity: Activity) {
 
     fun dismiss() {
         ModuleScope.launchMain {
-            popupWindow?.dismiss()
-            popupWindow = null
+            try {
+                popupWindow?.dismiss()
+            } catch (_: Exception) {
+            } finally {
+                popupWindow = null
+                floatBtn = null
+            }
         }
     }
 
     private fun ensurePositionInScreen() {
+        val activity = activityRef.get() ?: return
         val metrics = activity.resources.displayMetrics
         val width = metrics.widthPixels
         val height = metrics.heightPixels
@@ -193,6 +223,9 @@ class PluginView(private val activity: Activity) {
     }
 
     private fun showMenu() {
+        val activity = activityRef.get() ?: return
+        if (activity.isFinishing || activity.isDestroyed) return
+
         val menuItems = mutableListOf<PluginMenuItem>()
         val currentContact = PluginViewLoader.currentContact
         PluginManager.plugins.filter { it.isRunning }.forEach { plugin ->
@@ -241,6 +274,7 @@ class PluginView(private val activity: Activity) {
     }
 
     private fun dp2px(dp: Float): Int {
+        val activity = activityRef.get() ?: return 0
         return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, dp, activity.resources.displayMetrics
         ).toInt()
@@ -300,9 +334,7 @@ private fun PluginMenuContent(
                 items(menuItems) { item ->
                     when (item) {
                         is PluginMenuItem.Header -> PluginHeaderItem(item.name) {
-                            onReloadPlugin(
-                                item.pluginId
-                            )
+                            onReloadPlugin(item.pluginId)
                         }
 
                         is PluginMenuItem.Action -> PluginActionItem(item.name) {

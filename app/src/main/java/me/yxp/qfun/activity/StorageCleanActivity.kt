@@ -128,10 +128,10 @@ class StorageCleanActivity : BaseComposeActivity() {
     private fun StorageCleanScreen() {
         val colors = QFunTheme.colors
         val sizeMap = remember { mutableStateMapOf<String, Long?>() }
-        
+
         var cleaningItem by remember { mutableStateOf<String?>(null) }
         var confirmItem by remember { mutableStateOf<String?>(null) }
-        
+
         var isSearchActive by remember { mutableStateOf(false) }
         var searchQuery by remember { mutableStateOf("") }
 
@@ -152,28 +152,44 @@ class StorageCleanActivity : BaseComposeActivity() {
             val semaphore = Semaphore(4)
             cleanPaths.keys.forEach { name ->
                 launch {
-                    semaphore.withPermit {
-                        val path = getRealPath(cleanPaths[name]!!)
-                        val size = withContext(Dispatchers.IO) {
-                            runCatching { FileUtils.getDirSize(File(path)) }.getOrDefault(0L)
+                    try {
+                        val pathTemplate = cleanPaths[name] ?: return@launch
+                        val path = getRealPath(pathTemplate)
+                        semaphore.withPermit {
+                            val size = withContext(Dispatchers.IO) {
+                                try {
+                                    FileUtils.getDirSize(File(path))
+                                } catch (_: Exception) {
+                                    0L
+                                }
+                            }
+                            withContext(Dispatchers.Main) {
+                                sizeMap[name] = size
+                            }
                         }
-                        sizeMap[name] = size
+                    } catch (_: Exception) {
+                        withContext(Dispatchers.Main) {
+                            sizeMap[name] = 0L
+                        }
                     }
                 }
             }
         }
 
         suspend fun cleanItem(name: String, path: String) {
-            cleaningItem = name
             withContext(Dispatchers.IO) {
                 try {
                     FileUtils.clearDir(File(path))
-                    sizeMap[name] = 0L
+                    withContext(Dispatchers.Main) {
+                        sizeMap[name] = 0L
+                    }
                     Toasts.qqToast(4, "已清理: $name")
                 } catch (e: Exception) {
                     Toasts.qqToast(1, "清理失败: ${e.message}")
                 } finally {
-                    cleaningItem = null
+                    withContext(Dispatchers.Main) {
+                        cleaningItem = null
+                    }
                 }
             }
         }
@@ -208,7 +224,7 @@ class StorageCleanActivity : BaseComposeActivity() {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "未找到匹配项", 
+                            text = "未找到匹配项",
                             color = colors.textSecondary
                         )
                     }
@@ -222,15 +238,15 @@ class StorageCleanActivity : BaseComposeActivity() {
                             val size = sizeMap[name]
 
                             val highlightedName = HighlightUtils.highlightText(
-                                text = name, 
-                                query = searchQuery, 
-                                highlightColor = colors.accentBlue, 
+                                text = name,
+                                query = searchQuery,
+                                highlightColor = colors.accentBlue,
                                 baseColor = colors.textPrimary
                             )
 
                             AnimatedListItem(index) {
                                 QFunCard(
-                                    modifier = Modifier.fillMaxWidth(), 
+                                    modifier = Modifier.fillMaxWidth(),
                                     animateContentSize = true
                                 ) {
                                     Row(
@@ -242,36 +258,41 @@ class StorageCleanActivity : BaseComposeActivity() {
                                     ) {
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(
-                                                text = highlightedName, 
+                                                text = highlightedName,
                                                 fontSize = 15.sp
                                             )
-                                            
+
                                             if (size == null) {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     CircularProgressIndicator(
-                                                        modifier = Modifier.size(14.dp), 
-                                                        strokeWidth = 2.dp, 
+                                                        modifier = Modifier.size(14.dp),
+                                                        strokeWidth = 2.dp,
                                                         color = colors.textSecondary
                                                     )
                                                     Spacer(modifier = Modifier.width(6.dp))
                                                     Text(
-                                                        text = "计算中...", 
-                                                        fontSize = 12.sp, 
+                                                        text = "计算中...",
+                                                        fontSize = 12.sp,
                                                         color = colors.textSecondary
                                                     )
                                                 }
                                             } else {
                                                 Text(
-                                                    text = formatSize(size), 
-                                                    fontSize = 12.sp, 
+                                                    text = formatSize(size),
+                                                    fontSize = 12.sp,
                                                     color = colors.textSecondary
                                                 )
                                             }
                                         }
-                                        
+
+                                        val isCurrentlyCleaning = cleaningItem == name
                                         ActionButton(
-                                            text = if (cleaningItem == name) "清理中..." else "清理",
-                                            onClick = { if (cleaningItem == null) confirmItem = name },
+                                            text = if (isCurrentlyCleaning) "清理中..." else "清理",
+                                            onClick = {
+                                                if (cleaningItem == null && confirmItem == null) {
+                                                    confirmItem = name
+                                                }
+                                            },
                                             style = ActionButtonStyle.Success
                                         )
                                     }
@@ -294,8 +315,16 @@ class StorageCleanActivity : BaseComposeActivity() {
                 onDismiss = { confirmItem = null },
                 onConfirm = {
                     confirmItem = null
-                    ModuleScope.launch { 
-                        cleanItem(name, getRealPath(cleanPaths[name]!!)) 
+                    if (cleaningItem == null) {
+                        cleaningItem = name
+                        ModuleScope.launch {
+                            val pathTemplate = cleanPaths[name]
+                            if (pathTemplate != null) {
+                                cleanItem(name, getRealPath(pathTemplate))
+                            } else {
+                                cleaningItem = null
+                            }
+                        }
                     }
                 }
             )
@@ -303,16 +332,22 @@ class StorageCleanActivity : BaseComposeActivity() {
     }
 
     private fun getRealPath(template: String): String {
-        val extra = HostInfo.hostContext.getExternalFilesDir(null)?.parentFile?.absolutePath 
+        val hostCtx = HostInfo.hostContext
+        val context = hostCtx.applicationContext ?: hostCtx
+
+        val extraFile = context.getExternalFilesDir(null)
+        val extra = extraFile?.parentFile?.absolutePath
             ?: "/storage/emulated/0/Android/data/${HostInfo.packageName}"
-            
-        val private = HostInfo.hostContext.filesDir.parent 
-            ?: HostInfo.hostContext.filesDir.absolutePath
-            
+
+        val privateFile = context.filesDir
+        val private = privateFile.parent ?: privateFile.absolutePath
+
+        val currentUin = QQCurrentEnv.currentUin
+
         return template
             .replace("%extra%", extra)
             .replace("%private%", private)
-            .replace("%uin%", QQCurrentEnv.currentUin)
+            .replace("%uin%", currentUin)
     }
 
     private fun formatSize(bytes: Long): String {
@@ -321,8 +356,8 @@ class StorageCleanActivity : BaseComposeActivity() {
         val digitGroups = (ln(bytes.toDouble()) / ln(1024.0)).toInt()
         return String.format(
             Locale.getDefault(),
-            "%.2f %s", 
-            bytes / 1024.0.pow(digitGroups.toDouble()), 
+            "%.2f %s",
+            bytes / 1024.0.pow(digitGroups.toDouble()),
             units[digitGroups]
         )
     }
