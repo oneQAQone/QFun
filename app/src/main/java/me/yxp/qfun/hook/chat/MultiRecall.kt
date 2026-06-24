@@ -19,14 +19,15 @@ import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.MsgTool
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.qq.Toasts
+import me.yxp.qfun.utils.reflect.findField
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.getObject
-import me.yxp.qfun.utils.reflect.newInstanceWithArgs
 import me.yxp.qfun.utils.reflect.toClass
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.time.Duration.Companion.milliseconds
 
 @HookItemAnnotation(
     "多选撤回",
@@ -53,9 +54,9 @@ object MultiRecall : BaseSwitchHookItem(), DexKitTask {
 
         val multiSelectBarVBClass = className.toClass
         val operationLayoutClass = $$"$$className$mOperationLayout$2".toClass
-        val multiForwardClass = requireClass("multiForward")
+        val multiSelectUtil = requireClass("MultiSelectUtil")
 
-        getMsgList = multiForwardClass.findMethod {
+        getMsgList = multiSelectUtil.findMethod {
             returnType = list
             paramCount = 1
         }
@@ -115,18 +116,23 @@ object MultiRecall : BaseSwitchHookItem(), DexKitTask {
         try {
             val vm = multiSelectBarVM ?: return
 
-            val multiForwardInstance = requireClass("multiForward").newInstanceWithArgs()
+            val multiSelectUtil = requireClass("MultiSelectUtil")
+
+            val instance = multiSelectUtil.findField {
+                type = multiSelectUtil
+                isStatic = true
+            }.get(null)
 
             val mContext = getMContext.invoke(vm)
 
-            val msgList = getMsgList.invoke(multiForwardInstance, mContext) as List<AIOMsgItem>
+            val msgList = getMsgList.invoke(instance, mContext) as List<AIOMsgItem>
 
             val size = msgList.size
 
             ModuleScope.launchIO(name) {
                 CopyOnWriteArrayList(msgList).forEach {
                     recallSingleItem(it)
-                    if (size > 10) delay(300)
+                    if (size > 10) delay(300.milliseconds)
                 }
             }
             Toasts.qqToast(2, "开始撤回 $size 条消息...")
@@ -159,7 +165,7 @@ object MultiRecall : BaseSwitchHookItem(), DexKitTask {
 
     override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
 
-        "multiForward" to FindClass().apply {
+        "MultiSelectUtil" to FindClass().apply {
             searchPackages("com.tencent.mobileqq.aio.msglist.holder.component.multifoward")
             matcher {
                 usingStrings("msgList")
