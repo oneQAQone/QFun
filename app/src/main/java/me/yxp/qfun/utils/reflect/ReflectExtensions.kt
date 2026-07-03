@@ -124,6 +124,12 @@ fun Class<*>.newInstanceWithArgs(vararg args: Any?): Any {
     }
 }
 
+val Class<*>.instance: Any?
+    get() = findField {
+        type = this@instance
+        isStatic = true
+    }.get(null)
+
 private val primitiveWrapperMap = mapOf(
     Int::class.java to Int::class.javaObjectType,
     Long::class.java to Long::class.javaObjectType,
