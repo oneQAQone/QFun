@@ -19,9 +19,9 @@ import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.MsgTool
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.qq.Toasts
-import me.yxp.qfun.utils.reflect.findField
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.getObject
+import me.yxp.qfun.utils.reflect.instance
 import me.yxp.qfun.utils.reflect.toClass
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.base.BaseMatcher
@@ -118,10 +118,7 @@ object MultiRecall : BaseSwitchHookItem(), DexKitTask {
 
             val multiSelectUtil = requireClass("MultiSelectUtil")
 
-            val instance = multiSelectUtil.findField {
-                type = multiSelectUtil
-                isStatic = true
-            }.get(null)
+            val instance = multiSelectUtil.instance
 
             val mContext = getMContext.invoke(vm)
 
