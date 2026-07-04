@@ -65,7 +65,7 @@ object FastReSend : BaseSwitchHookItem(), MenuClickListener {
     }
 
     suspend fun recoverElements(elements: ArrayList<MsgElement>, chatType: Int) {
-        if (HostInfo.isTIM) {
+        if (HostInfo.isTIM || (HostInfo.isQQ && HostInfo.versionCode <= 13188)) {
             elements.mapNotNull {
                 it.picElement
             }.forEach {
