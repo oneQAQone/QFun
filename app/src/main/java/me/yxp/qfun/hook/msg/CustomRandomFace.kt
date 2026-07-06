@@ -139,7 +139,7 @@ object CustomRandomFace : BaseSwitchHookItem() {
 
         toServiceMsg.addAttribute("req_pb_protocol_flag", true)
 
-        QQCurrentEnv.qQAppInterface.sendToService(toServiceMsg)
+        QQCurrentEnv.qQAppInterface!!.sendToService(toServiceMsg)
 
     }
 

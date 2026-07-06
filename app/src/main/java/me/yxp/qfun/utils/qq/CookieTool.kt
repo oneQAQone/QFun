@@ -9,7 +9,7 @@ import mqq.manager.TicketManager
 object CookieTool {
 
     private val manager
-        get() = QQCurrentEnv.qQAppInterface.getManager(2) as TicketManager
+        get() = QQCurrentEnv.qQAppInterface!!.getManager(2) as TicketManager
 
     fun getRealSkey(): String? = manager.getRealSkey(QQCurrentEnv.currentUin)
     fun getSkey(): String? = manager.getSkey(QQCurrentEnv.currentUin)

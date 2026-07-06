@@ -52,6 +52,16 @@ import java.io.File
 import kotlin.math.abs
 
 class PluginView(private val activity: Activity) {
+    companion object {
+        @Volatile
+        private var currentInstance: PluginView? = null
+
+        fun dismissCurrent() {
+            currentInstance?.dismiss()
+            currentInstance = null
+        }
+    }
+
     private var popupWindow: PopupWindow? = null
     private var floatBtn: View? = null
     private var lastX = 0
@@ -66,7 +76,10 @@ class PluginView(private val activity: Activity) {
 
     fun show() {
         ThemeHelper.applyTheme(activity)
-        if (popupWindow != null) return
+        if (popupWindow != null) {
+            dismiss()
+        }
+        currentInstance = this
         val currentContact = PluginViewLoader.currentContact
         PluginManager.plugins.filter { it.isRunning }
             .forEach {
@@ -117,24 +130,41 @@ class PluginView(private val activity: Activity) {
 
         setupTouchListener()
 
-        ModuleScope.launchMain {
-            try {
-                ensurePositionInScreen()
-                popupWindow?.showAtLocation(
-                    activity.window.decorView,
-                    Gravity.NO_GRAVITY,
-                    lastX,
-                    lastY
-                )
-            } catch (_: Exception) {
+        try {
+            if (activity.isFinishing || activity.isDestroyed) {
+                return
             }
+
+            ensurePositionInScreen()
+
+            val decorView = activity.window.decorView
+            decorView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {}
+                override fun onViewDetachedFromWindow(v: View) {
+                    dismiss()
+                    decorView.removeOnAttachStateChangeListener(this)
+                }
+            })
+
+            popupWindow?.showAtLocation(
+                decorView,
+                Gravity.NO_GRAVITY,
+                lastX,
+                lastY
+            )
+        } catch (_: Exception) {
         }
     }
 
     fun dismiss() {
-        ModuleScope.launchMain {
+        try {
             popupWindow?.dismiss()
+        } catch (_: Exception) {
+        } finally {
             popupWindow = null
+            if (currentInstance == this) {
+                currentInstance = null
+            }
         }
     }
 

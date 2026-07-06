@@ -101,7 +101,7 @@ object OnMenuBuild : BaseApiHookItem<MenuClickListener>(), DexKitTask {
         key: String,
         aioMsgItem: AIOMsgItem
     ) {
-        val context = QQCurrentEnv.activity ?: QQCurrentEnv.qQAppInterface.application
+        val context = QQCurrentEnv.activity ?: QQCurrentEnv.qQAppInterface!!.application
         val newItem = itemClass.newInstanceWithArgs(context, aioMsgItem)
         newItem.setObjectByType(key)
         items.add(0, newItem)
