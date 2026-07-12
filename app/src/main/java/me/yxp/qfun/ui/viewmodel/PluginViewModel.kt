@@ -18,10 +18,12 @@ import me.yxp.qfun.plugin.net.ScriptInfo
 import me.yxp.qfun.plugin.net.ScriptService
 import me.yxp.qfun.ui.pages.plugin.LocalPluginData
 import me.yxp.qfun.ui.pages.plugin.OnlinePluginData
+import me.yxp.qfun.ui.pages.plugin.PluginInstallState
 import me.yxp.qfun.utils.io.FileUtils
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.qq.Toasts
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 sealed interface PluginListUiState {
     data object Loading : PluginListUiState
@@ -34,8 +36,37 @@ class PluginViewModel : ViewModel() {
     var localPlugins by mutableStateOf<List<LocalPluginData>>(emptyList())
         private set
 
-    var onlineUiState by mutableStateOf<PluginListUiState>(PluginListUiState.Loading)
-        private set
+    private var rawOnlineScripts by mutableStateOf<List<ScriptInfo>>(emptyList())
+    private var onlineFetchError by mutableStateOf<String?>(null)
+
+    val onlineUiState by derivedStateOf {
+        if (rawOnlineScripts.isEmpty()) {
+            return@derivedStateOf onlineFetchError?.let { PluginListUiState.Error(it) }
+                ?: PluginListUiState.Loading
+        }
+
+        val mappedList = rawOnlineScripts.map { script ->
+            val localPlugin = localPlugins.find { it.id == script.id }
+            val state = when {
+                downloadingPlugins.contains(script.id) -> PluginInstallState.Downloading
+                localPlugin == null -> PluginInstallState.Install
+                script.version != localPlugin.version -> PluginInstallState.Update
+                else -> PluginInstallState.Installed
+            }
+
+            OnlinePluginData(
+                script.id,
+                script.name,
+                script.version,
+                script.author,
+                script.description,
+                script.downloads,
+                script.uploadTime,
+                state
+            )
+        }
+        PluginListUiState.Success(mappedList)
+    }
 
     var downloadingPlugins by mutableStateOf<Set<String>>(emptySet())
         private set
@@ -76,8 +107,8 @@ class PluginViewModel : ViewModel() {
         if (searchQuery.isEmpty()) {
             localPlugins
         } else {
-            localPlugins.filter { 
-                it.name.contains(searchQuery, ignoreCase = true) || 
+            localPlugins.filter {
+                it.name.contains(searchQuery, ignoreCase = true) ||
                         it.author.contains(searchQuery, ignoreCase = true) ||
                         it.description.contains(searchQuery, ignoreCase = true)
             }
@@ -109,12 +140,12 @@ class PluginViewModel : ViewModel() {
     fun reloadLocalPlugins() {
         if (isLocalRefreshing) return
         isLocalRefreshing = true
-        
+
         viewModelScope.launch(Dispatchers.IO) {
             val startTime = System.currentTimeMillis()
             PluginManager.loadAll()
             val diff = System.currentTimeMillis() - startTime
-            if (diff < 500L) delay(500L - diff)
+            if (diff < 500L) delay((500L - diff).milliseconds)
             refreshLocalPlugins()
             isLocalRefreshing = false
             Toasts.qqToast(2, "刷新成功")
@@ -124,38 +155,31 @@ class PluginViewModel : ViewModel() {
     fun reloadOnlinePlugins() {
         if (isOnlineRefreshing) return
         isOnlineRefreshing = true
-        
+        onlineFetchError = null
+
         viewModelScope.launch(Dispatchers.IO) {
             val startTime = System.currentTimeMillis()
             try {
-                withTimeout(10_000L) {
+                withTimeout(10_000L.milliseconds) {
                     ScriptService.fetchScriptList().fold(
                         onSuccess = { list ->
                             scriptList.clear()
                             scriptList.addAll(list)
-                            onlineUiState = PluginListUiState.Success(list.map { script ->
-                                OnlinePluginData(
-                                    script.id,
-                                    script.name,
-                                    script.version,
-                                    script.author,
-                                    script.description,
-                                    script.downloads,
-                                    script.uploadTime
-                                )
-                            })
+                            rawOnlineScripts = list
                             Toasts.qqToast(2, "刷新成功")
                         },
                         onFailure = { e ->
+                            onlineFetchError = e.message ?: "刷新失败"
                             Toasts.qqToast(1, e.message ?: "刷新失败")
                         }
                     )
                 }
             } catch (_: TimeoutCancellationException) {
+                onlineFetchError = "请求超时"
                 Toasts.qqToast(1, "请求超时")
             } finally {
                 val diff = System.currentTimeMillis() - startTime
-                if (diff < 500L) delay(500L - diff)
+                if (diff < 500L) delay((500L - diff).milliseconds)
                 isOnlineRefreshing = false
             }
         }
@@ -262,12 +286,12 @@ class PluginViewModel : ViewModel() {
     private fun uploadPlugin(id: String) {
         val plugin = PluginManager.plugins.find { it.id == id } ?: return
         val scriptZip = File(QQCurrentEnv.currentDir + "cache", "${plugin.name}.zip")
-        
+
         if (!FileUtils.zip(File(plugin.dirPath), scriptZip)) {
             Toasts.qqToast(1, "打包失败")
             return
         }
-        
+
         viewModelScope.launch(Dispatchers.IO) {
             val result = ScriptService.uploadScript(
                 plugin.id,
@@ -286,29 +310,19 @@ class PluginViewModel : ViewModel() {
     }
 
     private fun fetchOnlinePlugins() {
-        if (onlineUiState is PluginListUiState.Loading && scriptList.isNotEmpty()) return
-        onlineUiState = PluginListUiState.Loading
-        
+        if (rawOnlineScripts.isNotEmpty()) return
+        onlineFetchError = null
+
         viewModelScope.launch(Dispatchers.IO) {
             ScriptService.fetchScriptList().fold(
                 onSuccess = { list ->
                     scriptList.clear()
                     scriptList.addAll(list)
-                    onlineUiState = PluginListUiState.Success(list.map { script ->
-                        OnlinePluginData(
-                            script.id,
-                            script.name,
-                            script.version,
-                            script.author,
-                            script.description,
-                            script.downloads,
-                            script.uploadTime
-                        )
-                    })
+                    rawOnlineScripts = list
                 },
                 onFailure = { e ->
                     val errorMessage = e.message ?: "获取失败"
-                    onlineUiState = PluginListUiState.Error(errorMessage)
+                    onlineFetchError = errorMessage
                     Toasts.qqToast(1, errorMessage)
                 }
             )
@@ -318,10 +332,10 @@ class PluginViewModel : ViewModel() {
     fun downloadPlugin(id: String) {
         val script = scriptList.find { it.id == id } ?: return
         if (downloadingPlugins.contains(id)) return
-        
+
         downloadingPlugins = downloadingPlugins + id
         Toasts.qqToast(0, "开始下载: ${script.name}")
-        
+
         viewModelScope.launch(Dispatchers.IO) {
             ScriptService.downloadAndInstall(script).fold(
                 onSuccess = {

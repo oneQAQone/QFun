@@ -34,7 +34,6 @@ class PluginActivity : BaseComposeActivity() {
                     PluginScreen(
                         localPlugins = vm.filteredLocalPlugins,
                         onlineUiState = vm.filteredOnlineUiState,
-                        downloadingPlugins = vm.downloadingPlugins,
                         isLocalRefreshing = vm.isLocalRefreshing,
                         isOnlineRefreshing = vm.isOnlineRefreshing,
                         themeMode = themeMode,

@@ -34,7 +34,7 @@ enum class ActionButtonStyle { Primary, Success, Danger }
 @Composable
 fun ActionButton(
     text: String,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     style: ActionButtonStyle = ActionButtonStyle.Primary
 ) {

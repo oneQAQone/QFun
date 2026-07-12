@@ -27,6 +27,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,7 +51,6 @@ fun OnlinePluginPage(
     isOnlineRefreshing: Boolean,
     searchQuery: String,
     listState: LazyListState,
-    downloadingPlugins: Set<String>,
     onDownload: (String) -> Unit,
     onRefresh: () -> Unit
 ) {
@@ -87,7 +87,6 @@ fun OnlinePluginPage(
                     OnlinePluginList(
                         plugins = uiState.data,
                         searchQuery = searchQuery,
-                        downloadingPlugins = downloadingPlugins,
                         onDownload = onDownload,
                         onRefresh = onRefresh,
                         listState = listState
@@ -98,17 +97,17 @@ fun OnlinePluginPage(
 
         ScrollToTopButton(
             visible = showScrollToTop && uiState is PluginListUiState.Success,
-            onClick = { 
-                scope.launch { 
-                    listState.animateScrollToItem(index = 0) 
-                } 
+            onClick = {
+                scope.launch {
+                    listState.animateScrollToItem(index = 0)
+                }
             },
             modifier = Modifier
                 .align(
                     alignment = Alignment.BottomEnd
                 )
                 .padding(
-                    end = 16.dp, 
+                    end = 16.dp,
                     bottom = 100.dp
                 )
         )
@@ -119,7 +118,6 @@ fun OnlinePluginPage(
 private fun OnlinePluginList(
     plugins: List<OnlinePluginData>,
     searchQuery: String,
-    downloadingPlugins: Set<String>,
     onDownload: (String) -> Unit,
     onRefresh: () -> Unit,
     listState: LazyListState
@@ -148,7 +146,7 @@ private fun OnlinePluginList(
             verticalArrangement = Arrangement.spacedBy(
                 space = 12.dp
             ),
-            userScrollEnabled = true 
+            userScrollEnabled = true
         ) {
             items(
                 items = plugins,
@@ -183,7 +181,6 @@ private fun OnlinePluginList(
                         highlightedName = hName,
                         highlightedAuthor = hAuthor,
                         highlightedDesc = hDesc,
-                        isDownloading = downloadingPlugins.contains(element = plugin.id),
                         onDownload = {
                             onDownload(plugin.id)
                         }
@@ -200,13 +197,19 @@ private fun OnlinePluginCard(
     highlightedName: AnnotatedString,
     highlightedAuthor: AnnotatedString,
     highlightedDesc: AnnotatedString,
-    isDownloading: Boolean,
     onDownload: () -> Unit
 ) {
     val colors = QFunTheme.colors
-    
+
     var isExpanded by remember {
         mutableStateOf(value = false)
+    }
+
+    val (buttonText, buttonStyle, isClickable) = when (plugin.installState) {
+        PluginInstallState.Install -> Triple("下载", ActionButtonStyle.Success, true)
+        PluginInstallState.Update -> Triple("更新", ActionButtonStyle.Primary, true)
+        PluginInstallState.Installed -> Triple("已安装", ActionButtonStyle.Success, false)
+        PluginInstallState.Downloading -> Triple("下载中...", ActionButtonStyle.Primary, false)
     }
 
     QFunCard(
@@ -222,8 +225,8 @@ private fun OnlinePluginCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(
-                        interactionSource = remember { 
-                            MutableInteractionSource() 
+                        interactionSource = remember {
+                            MutableInteractionSource()
                         },
                         indication = null,
                         onClick = {
@@ -238,8 +241,8 @@ private fun OnlinePluginCard(
                     )
                 ) {
                     Text(
-                        text = highlightedName, 
-                        fontSize = 17.sp, 
+                        text = highlightedName,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
 
@@ -253,8 +256,8 @@ private fun OnlinePluginCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "下载: ${plugin.downloads}", 
-                            fontSize = 12.sp, 
+                            text = "下载: ${plugin.downloads}",
+                            fontSize = 12.sp,
                             color = colors.textSecondary
                         )
 
@@ -265,27 +268,25 @@ private fun OnlinePluginCard(
                         )
 
                         Text(
-                            text = "V${plugin.version}", 
-                            fontSize = 12.sp, 
-                            color = colors.accentGreen, 
+                            text = "V${plugin.version}",
+                            fontSize = 12.sp,
+                            color = colors.accentGreen,
                             fontWeight = FontWeight.Medium
                         )
                     }
                 }
 
-                ActionButton(
-                    text = if (isDownloading) {
-                        "下载中..."
-                    } else {
-                        "下载"
-                    },
-                    onClick = {
-                        if (!isDownloading) {
-                            onDownload()
-                        }
-                    },
-                    style = ActionButtonStyle.Success
-                )
+                Box(
+                    modifier = Modifier.graphicsLayer {
+                        alpha = if (isClickable) 1f else 0.5f
+                    }
+                ) {
+                    ActionButton(
+                        text = buttonText,
+                        onClick = if (isClickable) onDownload else null,
+                        style = buttonStyle
+                    )
+                }
             }
 
             if (isExpanded) {
@@ -311,16 +312,16 @@ private fun OnlinePluginCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = highlightedAuthor, 
-                        fontSize = 13.sp, 
+                        text = highlightedAuthor,
+                        fontSize = 13.sp,
                         modifier = Modifier.weight(
                             weight = 1f
                         )
                     )
 
                     Text(
-                        text = plugin.uploadTime, 
-                        fontSize = 12.sp, 
+                        text = plugin.uploadTime,
+                        fontSize = 12.sp,
                         color = colors.textSecondary
                     )
                 }
@@ -332,9 +333,9 @@ private fun OnlinePluginCard(
                 )
 
                 Text(
-                    text = "脚本介绍：", 
-                    fontSize = 14.sp, 
-                    fontWeight = FontWeight.Bold, 
+                    text = "脚本介绍：",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
                     color = colors.textPrimary
                 )
 
@@ -345,8 +346,8 @@ private fun OnlinePluginCard(
                 )
 
                 Text(
-                    text = highlightedDesc, 
-                    fontSize = 13.sp, 
+                    text = highlightedDesc,
+                    fontSize = 13.sp,
                     lineHeight = 18.sp
                 )
             }
