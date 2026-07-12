@@ -7,7 +7,6 @@ import bsh.classpath.BshLoaderManager
 import com.tencent.mobileqq.data.troop.TroopInfo
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import kotlinx.coroutines.runBlocking
-import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.lifecycle.DynamicActivityRegistry
 import me.yxp.qfun.plugin.bean.ForbidInfo
 import me.yxp.qfun.plugin.bean.FriendInfo
@@ -141,9 +140,7 @@ class PluginMethod(private val compiler: PluginCompiler) {
     }
 
     fun setGroupMemberTitle(troopUin: String, uin: String, title: String) {
-        ModuleScope.launchMain {
-            runWithErrorHandle { TroopTool.setGroupMemberTitle(troopUin, uin, title) }
-        }
+        runWithErrorHandle { TroopTool.setGroupMemberTitle(troopUin, uin, title) }
     }
 
     fun changeMemberName(troopUin: String, uin: String, name: String) {

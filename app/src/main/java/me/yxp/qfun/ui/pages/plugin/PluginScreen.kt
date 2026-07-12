@@ -87,6 +87,13 @@ data class LocalPluginData(
     val isAutoLoad: Boolean
 )
 
+sealed interface PluginInstallState {
+    data object Install : PluginInstallState
+    data object Update : PluginInstallState
+    data object Installed : PluginInstallState
+    data object Downloading : PluginInstallState
+}
+
 @Immutable
 data class OnlinePluginData(
     val id: String,
@@ -95,14 +102,14 @@ data class OnlinePluginData(
     val author: String,
     val description: String,
     val downloads: Int,
-    val uploadTime: String
+    val uploadTime: String,
+    val installState: PluginInstallState
 )
 
 @Composable
 fun PluginScreen(
     localPlugins: List<LocalPluginData>,
     onlineUiState: PluginListUiState,
-    downloadingPlugins: Set<String>,
     isLocalRefreshing: Boolean,
     isOnlineRefreshing: Boolean,
     themeMode: Int,
@@ -274,7 +281,6 @@ fun PluginScreen(
                         isOnlineRefreshing = isOnlineRefreshing,
                         searchQuery = searchQuery,
                         listState = onlineListState,
-                        downloadingPlugins = downloadingPlugins,
                         onDownload = onPluginDownload,
                         onRefresh = onRefreshOnline
                     )
