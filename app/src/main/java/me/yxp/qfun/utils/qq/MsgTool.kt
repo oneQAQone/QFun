@@ -139,7 +139,7 @@ object MsgTool : DexKitTask {
                 msgUtilApiImpl.createPicElement(path, true, 0)
             }
 
-            "ptt" -> msgUtilApiImpl.createPttElement(value, 0, ArrayList<Byte>())
+            "ptt" -> msgUtilApiImpl.createPttElement(value, estimatePttDurationMs(value), ArrayList())
             "video" -> msgUtilApiImpl.createVideoElement(value)
             "file" -> msgUtilApiImpl.createFileElement(value)
             "ark" -> {
@@ -160,6 +160,29 @@ object MsgTool : DexKitTask {
         sendMsgByType(makeContact(peerUin, chatType), value, type)
     }
 
+    // createPttElement 的 duration 为毫秒，宿主会 round(ms/1000) 写入秒
+    private fun estimatePttDurationMs(path: String): Int {
+        return runCatching {
+            val bytes = File(path).takeIf { it.exists() && it.length() > 0L }?.readBytes()
+                ?: return@runCatching 1000
+            var offset = when {
+                bytes.size >= 10 && String(bytes, 1, 9, Charsets.US_ASCII) == "#!SILK_V3" -> 10
+                bytes.size >= 9 && String(bytes, 0, 9, Charsets.US_ASCII) == "#!SILK_V3" -> 9
+                else -> return@runCatching 1000
+            }
+            var frames = 0
+            while (offset + 2 <= bytes.size) {
+                val frameLen = (bytes[offset].toInt() and 0xff) or
+                        ((bytes[offset + 1].toInt() and 0xff) shl 8)
+                offset += 2
+                if (frameLen <= 0 || frameLen > 4096 || offset + frameLen > bytes.size) break
+                offset += frameLen
+                frames++
+            }
+            if (frames <= 0) 1000 else frames * 20
+        }.getOrDefault(1000).coerceAtLeast(1000)
+    }
+
     fun sendPic(peerUin: String, path: String, chatType: Int) {
         sendMsgByType(peerUin, chatType, path, "pic")
     }
@@ -174,6 +197,15 @@ object MsgTool : DexKitTask {
 
     fun sendPtt(peerUin: String, path: String, chatType: Int) {
         sendMsgByType(peerUin, chatType, path, "ptt")
+    }
+
+    fun sendPtt(contact: Contact, path: String, durationMs: Int) {
+        val ms = if (durationMs > 0) durationMs else estimatePttDurationMs(path)
+        sendMsg(contact, arrayListOf(msgUtilApiImpl.createPttElement(path, ms.coerceAtLeast(1000), ArrayList())))
+    }
+
+    fun sendPtt(peerUin: String, path: String, chatType: Int, durationMs: Int) {
+        sendPtt(makeContact(peerUin, chatType), path, durationMs)
     }
 
     fun sendCard(contact: Contact, data: String) {
