@@ -139,10 +139,7 @@ object MsgTool : DexKitTask {
                 msgUtilApiImpl.createPicElement(path, true, 0)
             }
 
-            "ptt" -> {
-                val ms = estimatePttDurationMs(value)
-                msgUtilApiImpl.createPttElement(value, ms, defaultPttWaveAmplitudes(ms))
-            }
+            "ptt" -> buildPttElement(value)
             "video" -> msgUtilApiImpl.createVideoElement(value)
             "file" -> msgUtilApiImpl.createFileElement(value)
             "ark" -> {
@@ -186,19 +183,17 @@ object MsgTool : DexKitTask {
         }.getOrDefault(1000).coerceAtLeast(1000)
     }
 
-    /**
-     * QQ 气泡波形：PttElement.waveAmplitudes 为空时语音条可能不显示。
-     * createPttElement 第三参即写入该字段；官方录音侧会填真实振幅，脚本侧给一组非空假波形即可。
-     */
+    // waveAmplitudes 为空时部分版本语音条不显示；第三参写入该字段
     private fun defaultPttWaveAmplitudes(durationMs: Int): ArrayList<Byte> {
-        var n = durationMs / 40
-        if (n < 20) n = 20
-        if (n > 120) n = 120
-        val waves = ArrayList<Byte>(n)
-        for (i in 0 until n) {
-            waves.add((15 + ((i * 7) % 70)).toByte())
+        val n = (durationMs / 40).coerceIn(20, 120)
+        return ArrayList<Byte>(n).apply {
+            for (i in 0 until n) add((15 + (i * 7) % 70).toByte())
         }
-        return waves
+    }
+
+    private fun buildPttElement(path: String, durationMs: Int = 0): MsgElement {
+        val ms = (if (durationMs > 0) durationMs else estimatePttDurationMs(path)).coerceAtLeast(1000)
+        return msgUtilApiImpl.createPttElement(path, ms, defaultPttWaveAmplitudes(ms))
     }
 
     fun sendPic(peerUin: String, path: String, chatType: Int) {
@@ -218,8 +213,7 @@ object MsgTool : DexKitTask {
     }
 
     fun sendPtt(contact: Contact, path: String, durationMs: Int) {
-        val ms = (if (durationMs > 0) durationMs else estimatePttDurationMs(path)).coerceAtLeast(1000)
-        sendMsg(contact, arrayListOf(msgUtilApiImpl.createPttElement(path, ms, defaultPttWaveAmplitudes(ms))))
+        sendMsg(contact, arrayListOf(buildPttElement(path, durationMs)))
     }
 
     fun sendPtt(peerUin: String, path: String, chatType: Int, durationMs: Int) {

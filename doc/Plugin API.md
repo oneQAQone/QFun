@@ -166,9 +166,7 @@ list.forEach(this::log);
 - **方法重载 3**：`sendPtt(String PeerUin, String 语音路径, int 聊天类型, int durationMs)`
 - **方法重载 4**：`sendPtt(Object Contact对象, String 语音路径, int durationMs)`
 
-> `durationMs` 为毫秒。不传时从 silk 估算；失败回退 `1000ms`。
->
-> 实现会自动写入非空 `waveAmplitudes`（气泡波形数据）。空列表时部分 QQ 版本语音条不显示；无需脚本自行传 wave。
+> `durationMs` 为毫秒；不传时从 silk 估算，失败回退 `1000ms`。会自动写入非空 `waveAmplitudes`（空列表时部分版本语音条不显示）。
 
 #### 4. sendCard：发送 JSON 卡片
 - **方法重载 1**：`sendCard(String PeerUin, String JSON字符串, int 聊天类型)`
