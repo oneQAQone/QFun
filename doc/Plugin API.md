@@ -163,6 +163,10 @@ list.forEach(this::log);
 #### 3. sendPtt：发送语音
 - **方法重载 1**：`sendPtt(String PeerUin, String 语音路径, int 聊天类型)`
 - **方法重载 2**：`sendPtt(Object Contact对象, String 语音路径)`
+- **方法重载 3**：`sendPtt(String PeerUin, String 语音路径, int 聊天类型, int durationMs)`
+- **方法重载 4**：`sendPtt(Object Contact对象, String 语音路径, int durationMs)`
+
+> `durationMs` 为毫秒；不传时从 silk 估算，失败回退 `1000ms`。
 
 #### 4. sendCard：发送 JSON 卡片
 - **方法重载 1**：`sendCard(String PeerUin, String JSON字符串, int 聊天类型)`

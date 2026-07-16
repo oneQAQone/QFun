@@ -187,6 +187,15 @@ class PluginMethod(private val compiler: PluginCompiler) {
         runWithErrorHandle { MsgTool.sendPtt(contact, path) }
     }
 
+    /** durationMs 单位毫秒；<=0 时从 silk 估算 */
+    fun sendPtt(peerUin: String, path: String, chatType: Int, durationMs: Int) {
+        runWithErrorHandle { MsgTool.sendPtt(peerUin, path, chatType, durationMs) }
+    }
+
+    fun sendPtt(contact: Contact, path: String, durationMs: Int) {
+        runWithErrorHandle { MsgTool.sendPtt(contact, path, durationMs) }
+    }
+
     fun sendCard(peerUin: String, data: String, chatType: Int) {
         runWithErrorHandle { MsgTool.sendCard(peerUin, data, chatType) }
     }
