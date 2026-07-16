@@ -139,7 +139,10 @@ object MsgTool : DexKitTask {
                 msgUtilApiImpl.createPicElement(path, true, 0)
             }
 
-            "ptt" -> msgUtilApiImpl.createPttElement(value, estimatePttDurationMs(value), ArrayList())
+            "ptt" -> {
+                val ms = estimatePttDurationMs(value)
+                msgUtilApiImpl.createPttElement(value, ms, defaultPttWaveAmplitudes(ms))
+            }
             "video" -> msgUtilApiImpl.createVideoElement(value)
             "file" -> msgUtilApiImpl.createFileElement(value)
             "ark" -> {
@@ -183,6 +186,21 @@ object MsgTool : DexKitTask {
         }.getOrDefault(1000).coerceAtLeast(1000)
     }
 
+    /**
+     * QQ 气泡波形：PttElement.waveAmplitudes 为空时语音条可能不显示。
+     * createPttElement 第三参即写入该字段；官方录音侧会填真实振幅，脚本侧给一组非空假波形即可。
+     */
+    private fun defaultPttWaveAmplitudes(durationMs: Int): ArrayList<Byte> {
+        var n = durationMs / 40
+        if (n < 20) n = 20
+        if (n > 120) n = 120
+        val waves = ArrayList<Byte>(n)
+        for (i in 0 until n) {
+            waves.add((15 + ((i * 7) % 70)).toByte())
+        }
+        return waves
+    }
+
     fun sendPic(peerUin: String, path: String, chatType: Int) {
         sendMsgByType(peerUin, chatType, path, "pic")
     }
@@ -200,8 +218,8 @@ object MsgTool : DexKitTask {
     }
 
     fun sendPtt(contact: Contact, path: String, durationMs: Int) {
-        val ms = if (durationMs > 0) durationMs else estimatePttDurationMs(path)
-        sendMsg(contact, arrayListOf(msgUtilApiImpl.createPttElement(path, ms.coerceAtLeast(1000), ArrayList())))
+        val ms = (if (durationMs > 0) durationMs else estimatePttDurationMs(path)).coerceAtLeast(1000)
+        sendMsg(contact, arrayListOf(msgUtilApiImpl.createPttElement(path, ms, defaultPttWaveAmplitudes(ms))))
     }
 
     fun sendPtt(peerUin: String, path: String, chatType: Int, durationMs: Int) {
