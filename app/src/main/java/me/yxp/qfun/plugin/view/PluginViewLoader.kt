@@ -11,6 +11,7 @@ import me.yxp.qfun.plugin.loader.PluginManager
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.qq.FriendTool
 import me.yxp.qfun.utils.qq.QQCurrentEnv
+import kotlinx.coroutines.Job
 
 @HookItemAnnotation("监听聊天界面")
 object PluginViewLoader : BaseApiHookItem<Listener>() {
@@ -27,6 +28,8 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
     private var currentPluginView: PluginView? = null
     private var aioDelegate: AIODelegate? = null
 
+    private var showJob: Job? = null
+
     val currentContact: PluginContact
         get() = aioDelegate?.let {
             parseToPluginContact(it.aioContact.toString())
@@ -36,20 +39,25 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
 
         AIODelegate::class.java.getDeclaredMethod("show")
             .hookAfter(this) {
-                aioDelegate = it.thisObject as AIODelegate
+                val targetDelegate = it.thisObject as AIODelegate
+                aioDelegate = targetDelegate
 
                 if (currentContact.chatType != 0) {
                     hideView()
-                    showView()
+                    showView(targetDelegate)
                 }
-
-
             }
+
         AIODelegate::class.java.getDeclaredMethod("hide")
             .hookAfter(this) {
-                if (QQCurrentEnv.activity !is ScaleAIOActivity) hideView()
-            }
+                val targetDelegate = it.thisObject as AIODelegate
 
+                if (QQCurrentEnv.activity !is ScaleAIOActivity) {
+                    if (aioDelegate == targetDelegate) {
+                        hideView()
+                    }
+                }
+            }
     }
 
     private fun parseToPluginContact(input: String): PluginContact {
@@ -80,12 +88,15 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
         )
     }
 
-    private fun showView() {
+    private fun showView(expectedDelegate: AIODelegate) {
+        showJob?.cancel()
 
-        ModuleScope.launchMainDelayed(1) {
-            val activity = QQCurrentEnv.activity ?: return@launchMainDelayed
+        showJob = ModuleScope.launchMain {
+            if (aioDelegate != expectedDelegate) return@launchMain
+            val activity = QQCurrentEnv.activity ?: return@launchMain
 
             if (PluginManager.plugins.any { it.isRunning && it.compiler.menuItems.isNotEmpty() }) {
+                PluginView.dismissCurrent()
                 currentPluginView = PluginView(activity)
                 currentPluginView?.show()
             }
@@ -93,8 +104,10 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
     }
 
     private fun hideView() {
+        showJob?.cancel()
+        showJob = null
+
         currentPluginView?.dismiss()
         currentPluginView = null
     }
-
 }

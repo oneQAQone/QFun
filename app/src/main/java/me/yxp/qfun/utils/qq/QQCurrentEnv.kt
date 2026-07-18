@@ -25,8 +25,8 @@ object QQCurrentEnv {
         )
     }
 
-    val qQAppInterface
-        get() = MobileQQ.getMobileQQ().peekAppRuntime() as QQAppInterface
+    val qQAppInterface: QQAppInterface?
+        get() = MobileQQ.getMobileQQ().peekAppRuntime() as? QQAppInterface
 
     val activity: Activity?
         get() = runCatching {
@@ -55,13 +55,13 @@ object QQCurrentEnv {
 
     val currentUin: String
         get() = runCatching {
-            qQAppInterface.currentUin
+            qQAppInterface?.currentUin ?: ""
         }.getOrElse {
             globalPreference.getString("currentUin", "global")!!
         }
 
     val currentNickName: String?
-        get() = qQAppInterface.currentNickname
+        get() = qQAppInterface?.currentNickname
 
     val kernelMsgService
         get() = runCatching {
@@ -87,9 +87,9 @@ internal inline fun <reified T : QRouteApi> api(): T {
 }
 
 internal inline fun <reified T : IRuntimeService> runtime(): T {
-    return QQCurrentEnv.qQAppInterface.getRuntimeService(T::class.java, "")
+    return QQCurrentEnv.qQAppInterface!!.getRuntimeService(T::class.java, "")
 }
 
 internal inline fun <reified T : BusinessHandler> handler(): BusinessHandler {
-    return QQCurrentEnv.qQAppInterface.getBusinessHandler(T::class.java.name)
+    return QQCurrentEnv.qQAppInterface!!.getBusinessHandler(T::class.java.name)
 }

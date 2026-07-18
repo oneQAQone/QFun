@@ -124,7 +124,7 @@ object TroopTool {
                 addAttribute("req_pb_protocol_flag", true)
             }
 
-            QQCurrentEnv.qQAppInterface.sendToService(toServiceMsg)
+            QQCurrentEnv.qQAppInterface!!.sendToService(toServiceMsg)
             val actionText = if (enable) "设置管理成功" else "取消管理成功"
             Toasts.qqToast(2, actionText)
             return
@@ -213,7 +213,7 @@ object TroopTool {
             addAttribute("req_pb_protocol_flag", true)
         }
 
-        QQCurrentEnv.qQAppInterface.sendToService(toServiceMsg)
+        QQCurrentEnv.qQAppInterface!!.sendToService(toServiceMsg)
         Toasts.qqToast(2, "设置头衔成功")
     }
 

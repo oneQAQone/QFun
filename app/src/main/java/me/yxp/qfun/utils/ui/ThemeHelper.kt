@@ -25,7 +25,9 @@ object ThemeHelper {
         return when (getThemeMode()) {
             MODE_LIGHT -> false
             MODE_DARK -> true
-            else -> ThemeUtil.isInNightMode(QQCurrentEnv.qQAppInterface)
+            else -> QQCurrentEnv.qQAppInterface?.let {
+                ThemeUtil.isInNightMode(it)
+            } ?: false
         }
     }
 
