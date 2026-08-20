@@ -1,6 +1,5 @@
 package me.yxp.qfun.hook.chat
 
-import android.util.TypedValue
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.TextView
@@ -12,7 +11,6 @@ import me.yxp.qfun.conf.TimeConfig
 import me.yxp.qfun.hook.api.AIOViewUpdateListener
 import me.yxp.qfun.hook.base.BaseClickableHookItem
 import me.yxp.qfun.ui.pages.configs.ShowMsgTimePage
-import me.yxp.qfun.utils.qq.QQCurrentEnv.activity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

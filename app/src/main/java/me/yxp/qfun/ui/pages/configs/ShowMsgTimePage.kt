@@ -3,7 +3,6 @@ package me.yxp.qfun.ui.pages.configs
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -19,6 +18,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.platform.LocalLocale
 
 @Composable
 fun ShowMsgTimePage(
@@ -120,7 +120,7 @@ fun ShowMsgTimePage(
         Text("预览", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.textPrimary)
         Text(
             text = if (validateFormat(formatText)) {
-                SimpleDateFormat(formatText, Locale.getDefault()).format(Date())
+                SimpleDateFormat(formatText, LocalLocale.current.platformLocale).format(Date())
             } else {
                 "格式错误"
             },
