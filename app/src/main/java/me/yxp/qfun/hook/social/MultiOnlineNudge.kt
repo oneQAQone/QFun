@@ -16,6 +16,7 @@ import me.yxp.qfun.ui.core.compatibility.QFunCenterDialog
 import me.yxp.qfun.utils.hook.hookReplace
 import me.yxp.qfun.utils.hook.invokeOriginal
 import me.yxp.qfun.utils.hook.returnConstant
+import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.toClass
@@ -33,6 +34,7 @@ object MultiOnlineNudge : BaseSwitchHookItem() {
     private lateinit var rateLimitCheck: Method
 
     override fun onInit(): Boolean {
+        if (HostInfo.isTIM || (HostInfo.isQQ && HostInfo.versionCode < 14880)) return false
         val managerClass = "com.tencent.mobileqq.onlinestatus.proto.OnlineStatusNudgeManager".toClass
 
         sendNudge = managerClass.findMethod {

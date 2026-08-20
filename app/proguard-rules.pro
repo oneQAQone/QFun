@@ -40,10 +40,6 @@
     public void onPackageLoaded(...);
     public void onSystemServerLoaded(...);
 }
--keep,allowoptimization,allowobfuscation @io.github.libxposed.api.annotations.* class * {
-    @io.github.libxposed.api.annotations.BeforeInvocation <methods>;
-    @io.github.libxposed.api.annotations.AfterInvocation <methods>;
-}
 
 # 保持必要的属性和注解
 -keepattributes LineNumberTable,SourceFile,RuntimeVisibleAnnotations,AnnotationDefault
