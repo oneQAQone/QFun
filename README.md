@@ -123,6 +123,7 @@
 | [![LSPosed](https://img.shields.io/badge/LSPosed-Framework-blue?style=flat-square&logo=android)](https://github.com/LSPosed/LSPosed) | **现代化的 Xposed 框架**<br>提供了稳定、高效且支持作用域的运行环境。 |
 | [![DexKit](https://img.shields.io/badge/DexKit-Analysis-orange?style=flat-square&logo=c%2B%2B)](https://github.com/LuckyPray/DexKit) | **Native 级动态分析库**<br>赋予模块强大的运行时字节码查找与抗混淆能力。 |
 | [![Compose](https://img.shields.io/badge/Jetpack_Compose-UI_Toolkit-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose) | **现代化 UI 工具包**<br>构建了模块美观、流畅且支持动态主题的用户界面。 |
+| [![AndroidLiquidGlass](https://img.shields.io/badge/AndroidLiquidGlass-Liquid_Glass-E0245E?style=flat-square&logo=github)](https://github.com/Kyant0/AndroidLiquidGlass) | **液态玻璃与流体着色器**<br>提供了强大的 Compose 背景模糊、透镜折射与光影支持，并借鉴修改了其 catalog 示例中的流体胶囊导航栏实现。 |
 | [![LibXposed](https://img.shields.io/badge/LibXposed-Next_Gen_API-green?style=flat-square&logo=android)](https://github.com/libxposed/api) | **下一代 Hook 标准**<br>提供了跨框架兼容的底层 API 接口支持。 |
 | [![BeanShell](https://img.shields.io/badge/BeanShell-Script_Engine-brown?style=flat-square&logo=openjdk&logoColor=white)](https://github.com/beanshell/beanshell) | **轻量级 Java 脚本引擎**<br>提供了模块内置的动态脚本执行能力，支持用户通过编写脚本灵活扩展功能。 |
 | [![QAuxiliary](https://img.shields.io/badge/QAuxiliary-Architecture-8A2BE2?style=flat-square&logo=github)](https://github.com/cinit/QAuxiliary) | **架构兼容与注入实现**<br>借鉴了 Activity 代理注入及资源加载的成熟方案以及双框架支持，并参考了其多处核心 Hook 逻辑与代码实现。 |
