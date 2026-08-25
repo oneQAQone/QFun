@@ -138,7 +138,7 @@ class XposedDialogLifecycleOwner : LifecycleOwner, SavedStateRegistryOwner {
         savedStateRegistryController.performRestore(null)
     }
 
-    val lifecycle: Lifecycle
+    override val lifecycle: Lifecycle
         get() = lifecycleRegistry
 
     override val savedStateRegistry: SavedStateRegistry
