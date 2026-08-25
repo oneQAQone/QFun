@@ -24,14 +24,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -64,27 +65,26 @@ fun LiquidGlassTabBarContent(
     tabTags: List<String>,
     currentTag: String,
     badgeTexts: Map<Int, String>,
-    viewPager: View,
+    pageRootView: View,
     onTabSelected: (index: Int, tag: String) -> Unit
 ) {
     val isDark = ThemeUtil.isInNightMode(QQCurrentEnv.qQAppInterface)
     val baseBackdrop = rememberLayerBackdrop()
+    val currentComposeView = LocalView.current
 
     var redrawTrigger by remember { mutableLongStateOf(0L) }
-    DisposableEffect(viewPager) {
+    DisposableEffect(pageRootView) {
         val listener = ViewTreeObserver.OnPreDrawListener {
-            if (viewPager.isShown) redrawTrigger++
+            if (pageRootView.isShown) redrawTrigger++
             true
         }
-        viewPager.viewTreeObserver.addOnPreDrawListener(listener)
+        pageRootView.viewTreeObserver.addOnPreDrawListener(listener)
         onDispose {
-            if (viewPager.viewTreeObserver.isAlive) {
-                viewPager.viewTreeObserver.removeOnPreDrawListener(listener)
-            }
+            pageRootView.viewTreeObserver.removeOnPreDrawListener(listener)
         }
     }
 
-    val vpLoc = remember { IntArray(2) }
+    val rootLoc = remember { IntArray(2) }
     val capsuleLoc = remember { IntArray(2) }
 
     var sampleBmp by remember { mutableStateOf<Bitmap?>(null) }
@@ -113,18 +113,16 @@ fun LiquidGlassTabBarContent(
                     capsuleLoc[0] = bounds.left.roundToInt()
                     capsuleLoc[1] = bounds.top.roundToInt()
                 }
-                .graphicsLayer {
-                    alpha = 0.99f
-                }
+                .alpha(0f)
                 .layerBackdrop(baseBackdrop)
                 .drawWithContent {
                     redrawTrigger.let {
                         val w = size.width.roundToInt()
                         val h = size.height.roundToInt()
-                        if (w > 0 && h > 0 && viewPager.width > 0 && viewPager.height > 0) {
+                        if (w > 0 && h > 0) {
                             val scale = 0.5f
-                            val sw = (w * scale).toInt().coerceAtLeast(1)
-                            val sh = (h * scale).toInt().coerceAtLeast(1)
+                            val sw = (w * scale).toInt()
+                            val sh = (h * scale).toInt()
 
                             if (sampleBmp?.width != sw || sampleBmp?.height != sh) {
                                 sampleBmp?.recycle()
@@ -136,17 +134,16 @@ fun LiquidGlassTabBarContent(
                             val bmp = sampleBmp
                             val cvs = sampleCanvas
                             if (bmp != null && cvs != null) {
-                                viewPager.getLocationInWindow(vpLoc)
-                                val deltaX = (capsuleLoc[0] - vpLoc[0]).toFloat()
-                                val deltaY = (capsuleLoc[1] - vpLoc[1]).toFloat()
+                                pageRootView.getLocationInWindow(rootLoc)
+                                val deltaX = (capsuleLoc[0] - rootLoc[0]).toFloat()
+                                val deltaY = (capsuleLoc[1] - rootLoc[1]).toFloat()
 
                                 cvs.drawColor(AndroidColor.TRANSPARENT, PorterDuff.Mode.CLEAR)
                                 cvs.withScale(scale, scale) {
                                     translate(-deltaX, -deltaY)
-                                    try {
-                                        viewPager.draw(this)
-                                    } catch (_: Throwable) {
-                                    }
+                                    currentComposeView.visibility = View.INVISIBLE
+                                    pageRootView.draw(this)
+                                    currentComposeView.visibility = View.VISIBLE
                                 }
 
                                 drawImage(

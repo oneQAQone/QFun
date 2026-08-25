@@ -133,6 +133,7 @@ object LiquidGlassTabBar : BaseSwitchHookItem(), DexKitTask {
 
             hideView(tabLayout)
             val dragFrameLayout = tabLayout.parent as ViewGroup
+            val pageRootView = tabFrameLayout.parent.parent as ViewGroup
 
             dragFrameLayout.children
                 .filterIsInstance<QQBlurViewWrapper>()
@@ -150,11 +151,7 @@ object LiquidGlassTabBar : BaseSwitchHookItem(), DexKitTask {
 
             currentTabTag.value = tabLayout.currentTabTag
 
-            val viewPager = tabFrameLayout.getObjectByType(
-                "androidx.viewpager2.widget.ViewPager2".toClass
-            ) as View
-
-            ensureComposeView(dragFrameLayout, owner, viewPager)
+            ensureComposeView(dragFrameLayout, owner, pageRootView)
         }
     }
 
@@ -207,7 +204,11 @@ object LiquidGlassTabBar : BaseSwitchHookItem(), DexKitTask {
         }
     }
 
-    private fun ensureComposeView(realParent: ViewGroup, owner: SplashLifecycleOwner, viewPager: View) {
+    private fun ensureComposeView(
+        realParent: ViewGroup,
+        owner: SplashLifecycleOwner,
+        pageRootView: ViewGroup
+    ) {
         val existingView = realParent.findViewWithTag<ComposeView>(VIEW_TAG)
         if (existingView != null) return
 
@@ -221,7 +222,7 @@ object LiquidGlassTabBar : BaseSwitchHookItem(), DexKitTask {
                     tabTags = tabTags,
                     currentTag = currentTabTag.value,
                     badgeTexts = tabBadgeTexts,
-                    viewPager = viewPager,
+                    pageRootView = pageRootView,
                     onTabSelected = { index, tag ->
                         currentTabTag.value = tag
                         nativeTabLayout?.setCurrentTab(index)
