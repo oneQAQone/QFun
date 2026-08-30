@@ -25,16 +25,12 @@ import com.tencent.qui.quiblurview.QQBlurViewWrapper
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
-import me.yxp.qfun.utils.dexkit.DexKitTask
 import me.yxp.qfun.utils.hook.hookAfter
-import me.yxp.qfun.utils.hook.returnConstant
 import me.yxp.qfun.utils.reflect.callMethod
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.getObjectByType
 import me.yxp.qfun.utils.reflect.getObjectOrNull
 import me.yxp.qfun.utils.reflect.toClass
-import org.luckypray.dexkit.query.FindMethod
-import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
@@ -42,7 +38,7 @@ import java.lang.reflect.Method
     "用 Compose 液态玻璃导航栏替换 QQ 原生底部导航栏",
     HookCategory.OTHER
 )
-object LiquidGlassTabBar : BaseSwitchHookItem(), DexKitTask {
+object LiquidGlassTabBar : BaseSwitchHookItem() {
 
     override val isNeedRestart = true
 
@@ -68,7 +64,7 @@ object LiquidGlassTabBar : BaseSwitchHookItem(), DexKitTask {
 
     private lateinit var tabRebuildMethod: Method
     private lateinit var onTabChangedMethod: Method
-    private lateinit var needShowTabHostDivider: Method
+    private lateinit var isSwitchOnMethod: Method
 
     private val lifecycleMethods = mutableListOf<Pair<Method, Lifecycle.Event>>()
 
@@ -85,16 +81,26 @@ object LiquidGlassTabBar : BaseSwitchHookItem(), DexKitTask {
             lifecycleMethods += baseActivityClass.findMethod { name = methodName } to event
         }
 
-        needShowTabHostDivider = requireMethod("needShowTabHostDivider")
+        isSwitchOnMethod = "com.tencent.mobileqq.unitedconfig_android.api.impl.UnitedConfigManagerImpl".toClass
+            .getDeclaredMethod("isSwitchOn", String::class.java, Boolean::class.javaPrimitiveType)
         return super.onInit()
     }
 
     override fun onHook() {
+        hookUnitedConfigSwitch()
         hookLifecycle()
         hookTabRebuild()
         hookTabChanged()
         hookQuiBadge()
-        needShowTabHostDivider.returnConstant(this, false)
+    }
+
+    private fun hookUnitedConfigSwitch() {
+        isSwitchOnMethod.hookAfter(this) { param ->
+            when (param.args[0] as String) {
+                "tab_layout_9065_116522266" -> param.result = true
+                "tab_host_divider_switch_9.0_887617015" -> param.result = false
+            }
+        }
     }
 
     private fun hookLifecycle() {
@@ -241,13 +247,4 @@ object LiquidGlassTabBar : BaseSwitchHookItem(), DexKitTask {
         )
     }
 
-    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
-        "needShowTabHostDivider" to FindMethod().apply {
-            searchPackages("com.tencent.mobileqq.utils")
-            matcher {
-                returnType(Boolean::class.java)
-                usingEqStrings("tab_host_divider_switch_9.0_887617015")
-            }
-        }
-    )
 }
