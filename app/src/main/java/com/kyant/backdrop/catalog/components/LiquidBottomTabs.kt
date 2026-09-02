@@ -1,7 +1,9 @@
 /*
- * 基于官方 kyant backdrop catalog 示例修改，两处差异：
+ * 基于官方 kyant backdrop catalog 示例修改，针对 QQ 宿主环境的差异与适配：
  * 1. snapshotFlow 异步监听选中项在 QQ 宿主下响应延迟，改为直接读取 selectedTabIndex() 同步驱动。
  * 2. DrawerFrame 会拦截底部导航栏右滑手势，拖拽开始时禁止父级拦截，保证滑块可自由滑动。
+ * 3. 手势抬手与子组件 onClick 同时触发会导致单击被识别为双击（如单击误回顶部），通过 dragStartIndex 区分纯点击与真实拖拽。
+ * 4. QQ 动态开启/关闭频道等 Tab 时数量会变化，给 remember 与 LaunchedEffect 增加 tabsCount 监听防止滑块越界。
  */
 package com.kyant.backdrop.catalog.components
 
@@ -98,17 +100,21 @@ fun LiquidBottomTabs(
         }
 
         val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
-        // 拖拽时禁止父级拦截
+        // 拖拽时禁止父级拦截，见文件头说明 2
         val view = LocalView.current
         val animationScope = rememberCoroutineScope()
 
-        // 直接读取选中项，见文件头说明
+        // 直接读取选中项，见文件头说明 1
         val targetIndex = selectedTabIndex().coerceIn(0, tabsCount - 1)
         var currentIndex by remember {
             mutableIntStateOf(targetIndex)
         }
+        // 记录本次拖拽起始索引，见文件头说明 3
+        var dragStartIndex by remember {
+            mutableIntStateOf(targetIndex)
+        }
 
-        val dampedDragAnimation = remember(animationScope) {
+        val dampedDragAnimation = remember(animationScope, tabsCount) {
             DampedDragAnimation(
                 animationScope = animationScope,
                 initialValue = targetIndex.toFloat(),
@@ -117,13 +123,18 @@ fun LiquidBottomTabs(
                 initialScale = 1f,
                 pressedScale = 78f / 56f,
                 // 禁止父级拦截，防止 DrawerFrame 抢右滑
-                onDragStarted = { view.parent?.requestDisallowInterceptTouchEvent(true) },
+                onDragStarted = {
+                    dragStartIndex = value.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
+                    view.parent?.requestDisallowInterceptTouchEvent(true)
+                },
                 onDragStopped = {
                     val target = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
                     currentIndex = target
                     animateToValue(target.toFloat())
-                    // 拖拽结束直接回调切换
-                    onTabSelected(target)
+                    // 只有当用户真正把滑块拖到别的 Tab 时才切换；纯点击交给 item onClick（见文件头说明 3）
+                    if (target != dragStartIndex) {
+                        onTabSelected(target)
+                    }
                     animationScope.launch {
                         offsetAnimation.animateTo(
                             0f,
@@ -143,15 +154,16 @@ fun LiquidBottomTabs(
             )
         }
 
-        // 外部选中项变化时同步滑块
-        LaunchedEffect(targetIndex) {
-            if (currentIndex != targetIndex) {
-                currentIndex = targetIndex
-                dampedDragAnimation.animateToValue(targetIndex.toFloat())
+        // 外部选中项变化时同步滑块；Tab 数量变化时也复位滑块范围，防止滑出界外（见文件头说明 4）
+        LaunchedEffect(targetIndex, tabsCount) {
+            val newIndex = targetIndex.coerceIn(0, tabsCount - 1)
+            if (currentIndex != newIndex) {
+                currentIndex = newIndex
+                dampedDragAnimation.animateToValue(newIndex.toFloat())
             }
         }
 
-        val interactiveHighlight = remember(animationScope) {
+        val interactiveHighlight = remember(animationScope, tabsCount) {
             InteractiveHighlight(
                 animationScope = animationScope,
                 position = { size, _ ->
