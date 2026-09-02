@@ -55,6 +55,7 @@ private val tabNameMap = mapOf(
     "com.tencent.mobileqq.leba.Leba" to "动态",
     "com.tencent.mobileqq.activity.qcircle.QCircleFrame" to "小世界",
     "com.tencent.mobileqq.activity.qqsettingmev3.MeFrame" to "我的",
+    "com.tencent.mobileqq.activity.tim.mine.Mine" to "我的",
     "com.tencent.mobileqq.ai.AIAssistantFrame" to "AI助手",
     "com.tencent.mobileqq.activity.leba.QzoneFrame" to "QQ空间",
     "com.tencent.mobileqq.gamecenter.qa.metadream.MetaDreamFrame" to "元梦之星",

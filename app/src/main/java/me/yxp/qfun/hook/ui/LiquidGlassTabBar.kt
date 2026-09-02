@@ -25,12 +25,18 @@ import com.tencent.qui.quiblurview.QQBlurViewWrapper
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
+import me.yxp.qfun.utils.dexkit.DexKitTask
 import me.yxp.qfun.utils.hook.hookAfter
+import me.yxp.qfun.utils.hook.hookBefore
+import me.yxp.qfun.utils.hook.returnConstant
 import me.yxp.qfun.utils.reflect.callMethod
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.getObjectByType
 import me.yxp.qfun.utils.reflect.getObjectOrNull
+import me.yxp.qfun.utils.reflect.setObjectByType
 import me.yxp.qfun.utils.reflect.toClass
+import org.luckypray.dexkit.query.FindMethod
+import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 
 @HookItemAnnotation(
@@ -38,7 +44,7 @@ import java.lang.reflect.Method
     "用 Compose 液态玻璃导航栏替换 QQ 原生底部导航栏",
     HookCategory.OTHER
 )
-object LiquidGlassTabBar : BaseSwitchHookItem() {
+object LiquidGlassTabBar : BaseSwitchHookItem(), DexKitTask {
 
     override val isNeedRestart = true
 
@@ -64,7 +70,8 @@ object LiquidGlassTabBar : BaseSwitchHookItem() {
 
     private lateinit var tabRebuildMethod: Method
     private lateinit var onTabChangedMethod: Method
-    private lateinit var isSwitchOnMethod: Method
+    private lateinit var initTabLayoutSwitch: Method
+    private lateinit var needShowTabHostDivider: Method
 
     private val lifecycleMethods = mutableListOf<Pair<Method, Lifecycle.Event>>()
 
@@ -81,25 +88,19 @@ object LiquidGlassTabBar : BaseSwitchHookItem() {
             lifecycleMethods += baseActivityClass.findMethod { name = methodName } to event
         }
 
-        isSwitchOnMethod = "com.tencent.mobileqq.unitedconfig_android.api.impl.UnitedConfigManagerImpl".toClass
-            .getDeclaredMethod("isSwitchOn", String::class.java, Boolean::class.javaPrimitiveType)
+        needShowTabHostDivider = requireMethod("needShowTabHostDivider")
+        initTabLayoutSwitch = requireMethod("initTabLayoutSwitch")
         return super.onInit()
     }
 
     override fun onHook() {
-        hookUnitedConfigSwitch()
         hookLifecycle()
         hookTabRebuild()
         hookTabChanged()
         hookQuiBadge()
-    }
-
-    private fun hookUnitedConfigSwitch() {
-        isSwitchOnMethod.hookAfter(this) { param ->
-            when (param.args[0] as String) {
-                "tab_layout_9065_116522266" -> param.result = true
-                "tab_host_divider_switch_9.0_887617015" -> param.result = false
-            }
+        needShowTabHostDivider.returnConstant(this, false)
+        initTabLayoutSwitch.hookBefore(this) {
+            it.thisObject.setObjectByType(true)
         }
     }
 
@@ -110,6 +111,10 @@ object LiquidGlassTabBar : BaseSwitchHookItem() {
 
                 when (event) {
                     Lifecycle.Event.ON_CREATE -> {
+                        nativeTabLayout = null
+                        tabTags.clear()
+                        tabBadgeTexts.clear()
+                        currentTabTag.value = ""
                         lifecycleOwner = SplashLifecycleOwner(activity).also {
                             it.handle(Lifecycle.Event.ON_CREATE)
                         }
@@ -149,7 +154,9 @@ object LiquidGlassTabBar : BaseSwitchHookItem() {
                 $$"androidx.recyclerview.widget.RecyclerView$Adapter".toClass
             )
             val tabSpecList = viewPagerAdapter.getObjectByType<ArrayList<*>>()
-            val tags = tabSpecList.map { it.callMethod("getTag") as String }
+
+            val tags = tabSpecList.mapNotNull { it.callMethod("getTag") as? String }
+            if (tags.isEmpty()) return@hookAfter
 
             tabTags.clear()
             tabTags.addAll(tags)
@@ -246,5 +253,20 @@ object LiquidGlassTabBar : BaseSwitchHookItem() {
             )
         )
     }
+
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
+        "needShowTabHostDivider" to FindMethod().apply {
+            searchPackages("com.tencent.mobileqq.utils")
+            matcher {
+                usingStrings("needShowTabHostDivider")
+            }
+        },
+        "initTabLayoutSwitch" to FindMethod().apply {
+            searchPackages("com.tencent.mobileqq.util")
+            matcher {
+                usingStrings("initTabLayoutSwitch")
+            }
+        }
+    )
 
 }
