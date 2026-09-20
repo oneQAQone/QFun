@@ -19,8 +19,8 @@ import java.lang.reflect.Method
 object HideQmate : BaseSwitchHookItem() {
 
     private const val API_IMPL = "com.tencent.mobileqq.qmate.api.impl.QmateApiImpl"
-    private const val SERVICE_IMPL = "com.tencent.mobileqq.qmate.api.impl.QmateServiceImpl" // 9.3.65 开关下沉到此
-    private const val SWITCHER = "com.tencent.mobileqq.qmate.api.QmateSwitcher" // 9.3.65 新增
+    private const val SERVICE_IMPL = "com.tencent.mobileqq.qmate.api.impl.QmateServiceImpl"
+    private const val SWITCHER = "com.tencent.mobileqq.qmate.api.QmateSwitcher"
     private const val REPOSITORY = "com.tencent.ntcompose.business.qmate.home.repo.QmateRepository"
 
     private lateinit var isQmateEnable: Method
@@ -47,7 +47,6 @@ object HideQmate : BaseSwitchHookItem() {
             paramTypes(long)
         }
 
-        // service 与 switcher 为 9.3.65 独有，取不到即跳过
         val service = SERVICE_IMPL.clazz
         isServiceEnable = service?.findMethodOrNull {
             name = "isQmateEnable"
@@ -64,7 +63,6 @@ object HideQmate : BaseSwitchHookItem() {
             paramCount = 0
         }
 
-        // getQmateInfo(uin, onSuccess, onError)，9.3.25 中混淆名为 b
         val function1 = "kotlin.jvm.functions.Function1".clazz
         getQmateInfo = function1?.let {
             REPOSITORY.clazz?.findMethodOrNull {
