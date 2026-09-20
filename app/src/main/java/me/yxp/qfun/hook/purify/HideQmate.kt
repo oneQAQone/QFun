@@ -5,9 +5,9 @@ import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
 import me.yxp.qfun.utils.hook.doNothing
 import me.yxp.qfun.utils.hook.returnConstant
-import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.reflect.clazz
+import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.findMethodOrNull
 import java.lang.reflect.Method
 
@@ -18,17 +18,16 @@ import java.lang.reflect.Method
 )
 object HideQmate : BaseSwitchHookItem() {
 
-    /**
-     * 秋秋人能力接口 IQmateApi 的唯一实现。
-     * QmateAIOHelper 与 QmateFloatVM 都以 invoke-interface 调用它，hook 实现类即可拦截。
-     */
     private const val API_IMPL = "com.tencent.mobileqq.qmate.api.impl.QmateApiImpl"
-
-    /** 数据层，getQmateInfo(uin, onSuccess, onError) 在 QQ 9.3.25 中的混淆名为 b */
+    private const val SERVICE_IMPL = "com.tencent.mobileqq.qmate.api.impl.QmateServiceImpl" // 9.3.65 开关下沉到此
+    private const val SWITCHER = "com.tencent.mobileqq.qmate.api.QmateSwitcher" // 9.3.65 新增
     private const val REPOSITORY = "com.tencent.ntcompose.business.qmate.home.repo.QmateRepository"
 
     private lateinit var isQmateEnable: Method
     private lateinit var isQmateSwitchOn: Method
+    private var isServiceEnable: Method? = null
+    private var isConversationEnable: Method? = null
+    private var switcherSwitch: Method? = null
     private var getQmateInfo: Method? = null
 
     override fun onInit(): Boolean {
@@ -37,36 +36,40 @@ object HideQmate : BaseSwitchHookItem() {
 
         val impl = API_IMPL.clazz ?: return false
 
-        // 这两个开关决定 QmateAIOHelper 的入口图标与 QmateFloatVM 的浮动精灵是否展示
-        val enable = impl.findMethodOrNull {
+        isQmateEnable = impl.findMethod {
             name = "isQmateEnable"
             returnType = boolean
         }
-        val switchOn = impl.findMethodOrNull {
+
+        isQmateSwitchOn = impl.findMethod {
             name = "isQmateSwitchOn"
             returnType = boolean
             paramTypes(long)
         }
 
-        if (enable == null || switchOn == null) {
-            LogUtils.e(
-                this,
-                NoSuchMethodException(
-                    "QmateApiImpl 开关未命中: isQmateEnable=${enable != null}, isQmateSwitchOn=${switchOn != null}"
-                )
-            )
-            return false
+        // service 与 switcher 为 9.3.65 独有，取不到即跳过
+        val service = SERVICE_IMPL.clazz
+        isServiceEnable = service?.findMethodOrNull {
+            name = "isQmateEnable"
+            returnType = boolean
+        }
+        isConversationEnable = service?.findMethodOrNull {
+            name = "isQmateConversationEnable"
+            returnType = boolean
         }
 
-        isQmateEnable = enable
-        isQmateSwitchOn = switchOn
+        switcherSwitch = SWITCHER.clazz?.findMethodOrNull {
+            name = "a"
+            returnType = boolean
+            paramCount = 0
+        }
 
-        // 数据层兜底，尽力而为：回调永不返回，入口图标也就无从刷新
+        // getQmateInfo(uin, onSuccess, onError)，9.3.25 中混淆名为 b
         val function1 = "kotlin.jvm.functions.Function1".clazz
-        if (function1 != null) {
-            getQmateInfo = REPOSITORY.clazz?.findMethodOrNull {
+        getQmateInfo = function1?.let {
+            REPOSITORY.clazz?.findMethodOrNull {
                 returnType = void
-                paramTypes(long, function1, function1)
+                paramTypes(long, it, it)
             }
         }
 
@@ -76,6 +79,9 @@ object HideQmate : BaseSwitchHookItem() {
     override fun onHook() {
         isQmateEnable.returnConstant(this, false)
         isQmateSwitchOn.returnConstant(this, false)
+        isServiceEnable?.returnConstant(this, false)
+        isConversationEnable?.returnConstant(this, false)
+        switcherSwitch?.returnConstant(this, false)
         getQmateInfo?.doNothing(this)
     }
 
