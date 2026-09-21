@@ -51,12 +51,17 @@ fun EmoticonExportPage(
 ) {
     var selected by remember(currentConfig) { mutableStateOf(currentConfig.selected) }
     var emoticons by remember { mutableStateOf<List<Any>>(emptyList()) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var summary by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(true) }
     var reloadKey by remember { mutableStateOf(0) }
 
     LaunchedEffect(reloadKey) {
         loading = true
-        emoticons = withContext(Dispatchers.IO) { EmoticonExport.loadEmoticons() }
+        val result = withContext(Dispatchers.IO) { EmoticonExport.loadEmoticons() }
+        emoticons = result.items
+        error = result.error
+        summary = withContext(Dispatchers.IO) { EmoticonExport.summary(result.items) }
         loading = false
     }
 
@@ -89,7 +94,7 @@ fun EmoticonExportPage(
             }
             ActionItem(
                 title = if (loading) "读取中…" else "刷新列表（${emoticons.size} 个）",
-                description = "收藏夹变动后重新读取",
+                description = if (summary.isBlank()) "收藏夹变动后重新读取" else summary,
                 onClick = { reloadKey++ }
             )
         }
@@ -98,7 +103,9 @@ fun EmoticonExportPage(
             when {
                 loading -> Hint("读取中…")
 
-                emoticons.isEmpty() -> Hint("没读到收藏表情，确认已登录 QQ 且收藏夹里有自定义表情")
+                error != null -> Hint("读取失败：$error")
+
+                emoticons.isEmpty() -> Hint("收藏夹里没有自定义表情")
 
                 else -> LazyVerticalGrid(
                     columns = GridCells.Fixed(COLUMNS),
@@ -108,7 +115,7 @@ fun EmoticonExportPage(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(emoticons, key = { EmoticonExport.idOf(it) }) { item ->
+                    items(emoticons) { item ->
                         val id = EmoticonExport.idOf(item)
                         EmoticonCell(
                             item = item,
