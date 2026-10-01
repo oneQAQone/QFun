@@ -15,7 +15,12 @@ private val AD_SLOTS = listOf(
     Triple(
         AdConfig.QZONE_FEED,
         "QQ空间信息流广告",
-        "空间/好友动态里插入的广告条目"
+        "空间/好友动态/空友爱看里插入的广告条目（新旧两套信息流都覆盖）"
+    ),
+    Triple(
+        AdConfig.QZONE_RECOMMEND_AD,
+        "空友爱看推荐流广告",
+        "「空友爱看」推荐流自己拉取的预加载广告（独立链路，与其他广告位互不影响）"
     ),
     Triple(
         AdConfig.GDT_NATIVE,

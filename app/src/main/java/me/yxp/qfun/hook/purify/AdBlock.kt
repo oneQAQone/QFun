@@ -6,19 +6,23 @@ import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.conf.AdConfig
 import me.yxp.qfun.hook.base.BaseClickableHookItem
 import me.yxp.qfun.ui.pages.configs.AdBlockPage
+import me.yxp.qfun.utils.dexkit.DexKitTask
 import me.yxp.qfun.utils.hook.hookReplace
 import me.yxp.qfun.utils.hook.invokeOriginal
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.reflect.clazz
 import me.yxp.qfun.utils.reflect.findMethodOrNull
 import me.yxp.qfun.utils.reflect.findMethods
+import org.luckypray.dexkit.query.FindMethod
+import org.luckypray.dexkit.query.base.BaseMatcher
+import java.lang.reflect.Method
 
 @HookItemAnnotation(
     "广告净化",
     "按位置屏蔽广告：空间信息流 / GDT 原生与横幅 / 开屏加载页 / 动态购物红点，可分别开关",
     HookCategory.PURIFY
 )
-object AdBlock : BaseClickableHookItem<AdConfig>(AdConfig.serializer()) {
+object AdBlock : BaseClickableHookItem<AdConfig>(AdConfig.serializer()), DexKitTask {
 
     override val defaultConfig = AdConfig()
 
@@ -47,6 +51,26 @@ object AdBlock : BaseClickableHookItem<AdConfig>(AdConfig.serializer()) {
     private var feedTypeClass: Class<*>? = null
     private var hideType: Any? = null
 
+    private const val FEED_PRO_TYPE = "com.qzone.reborn.feedpro.itemview.QzoneFeedProType"
+
+    private val FEED_PRO_AD_DETECTORS = listOf(
+        "com.qzone.reborn.feedpro.itemview.ad.detector.a",
+        "com.qzone.reborn.feedpro.itemview.ad.detector.b",
+        "com.qzone.reborn.feedpro.itemview.ad.detector.c",
+        "com.qzone.reborn.feedpro.itemview.ad.detector.d",
+        "com.qzone.reborn.feedpro.itemview.ad.detector.e",
+        "com.qzone.reborn.feedpro.itemview.ad.detector.f",
+        "com.qzone.reborn.feedpro.itemview.ad.detector.g",
+        "com.qzone.reborn.feedpro.itemview.ad.detector.h",
+        "com.qzone.reborn.feedpro.itemview.ad.detector.i",
+        "com.qzone.reborn.feedpro.itemview.ad.detector.j",
+        "com.qzone.reborn.feedpro.itemview.ad.detector.k"
+    )
+
+    private var feedProEmptyType: Any? = null
+
+    private var recommendPreloadAd: Method? = null
+
     private fun blocked(key: String) = key in config.blocked
 
     override fun onInit(): Boolean {
@@ -56,6 +80,11 @@ object AdBlock : BaseClickableHookItem<AdConfig>(AdConfig.serializer()) {
         feedTypeClass = QZONE_FEED_TYPE.clazz
         hideType = feedTypeClass?.enumConstants
             ?.firstOrNull { (it as? Enum<*>)?.name == "UNIQUE_TYPE_HIDE" }
+
+        feedProEmptyType = FEED_PRO_TYPE.clazz?.enumConstants
+            ?.firstOrNull { (it as? Enum<*>)?.name == "UNIQUE_TYPE_UNKNOWN" }
+
+        recommendPreloadAd = runCatching { requireMethod("recommendPreloadAd") }.getOrNull()
 
         return super.onInit()
     }
@@ -135,7 +164,34 @@ object AdBlock : BaseClickableHookItem<AdConfig>(AdConfig.serializer()) {
                     if (blocked(AdConfig.LEBA_SHOPPING)) null else param.invokeOriginal()
                 }
         }
+
+        val proType = FEED_PRO_TYPE.clazz
+        val proEmpty = feedProEmptyType
+        if (proType != null && proEmpty != null) {
+            FEED_PRO_AD_DETECTORS.forEach { name ->
+                name.clazz
+                    ?.findMethodOrNull {
+                        returnType = proType
+                        paramCount = 0
+                    }
+                    ?.hookReplace(this) { param ->
+                        if (blocked(AdConfig.QZONE_FEED)) proEmpty else param.invokeOriginal()
+                    }
+            }
+        }
+
+        recommendPreloadAd?.hookReplace(this) { param ->
+            if (blocked(AdConfig.QZONE_RECOMMEND_AD)) null else param.invokeOriginal()
+        }
     }
+
+    override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
+        "recommendPreloadAd" to FindMethod().apply {
+            matcher {
+                usingStrings("handleRecommendFeedPreloadAdRequest skip, not dual tab mode")
+            }
+        }
+    )
 
     @Composable
     override fun ConfigContent(onDismiss: () -> Unit) {
