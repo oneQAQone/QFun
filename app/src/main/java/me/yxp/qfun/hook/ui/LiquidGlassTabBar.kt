@@ -30,10 +30,10 @@ import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.hook.hookBefore
 import me.yxp.qfun.utils.hook.returnConstant
 import me.yxp.qfun.utils.reflect.callMethod
+import me.yxp.qfun.utils.reflect.findField
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.getObjectByType
 import me.yxp.qfun.utils.reflect.getObjectOrNull
-import me.yxp.qfun.utils.reflect.setObjectByType
 import me.yxp.qfun.utils.reflect.toClass
 import org.luckypray.dexkit.query.FindMethod
 import org.luckypray.dexkit.query.base.BaseMatcher
@@ -100,7 +100,9 @@ object LiquidGlassTabBar : BaseSwitchHookItem(), DexKitTask {
         hookQuiBadge()
         needShowTabHostDivider.returnConstant(this, false)
         initTabLayoutSwitch.hookBefore(this) {
-            it.thisObject.setObjectByType(true)
+            initTabLayoutSwitch.declaringClass.findField {
+                type = Boolean::class.java
+            }.set(null, true)
         }
     }
 

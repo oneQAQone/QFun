@@ -23,7 +23,6 @@ import me.yxp.qfun.utils.reflect.getObjectByType
 import me.yxp.qfun.utils.reflect.getObjectByTypeOrNull
 import me.yxp.qfun.utils.reflect.newInstanceWithArgs
 import me.yxp.qfun.utils.reflect.setObjectByType
-import me.yxp.qfun.utils.ui.ThemeHelper
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.base.BaseMatcher
 
@@ -116,13 +115,12 @@ object OnMenuBuild : BaseApiHookItem<MenuClickListener>(), DexKitTask {
         val activity = QQCurrentEnv.activity ?: throw IllegalStateException("Activity is null")
         val args = menuKey.split(",")
         val menuName = args[2]
-        val isNight = ThemeHelper.isNightMode()
 
         val layout = LayoutInflater.from(activity).inflate(R.layout.item_msg_menu, null)
         val nameText = layout.findViewById<TextView>(R.id.tv_msg_menu)
         nameText.apply {
             text = menuName
-            setTextColor(if (isNight) Color.WHITE else Color.BLACK)
+            setTextColor(Color.WHITE)
         }
         layout.setOnClickListener {
             try {
