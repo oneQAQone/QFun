@@ -1,5 +1,6 @@
 package me.yxp.qfun.hook.purify
 
+import android.view.View
 import androidx.compose.runtime.Composable
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
@@ -7,8 +8,10 @@ import me.yxp.qfun.conf.AdConfig
 import me.yxp.qfun.hook.base.BaseClickableHookItem
 import me.yxp.qfun.ui.pages.configs.AdBlockPage
 import me.yxp.qfun.utils.dexkit.DexKitTask
+import me.yxp.qfun.utils.hook.ItemBindHooks
 import me.yxp.qfun.utils.hook.hookReplace
 import me.yxp.qfun.utils.hook.invokeOriginal
+import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.reflect.clazz
 import me.yxp.qfun.utils.reflect.findMethodOrNull
@@ -68,6 +71,8 @@ object AdBlock : BaseClickableHookItem<AdConfig>(AdConfig.serializer()), DexKitT
     )
 
     private var feedProEmptyType: Any? = null
+
+    private const val AD_ITEM_VIEW_PACKAGE = ".itemview.ad."
 
     private var recommendPreloadAd: Method? = null
 
@@ -182,6 +187,20 @@ object AdBlock : BaseClickableHookItem<AdConfig>(AdConfig.serializer()), DexKitT
 
         recommendPreloadAd?.hookReplace(this) { param ->
             if (blocked(AdConfig.QZONE_RECOMMEND_AD)) null else param.invokeOriginal()
+        }
+
+        installAdItemFilter()
+    }
+
+    private fun installAdItemFilter() {
+        ItemBindHooks.install(this) { _, itemView ->
+            if (!blocked(AdConfig.QZONE_FEED)) return@install
+            if (!itemView.javaClass.name.contains(AD_ITEM_VIEW_PACKAGE)) return@install
+            runCatching {
+                itemView.visibility = View.GONE
+                itemView.layoutParams?.height = 0
+                itemView.requestLayout()
+            }.onFailure { LogUtils.e(this, it) }
         }
     }
 
