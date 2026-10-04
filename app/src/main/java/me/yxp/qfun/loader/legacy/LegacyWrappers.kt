@@ -11,8 +11,11 @@ class LegacyHookParam(val param: XC_MethodHook.MethodHookParam) : HookParam {
     
     override val method: Member get() = param.method
 
-    override val thisObject: Any get() = param.thisObject
-    
+    override val thisObject: Any
+        get() = param.thisObject ?: throw IllegalStateException(
+            "Cannot access 'thisObject' on static method: $method"
+        )
+
     override var args: Array<Any?>
         get() = param.args
         set(value) { param.args = value }

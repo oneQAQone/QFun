@@ -83,6 +83,7 @@
 | :--- | :--- | :--- |
 | **✅ Root 环境** | **LSPosed (Zygisk/Riru)** | **强烈推荐**。支持 Scope 作用域模式，性能损耗最小，Hook 稳定性最高。 |
 | **🛡️ 免 Root 环境** | **LSPatch 及主流免 Root 框架** | **推荐**。通过修补 APK 的方式集成 Xposed 环境，适合无法解锁 Bootloader 的设备。 |
+| **⚡ Zygisk 模式** | **Zygisk** | **推荐**。无需依赖 LSPosed，通过 Zygisk 直接加载模块。⚠️ **不能与其他注入同一宿主的 LSPosed 模块同时使用**，否则可能发生 Hook 冲突、功能异常或闪退。 |
 | *其他环境* | *EdXposed / 太极 / VMOS* | *理论支持*，但属于旧一代技术或容器环境，可能存在兼容性问题，未做全面测试。 |
 
 # 反馈与日志
@@ -125,6 +126,7 @@
 | [![Compose](https://img.shields.io/badge/Jetpack_Compose-UI_Toolkit-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose) | **现代化 UI 工具包**<br>构建了模块美观、流畅且支持动态主题的用户界面。 |
 | [![AndroidLiquidGlass](https://img.shields.io/badge/AndroidLiquidGlass-Liquid_Glass-E0245E?style=flat-square&logo=github)](https://github.com/Kyant0/AndroidLiquidGlass) | **液态玻璃与流体着色器**<br>提供了强大的 Compose 背景模糊、透镜折射与光影支持，并借鉴修改了其 catalog 示例中的流体胶囊导航栏实现。 |
 | [![LibXposed](https://img.shields.io/badge/LibXposed-Next_Gen_API-green?style=flat-square&logo=android)](https://github.com/libxposed/api) | **下一代 Hook 标准**<br>提供了跨框架兼容的底层 API 接口支持。 |
+| [![LSPlant](https://img.shields.io/badge/LSPlant-ART_Hook-blueviolet?style=flat-square&logo=android)](https://github.com/LSPosed/LSPlant) | **ART Hook 框架**<br>为 Zygisk 模式提供底层 Hook 与运行时支持。 |
 | [![BeanShell](https://img.shields.io/badge/BeanShell-Script_Engine-brown?style=flat-square&logo=openjdk&logoColor=white)](https://github.com/beanshell/beanshell) | **轻量级 Java 脚本引擎**<br>提供了模块内置的动态脚本执行能力，支持用户通过编写脚本灵活扩展功能。 |
 | [![QAuxiliary](https://img.shields.io/badge/QAuxiliary-Architecture-8A2BE2?style=flat-square&logo=github)](https://github.com/cinit/QAuxiliary) | **架构兼容与注入实现**<br>借鉴了 Activity 代理注入及资源加载的成熟方案以及双框架支持，并参考了其多处核心 Hook 逻辑与代码实现。 |
 | [![TCQT](https://img.shields.io/badge/TCQT-Interfaces-F7DF1E?style=flat-square&logo=github&logoColor=black)](https://github.com/callng/TCQT) | **编译时接口与逻辑参考**<br>借鉴了关键业务类的编译时接口定义，同时参考了其部分 Hook 点位分析与功能实现写法。 |

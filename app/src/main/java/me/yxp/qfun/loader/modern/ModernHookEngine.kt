@@ -21,7 +21,10 @@ class ModernHookEngine(private val base: XposedInterface) : IHookEngine {
         val handle = base.hook(method as Executable).setPriority(priority).intercept { chain ->
             val param = ModernHookParam(chain)
             callback(param)
-            if (param.isReturnEarly) return@intercept param.result
+            if (param.isReturnEarly) {
+                param.throwable?.let { throw it }
+                return@intercept param.result
+            }
             return@intercept chain.proceed(param.args)
         }
         return Unhook { handle.unhook() }

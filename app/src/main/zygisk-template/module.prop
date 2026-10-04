@@ -1,0 +1,7 @@
+id=qfun_zygisk
+name=QFun Zygisk
+version=v${version}
+versionCode=${versionCode}
+author=github@oneQAQone
+uuid=${uuid}
+description=基于 LSPlant 与 Zygisk 的 QFun 原生注入模块，支持 QQ/TIM 及其多用户分身注入与 WebUI 目标控制。

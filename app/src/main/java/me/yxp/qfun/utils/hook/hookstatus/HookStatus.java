@@ -78,6 +78,9 @@ public class HookStatus {
     }
 
     public static boolean isZygoteHookMode() {
+        if ("Activated".equals(System.getenv("QFUN_ZYGISK_STATE"))) {
+            return true;
+        }
         return HookStatusImpl.sZygoteHookMode;
     }
 
@@ -186,6 +189,9 @@ public class HookStatus {
     }
 
     public static String getHookProviderNameForLegacyApi() {
+        if ("Activated".equals(System.getenv("QFUN_ZYGISK_STATE"))) {
+            return "QFun Zygisk";
+        }
         if (isZygoteHookMode()) {
             String name = getZygoteHookProvider();
             if (name != null) {

@@ -1,13 +1,15 @@
 [versions]
-agp = "9.3.2"
-annotation = "1.10.0"
+agp = "9.3.3"
+annotation = "1.11.0"
 dalvikDx = "16.0.1"
+dobby = "1.2"
 kyant0-backdrop = "2.0.1"
 kyant0-shapes = "1.2.1"
 dexkit = "2.2.0"
 kotlin = "2.4.10"
 kotlinpoet = "2.3.0"
 ksp = "2.3.11"
+libcxx = "30.0.16248370"
 protobuf = "0.10.0"
 protobuf-java = "4.36.1"
 xposed = "82"
@@ -15,9 +17,9 @@ libxposed-api = "101.0.1"
 libxposed-service = "101.0.0"
 jetbrainsKotlinJvm = "2.4.10"
 kotlinx-coroutines = "1.11.0"
-ktx = "1.19.0"
+ktx = "1.19.1"
 serialization = "1.11.0"
-compose-bom = "2026.08.00"
+compose-bom = "2026.09.00"
 activity-compose = "1.13.0"
 lifecycle = "2.11.0"
 
@@ -25,11 +27,13 @@ lifecycle = "2.11.0"
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "ktx" }
 dalvik-dx = { module = "com.jakewharton.android.repackaged:dalvik-dx", version.ref = "dalvikDx" }
+dobby = { module = "io.github.vvb2060.ndk:dobby", version.ref = "dobby" }
 kyant0-backdrop = { group = "io.github.kyant0", name = "backdrop", version.ref = "kyant0-backdrop" }
 kyant0-shapes = { group = "io.github.kyant0", name = "shapes", version.ref = "kyant0-shapes" }
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
 ksp = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
+libcxx = { module = "org.lsposed.libcxx:libcxx", version.ref = "libcxx" }
 protobuf-java = { group = "com.google.protobuf", name = "protobuf-java", version.ref = "protobuf-java" }
 xposed = { group = "de.robv.android.xposed", name = "api", version.ref = "xposed" }
 libxposed-api = { group = "io.github.libxposed", name = "api", version.ref = "libxposed-api" }

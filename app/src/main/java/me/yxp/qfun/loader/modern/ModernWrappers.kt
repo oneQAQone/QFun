@@ -11,11 +11,14 @@ import java.lang.reflect.Method
 class ModernHookParam(val chain: XposedInterface.Chain) : HookParam {
     
     override val method: Member get() = chain.executable
-    
-    override val thisObject: Any get() = chain.thisObject
-    
+
+    override val thisObject: Any
+        get() = chain.thisObject ?: throw IllegalStateException(
+            "Cannot access 'thisObject' on static method: $method"
+        )
+
     override var args: Array<Any?> = chain.args.toTypedArray()
-    
+
     var isReturnEarly = false
         private set
         
@@ -23,9 +26,16 @@ class ModernHookParam(val chain: XposedInterface.Chain) : HookParam {
         set(value) {
             field = value
             isReturnEarly = true
+            throwable = null
         }
     override var throwable: Throwable? = null
-
+        set(value) {
+            field = value
+            if (value != null) {
+                isReturnEarly = true
+                result = null
+            }
+        }
 }
 
 class ModernChain(private val modernParam: ModernHookParam) : Chain, HookParam by modernParam {
@@ -46,7 +56,11 @@ class ModernInvoker(
         return invokeOrigin(type, thisObject, *args)
     }
 
-    override fun invokeWithMaxPriority(maxPriority: Int, thisObject: Any?, vararg args: Any?): Any? {
+    override fun invokeWithMaxPriority(
+        maxPriority: Int,
+        thisObject: Any?,
+        vararg args: Any?
+    ): Any? {
         val type = XposedInterface.Invoker.Type.Chain(maxPriority)
         return invokeOrigin(type, thisObject, *args)
     }
@@ -58,10 +72,16 @@ class ModernInvoker(
     ): Any? {
         return when (method) {
             is Method -> base.getInvoker(method).setType(type).invoke(thisObject, *args)
+            is Constructor<*> -> {
+                val invoker = base.getInvoker(method).setType(type)
+                if (thisObject == null) {
+                    invoker.newInstance(*args)
+                } else {
+                    invoker.invoke(thisObject, *args)
+                }
+            }
 
-            is Constructor<*> -> base.getInvoker(method).setType(type).newInstance(*args)
-
-            else -> throw IllegalArgumentException("Unsupported member type")
+            else -> throw IllegalArgumentException("Unsupported member type: $method")
         }
     }
 }
