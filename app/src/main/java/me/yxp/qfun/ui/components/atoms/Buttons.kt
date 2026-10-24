@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -129,7 +130,11 @@ fun DialogButton(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(bgColor)
-            .clickable(remember { MutableInteractionSource() }, null, onClick = onClick)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ripple(color = colors.ripple),
+                onClick = onClick
+            )
             .padding(24.dp, 14.dp),
         contentAlignment = Alignment.Center
     ) {
