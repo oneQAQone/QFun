@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import com.tencent.mobileqq.aio.msg.AIOMsgItem
 import com.tencent.mobileqq.aio.msglist.holder.component.msgfollow.AIOMsgFollowComponent
 import com.tencent.qqnt.kernel.nativeinterface.IKernelMsgService
+import com.tencent.qqnt.kernel.nativeinterface.MsgConstant
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import me.yxp.qfun.R
@@ -20,6 +21,7 @@ import me.yxp.qfun.plugin.bean.MsgData
 import me.yxp.qfun.ui.pages.configs.RepeatMsgPage
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.io.FileUtils
+import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.qq.Toasts
 import me.yxp.qfun.utils.reflect.callMethod
@@ -32,7 +34,7 @@ import java.lang.reflect.Method
 
 @HookItemAnnotation(
     "消息复读",
-    "支持快捷图标或长按菜单复读，点击配置具体方式及自定义图标",
+    "支持快捷图标、长按菜单或右滑消息复读，点击配置具体方式及自定义图标",
     HookCategory.CHAT
 )
 object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()),
@@ -56,6 +58,15 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     }
 
     override fun onHook() {
+        runCatching {
+            RepeatMsgSwipe.install(
+                canRepeat = ::canSwipeRepeat,
+                repeat = ::performRepeat
+            )
+        }.onFailure {
+            LogUtils.e(this, it)
+        }
+
         handleIntent.hookAfter(this) { param ->
             val lazy = param.thisObject.getObjectByType("kotlin.Lazy".toClass)
             val repeatView = lazy.callMethod("getValue") as ImageView
@@ -86,7 +97,23 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
 
     override fun onClick(msgData: MsgData) = performRepeat(msgData.data)
 
+    private fun canRepeat(msgRecord: MsgRecord): Boolean {
+        if (msgRecord.msgType == MsgConstant.KMSGTYPEWALLET) return false
+        val elements = msgRecord.elements
+        return !elements.isNullOrEmpty()
+    }
+
+    private fun canSwipeRepeat(msgRecord: MsgRecord): Boolean {
+        if (!config.swipeRepeat) return false
+        if (msgRecord.msgType == MsgConstant.KMSGTYPEWALLET) return false
+        return !msgRecord.elements.isNullOrEmpty()
+    }
+
     private fun performRepeat(msgRecord: MsgRecord) {
+        if (!canRepeat(msgRecord)) {
+            Toasts.toast("该消息不支持复读")
+            return
+        }
         val msgService = QQCurrentEnv.kernelMsgService
         if (msgService == null) {
             Toasts.toast("获取消息服务失败")

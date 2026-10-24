@@ -114,5 +114,14 @@ fun RepeatMsgPage(
                 )
             }
         }
+
+        PreferenceSection(title = "手势") {
+            SwitchItem(
+                title = "右滑复读",
+                description = "向右拖动消息气泡越过阈值后松手即可复读",
+                checked = tempConfig.swipeRepeat,
+                onCheckedChange = { tempConfig = tempConfig.copy(swipeRepeat = it) }
+            )
+        }
     }
 }
