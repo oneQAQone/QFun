@@ -4,16 +4,17 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.text.Spannable
 import android.text.SpannableStringBuilder
+import android.text.style.ImageSpan
 import android.widget.EditText
 import com.tencent.input.base.mvicompat.DelegateMediator
 import com.tencent.mobileqq.aio.input.reply.InputReplyUIState
-import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
-import me.yxp.qfun.hook.api.SendMsgListener
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
 import me.yxp.qfun.utils.dexkit.DexKitTask
 import me.yxp.qfun.utils.hook.hookAfter
+import me.yxp.qfun.utils.hook.hookReplace
+import me.yxp.qfun.utils.hook.invokeOriginal
 import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.reflect.findMethod
@@ -28,7 +29,9 @@ import java.lang.reflect.Method
     "当输入框有任意内容时，点击表情会暂存在输入框中与其他消息混合发送",
     HookCategory.CHAT
 )
-object MixedEmoAndText : BaseSwitchHookItem(), SendMsgListener, DexKitTask {
+object MixedEmoAndText : BaseSwitchHookItem(), DexKitTask {
+
+    private lateinit var sendPicEmotion: Method
 
     private lateinit var createImageSpan: Method
 
@@ -36,17 +39,10 @@ object MixedEmoAndText : BaseSwitchHookItem(), SendMsgListener, DexKitTask {
 
     private var isReplying = false
 
-    override fun onSend(elements: ArrayList<MsgElement>) {
-
-        val first = elements.firstOrNull() ?: return
-        if ((isReplying || !getInputEdit()?.text.isNullOrEmpty()) && elements.size == 1 && first.elementType == 2) {
-            insertImage(first.picElement.sourcePath)
-            elements.clear()
-        }
-
-    }
-
     override fun onInit(): Boolean {
+        sendPicEmotion = requireClass("emotionPanel").findMethod {
+            paramTypes(string, int, string, null, string)
+        }
         createImageSpan = requireClass("ImageUtils").findMethod {
             paramTypes(string, Uri::class.java, boolean)
         }
@@ -66,22 +62,37 @@ object MixedEmoAndText : BaseSwitchHookItem(), SendMsgListener, DexKitTask {
                 else -> isReplying
             }
         }
-    }
-
-    private fun insertImage(localPath: String) {
-        createImageSpan(localPath)?.let {
-            insertAtCursor(it)
+        sendPicEmotion.hookReplace(this) { param ->
+            val path = param.args[0] as? String ?: return@hookReplace param.invokeOriginal()
+            val edit = getInputEdit() ?: return@hookReplace param.invokeOriginal()
+            if (!isReplying && edit.text.isNullOrEmpty()) return@hookReplace param.invokeOriginal()
+            val span = createImageSpan(path) ?: return@hookReplace param.invokeOriginal()
+            insertAtCursor(edit, span)
+            null
         }
     }
 
-    private fun insertAtCursor(text: CharSequence) {
-        getInputEdit()?.let {
-            it.post {
-                val start = it.selectionStart
-                val end = it.selectionEnd
-                it.text.replace(start, end, text)
-            }
+    private fun createImageSpan(localPath: String): SpannableStringBuilder? {
+
+        val file = File(localPath)
+        if (!file.exists()) return null
+
+        val customSpan = createImageSpan.invoke(
+            requireClass("ImageUtils").instance,
+            localPath,
+            Uri.fromFile(file),
+            false
+        ) as? ImageSpan ?: return null
+
+        return SpannableStringBuilder("图片").apply {
+            setSpan(customSpan, 0, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
+    }
+
+    private fun insertAtCursor(edit: EditText, text: CharSequence) {
+        val editable = edit.text
+        editable.insert(editable.length, text)
+        edit.setSelection(editable.length)
     }
 
     @SuppressLint("DiscouragedApi")
@@ -96,28 +107,17 @@ object MixedEmoAndText : BaseSwitchHookItem(), SendMsgListener, DexKitTask {
         )
     }.getOrNull()
 
-    private fun createImageSpan(localPath: String): SpannableStringBuilder? {
-
-        val file = File(localPath)
-        if (!file.exists()) return null
-
-        val customSpan = createImageSpan.invoke(
-            requireClass("ImageUtils").instance,
-            localPath,
-            Uri.fromFile(file),
-            false
-        )
-
-        return SpannableStringBuilder("图片").apply {
-            setSpan(customSpan, 0, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-        }
-    }
-
     override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
         "ImageUtils" to FindClass().apply {
             searchPackages("com.tencent.mobileqq.aio.input.fullscreen")
             matcher {
                 usingStrings("sampleSize")
+            }
+        },
+        "emotionPanel" to FindClass().apply {
+            searchPackages("com.tencent.mobileqq.aio.panel.emoticon")
+            matcher {
+                usingStrings("[sendPicEmotion] aioContext=")
             }
         }
     )
