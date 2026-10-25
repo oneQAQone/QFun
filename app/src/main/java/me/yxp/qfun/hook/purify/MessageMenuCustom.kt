@@ -8,7 +8,6 @@ import me.yxp.qfun.conf.MenuConfig
 import me.yxp.qfun.hook.base.BaseClickableHookItem
 import me.yxp.qfun.ui.pages.configs.MessageMenuPage
 import me.yxp.qfun.utils.hook.hookBefore
-import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.reflect.findFieldOrNull
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.getObjectByTypeOrNull
@@ -28,8 +27,6 @@ object MessageMenuCustom : BaseClickableHookItem<MenuConfig>(MenuConfig.serializ
     private lateinit var setMenu: Method
 
     override fun onInit(): Boolean {
-        if (!HostInfo.isQQ) return false
-
         setMenu = QQCustomMenuExpandableLayout::class.java.findMethod {
             name = "setMenu"
         }

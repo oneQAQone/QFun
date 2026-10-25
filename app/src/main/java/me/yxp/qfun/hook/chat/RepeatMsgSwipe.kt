@@ -9,6 +9,7 @@ import android.graphics.ColorFilter
 import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.view.HapticFeedbackConstants
@@ -284,27 +285,79 @@ internal object RepeatMsgSwipe {
 
     private class RepeatBadge(density: Float, dark: Boolean) : Drawable() {
 
-        private val darkMode = dark
-        private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        private val unit = density
+        private val discPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 2.5f * density
+            strokeCap = Paint.Cap.ROUND
+        }
+        private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 1.5f * density
+        }
+        private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textAlign = Paint.Align.CENTER
-            textSize = 16f * density
+            textSize = 15f * density
             typeface = Typeface.DEFAULT_BOLD
         }
+        private val arcBounds = RectF()
+        private val accent = if (dark) Color.rgb(48, 209, 88) else Color.rgb(52, 199, 89)
+        private val track = if (dark) Color.rgb(96, 116, 134) else Color.rgb(178, 196, 210)
+        private val arc = if (dark) Color.rgb(169, 198, 220) else Color.rgb(78, 114, 144)
+        private val ink = if (dark) Color.rgb(226, 238, 248) else Color.rgb(58, 88, 116)
 
         var progress = 0f
         var ready = false
 
         override fun draw(canvas: Canvas) {
-            val alpha = (progress * 255).roundToInt()
-            paint.color = if (darkMode) Color.rgb(59, 80, 98) else Color.rgb(211, 226, 237)
-            paint.alpha = alpha
-            val radius = bounds.width() / 2f * (0.8f + progress * 0.2f)
-            canvas.drawCircle(bounds.exactCenterX(), bounds.exactCenterY(), radius, paint)
-            paint.color = if (darkMode) Color.rgb(192, 218, 240) else Color.rgb(82, 116, 146)
-            paint.alpha = if (ready) alpha else (alpha * 0.7f).roundToInt()
-            val baseline = bounds.exactCenterY() - (paint.ascent() + paint.descent()) / 2f
-            canvas.drawText("+1", bounds.exactCenterX(), baseline, paint)
+            val value = progress.coerceIn(0f, 1f)
+            val alpha = ((value - 0.10f) / 0.35f).coerceIn(0f, 1f) * 255f
+            if (alpha <= 0f) return
+            val centerX = bounds.exactCenterX()
+            val centerY = bounds.exactCenterY()
+            val radius = bounds.width() / 2f - ringPaint.strokeWidth / 2f
+            val tone = blend(arc, accent, ((value - 0.55f) / 0.45f).coerceIn(0f, 1f))
+
+            ringPaint.color = track
+            ringPaint.alpha = (alpha * 0.32f).roundToInt()
+            canvas.drawCircle(centerX, centerY, radius, ringPaint)
+
+            discPaint.color = if (ready) accent else tone
+            discPaint.alpha = if (ready) alpha.roundToInt() else (alpha * 0.16f).roundToInt()
+            canvas.drawCircle(
+                centerX,
+                centerY,
+                (radius - ringPaint.strokeWidth * 1.6f) * (0.88f + value * 0.12f),
+                discPaint
+            )
+
+            if (ready) {
+                glowPaint.color = accent
+                glowPaint.alpha = (alpha * 0.42f).roundToInt()
+                canvas.drawCircle(centerX, centerY, radius + unit * 2.1f, glowPaint)
+            }
+
+            ringPaint.color = tone
+            ringPaint.alpha = alpha.roundToInt()
+            arcBounds.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius)
+            canvas.drawArc(arcBounds, -90f, 360f * value, false, ringPaint)
+
+            textPaint.color = if (ready) Color.WHITE else ink
+            textPaint.alpha = alpha.roundToInt()
+            canvas.drawText(
+                "+1",
+                centerX,
+                centerY - (textPaint.ascent() + textPaint.descent()) / 2f,
+                textPaint
+            )
         }
+
+        private fun blend(from: Int, to: Int, ratio: Float): Int = Color.rgb(
+            (Color.red(from) + (Color.red(to) - Color.red(from)) * ratio).roundToInt(),
+            (Color.green(from) + (Color.green(to) - Color.green(from)) * ratio).roundToInt(),
+            (Color.blue(from) + (Color.blue(to) - Color.blue(from)) * ratio).roundToInt()
+        )
 
         override fun setAlpha(alpha: Int) = Unit
 

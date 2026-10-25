@@ -1,0 +1,9 @@
+app/src/main/zygisk-template/customize.sh text eol=lf
+app/src/main/zygisk-template/action.sh text eol=lf
+app/src/main/zygisk-template/uninstall.sh text eol=lf
+app/src/main/zygisk-template/module.prop text eol=lf
+app/src/main/zygisk-template/META-INF/com/google/android/update-binary text eol=lf
+app/src/main/zygisk-template/META-INF/com/google/android/updater-script text eol=lf
+app/src/main/zygisk-template/webroot/index.html text eol=lf
+app/src/main/zygisk-template/webroot/main.js text eol=lf
+app/src/main/zygisk-template/webroot/style.css text eol=lf

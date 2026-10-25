@@ -39,6 +39,18 @@ val processZygiskTemplate = tasks.register<Sync>("processZygiskTemplate") {
             )
         )
     }
+    doLast {
+        val carriageReturn = '\r'.code.toByte()
+        zygiskOutputDir.get().asFile.walkTopDown()
+            .filter { it.isFile }
+            .forEach { file ->
+                val bytes = file.readBytes()
+                if (bytes.contains(carriageReturn)) {
+                    file.writeBytes(bytes.filter { it != carriageReturn }.toByteArray())
+                    logger.lifecycle("processZygiskTemplate: normalize CRLF -> LF  ${file.name}")
+                }
+            }
+    }
 }
 
 tasks.named("preBuild").configure {
