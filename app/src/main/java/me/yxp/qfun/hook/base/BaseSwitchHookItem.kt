@@ -11,7 +11,7 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 @Suppress("DEPRECATION")
-abstract class BaseSwitchHookItem : BaseHookItem() {
+abstract class BaseSwitchHookItem(private val defaultEnable: Boolean = false) : BaseHookItem() {
 
     val tag: String get() = annotation?.tag ?: "Unknown"
     val desc: String get() {
@@ -20,7 +20,7 @@ abstract class BaseSwitchHookItem : BaseHookItem() {
     }
     val category: String get() = annotation?.category ?: HookCategory.OTHER
 
-    override var isEnable: Boolean by BooleanPreference(name, false)
+    override var isEnable: Boolean by BooleanPreference(name, defaultEnable)
     var isAvailable: Boolean = false
 
     open val isNeedRestart: Boolean = false

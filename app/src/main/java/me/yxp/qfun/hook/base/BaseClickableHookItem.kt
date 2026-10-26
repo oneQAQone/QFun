@@ -8,8 +8,9 @@ import kotlinx.serialization.KSerializer
 import me.yxp.qfun.utils.io.ObjectStore
 
 abstract class BaseClickableHookItem<C : Any>(
-    private val serializer: KSerializer<C>
-) : BaseSwitchHookItem() {
+    private val serializer: KSerializer<C>,
+    defaultEnable: Boolean = false
+) : BaseSwitchHookItem(defaultEnable) {
 
     protected abstract val defaultConfig: C
 

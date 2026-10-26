@@ -3,10 +3,12 @@ package me.yxp.qfun.common
 import android.content.Intent
 import android.util.Log
 import me.yxp.qfun.activity.CrashActivity
+import me.yxp.qfun.hook.other.CrashDialog
 import me.yxp.qfun.loader.hookapi.HookEngineManager
 import me.yxp.qfun.utils.hook.hookBefore
 import me.yxp.qfun.utils.log.CrashReporter
 import me.yxp.qfun.utils.qq.HostInfo
+import me.yxp.qfun.utils.qq.QQCurrentEnv
 import kotlin.system.exitProcess
 
 object CrashMonitor {
@@ -43,6 +45,20 @@ object CrashMonitor {
         override fun uncaughtException(t: Thread, e: Throwable) {
             try {
                 val result = CrashReporter.generateReport(t, e)
+
+                val isForeground = QQCurrentEnv.activity != null
+                val canShowDialog = runCatching {
+                    val config = CrashDialog.config
+                    CrashDialog.isEnable &&
+                            (config.foregroundDialog || !isForeground) &&
+                            (!config.backgroundSilent || isForeground) &&
+                            (!config.mainProcessOnly || HostInfo.processName == HostInfo.packageName) &&
+                            (!config.childThreadSilent || t.name == "main")
+                }.getOrDefault(true)
+                if (!canShowDialog) {
+                    if (t.name == "main") exitProcess(10)
+                    return
+                }
 
                 val context = HostInfo.hostContext
                 val intent = Intent(context, CrashActivity::class.java).apply {
