@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -25,9 +26,6 @@ import me.yxp.qfun.R
 import me.yxp.qfun.activity.SettingActivity
 import me.yxp.qfun.conf.RepeatConfig
 import me.yxp.qfun.ui.components.listitems.ActionItem
-import me.yxp.qfun.ui.components.listitems.PreferenceSection
-import me.yxp.qfun.ui.components.listitems.SelectionGroup
-import me.yxp.qfun.ui.components.listitems.SelectionItem
 import me.yxp.qfun.ui.components.listitems.SwitchItem
 import me.yxp.qfun.ui.components.scaffold.ConfigPageScaffold
 import me.yxp.qfun.ui.core.theme.QFunTheme
@@ -50,29 +48,22 @@ fun RepeatMsgPage(
         onSave = onSave,
         onDismiss = onDismiss
     ) { _ ->
-        PreferenceSection(title = "触发方式") {
-            SelectionGroup {
-                SelectionItem(
-                    title = "快捷图标",
-                    subtitle = "在消息气泡旁显示复读按钮",
-                    isSelected = tempConfig.mode == 0,
-                    onClick = { tempConfig = tempConfig.copy(mode = 0) }
-                )
-                SelectionItem(
-                    title = "长按菜单",
-                    subtitle = "长按消息在菜单中显示复读选项",
-                    isSelected = tempConfig.mode == 1,
-                    onClick = { tempConfig = tempConfig.copy(mode = 1) }
-                )
-            }
-        }
+        SwitchItem(
+            title = "快捷图标",
+            description = "在消息气泡旁显示复读按钮",
+            checked = tempConfig.enableIcon,
+            onCheckedChange = { tempConfig = tempConfig.copy(enableIcon = it) }
+        )
 
         AnimatedVisibility(
-            visible = tempConfig.mode == 0,
+            visible = tempConfig.enableIcon,
             enter = expandVertically() + fadeIn(),
             exit = shrinkVertically() + fadeOut()
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                modifier = Modifier.padding(start = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 SwitchItem(
                     title = "双击触发",
                     description = "防止误触，需双击图标复读",
@@ -115,13 +106,18 @@ fun RepeatMsgPage(
             }
         }
 
-        PreferenceSection(title = "手势") {
-            SwitchItem(
-                title = "右滑复读",
-                description = "向右拖动消息气泡，进度环填满后松手即可复读",
-                checked = tempConfig.swipeRepeat,
-                onCheckedChange = { tempConfig = tempConfig.copy(swipeRepeat = it) }
-            )
-        }
+        SwitchItem(
+            title = "长按菜单",
+            description = "长按消息在菜单中显示复读选项",
+            checked = tempConfig.enableMenu,
+            onCheckedChange = { tempConfig = tempConfig.copy(enableMenu = it) }
+        )
+
+        SwitchItem(
+            title = "右滑复读",
+            description = "向右拖动消息气泡，进度环填满后松手即可复读",
+            checked = tempConfig.enableSwipe,
+            onCheckedChange = { tempConfig = tempConfig.copy(enableSwipe = it) }
+        )
     }
 }

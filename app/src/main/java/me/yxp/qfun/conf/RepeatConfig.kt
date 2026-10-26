@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RepeatConfig(
-    val mode: Int = 0,
+    val enableIcon: Boolean = true,
     val doubleClick: Boolean = false,
-    val swipeRepeat: Boolean = false
+    val enableMenu: Boolean = false,
+    val enableSwipe: Boolean = false
 )

@@ -20,6 +20,7 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import com.tencent.mobileqq.aio.msg.AIOMsgItem
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import me.yxp.qfun.hook.base.BaseSwitchHookItem
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.hook.hookBefore
 import me.yxp.qfun.utils.reflect.callMethod
@@ -39,7 +40,11 @@ internal object RepeatMsgSwipe {
     private const val SWIPE_HELPER =
         "com.tencent.mobileqq.aio.msglist.holder.component.leftswipearea.AIOContentLeftSwipeHelper"
 
-    fun install(canRepeat: (MsgRecord) -> Boolean, repeat: (MsgRecord) -> Unit) {
+    fun install(
+        owner: BaseSwitchHookItem,
+        canRepeat: (MsgRecord) -> Boolean,
+        repeat: (MsgRecord) -> Unit
+    ) {
         val holderClass = BUBBLE_VB.toClass
         val msgItemClass = AIOMsgItem::class.java
         val helperClass = SWIPE_HELPER.toClass
@@ -68,14 +73,14 @@ internal object RepeatMsgSwipe {
             paramTypes(MotionEvent::class.java)
         }
 
-        intercept.hookBefore { param ->
+        intercept.hookBefore(owner) { param ->
             val event = param.args[0] as? MotionEvent ?: return@hookBefore
             if (event.actionMasked == MotionEvent.ACTION_DOWN) {
                 sessions.remove(param.thisObject)?.reset()
             }
         }
 
-        intercept.hookAfter { param ->
+        intercept.hookAfter(owner) { param ->
             val instance = param.thisObject
             val event = param.args[0] as? MotionEvent ?: return@hookAfter
             val current = sessions[instance]
@@ -112,7 +117,7 @@ internal object RepeatMsgSwipe {
             }
         }
 
-        touch.hookBefore { param ->
+        touch.hookBefore(owner) { param ->
             val session = sessions[param.thisObject] ?: return@hookBefore
             if (!session.captured) return@hookBefore
             val event = param.args[0] as? MotionEvent ?: return@hookBefore
@@ -135,7 +140,7 @@ internal object RepeatMsgSwipe {
         }
 
         holderClass.findMethodsForRebind(msgItemClass).forEach { method ->
-            method.hookBefore { param -> sessions.remove(param.thisObject)?.reset() }
+            method.hookBefore(owner) { param -> sessions.remove(param.thisObject)?.reset() }
         }
     }
 
@@ -148,9 +153,9 @@ internal object RepeatMsgSwipe {
     private fun Class<*>.findMethodsForRebind(msgItemClass: Class<*>): List<Method> {
         return declaredMethods.filter { method ->
             Modifier.isPublic(method.modifiers) &&
-                !Modifier.isStatic(method.modifiers) &&
-                method.returnType == Void.TYPE &&
-                method.parameterTypes.contentEquals(arrayOf(msgItemClass))
+                    !Modifier.isStatic(method.modifiers) &&
+                    method.returnType == Void.TYPE &&
+                    method.parameterTypes.contentEquals(arrayOf(msgItemClass))
         }.onEach { it.isAccessible = true }
     }
 
@@ -170,7 +175,8 @@ internal object RepeatMsgSwipe {
             ViewConfiguration.getLongPressTimeout().toLong(),
         )
         private var overlayRef: WeakReference<ViewGroup>? = null
-        private val badge = RepeatBadge(density, runCatching { ThemeHelper.isNightMode() }.getOrDefault(false))
+        private val badge =
+            RepeatBadge(density, runCatching { ThemeHelper.isNightMode() }.getOrDefault(false))
         private var animator: ValueAnimator? = null
         private var wasReady = false
         private var ownsScroll = false

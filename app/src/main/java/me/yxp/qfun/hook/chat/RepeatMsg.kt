@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.view.View
 import android.widget.ImageView
 import androidx.compose.runtime.Composable
+import androidx.core.view.isVisible
 import com.tencent.mobileqq.aio.msg.AIOMsgItem
 import com.tencent.mobileqq.aio.msglist.holder.component.msgfollow.AIOMsgFollowComponent
 import com.tencent.qqnt.kernel.nativeinterface.IKernelMsgService
@@ -43,7 +44,7 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     override val defaultConfig: RepeatConfig = RepeatConfig()
 
     override val menuKey: String
-        get() = if (config.mode == 1) "[QFun],RepeatMsg,复读,," else ""
+        get() = if (config.enableMenu) "[QFun],RepeatMsg,复读,," else ""
 
     private lateinit var handleIntent: Method
     private var lastClickTime = 0L
@@ -60,6 +61,7 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     override fun onHook() {
         runCatching {
             RepeatMsgSwipe.install(
+                owner = this,
                 canRepeat = ::canSwipeRepeat,
                 repeat = ::performRepeat
             )
@@ -71,8 +73,8 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
             val lazy = param.thisObject.getObjectByType("kotlin.Lazy".toClass)
             val repeatView = lazy.callMethod("getValue") as ImageView
 
-            if (config.mode != 0) {
-                repeatView.visibility = View.GONE
+            if (!config.enableIcon) {
+                repeatView.isVisible = false
                 return@hookAfter
             }
 
@@ -104,8 +106,8 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     }
 
     private fun canSwipeRepeat(msgRecord: MsgRecord): Boolean {
-        if (!config.swipeRepeat) return false
-        if (msgRecord.msgType == MsgConstant.KMSGTYPEWALLET) return false
+        if (!config.enableSwipe) return false
+        if (msgRecord.msgType == MsgConstant.KMSGTYPEGRAYTIPS) return false
         return !msgRecord.elements.isNullOrEmpty()
     }
 
