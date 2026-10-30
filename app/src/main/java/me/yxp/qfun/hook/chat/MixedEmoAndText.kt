@@ -91,8 +91,9 @@ object MixedEmoAndText : BaseSwitchHookItem(), DexKitTask {
 
     private fun insertAtCursor(edit: EditText, text: CharSequence) {
         val editable = edit.text
-        editable.insert(editable.length, text)
-        edit.setSelection(editable.length)
+        val position = edit.selectionStart.takeIf { it >= 0 } ?: editable.length
+        editable.insert(position, text)
+        edit.setSelection(position + text.length)
     }
 
     @SuppressLint("DiscouragedApi")
