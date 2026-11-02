@@ -29,7 +29,10 @@ import android.widget.RelativeLayout
 import me.yxp.qfun.annotation.HookCategory
 import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.hook.base.BaseSwitchHookItem
+import me.yxp.qfun.utils.dexkit.DexKitCache
 import me.yxp.qfun.utils.dexkit.DexKitTask
+import me.yxp.qfun.utils.reflect.TAG
+import org.luckypray.dexkit.DexKitBridge
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.hook.hookBefore
 import me.yxp.qfun.utils.qq.HostInfo
@@ -55,6 +58,19 @@ object HideMiniAppPullEntry : BaseSwitchHookItem(), DexKitTask {
     private lateinit var miniAppContent: Field
     private var contentMovingCallbacks: List<Method> = emptyList()
     private var refreshCallback: Method? = null
+
+    private fun resolveMissingQueries() {
+        val missing = getQueryMap().filterKeys { runCatching { requireMethod(it) }.isFailure }
+        if (missing.isEmpty()) return
+        System.loadLibrary("dexkit")
+        DexKitBridge.create(HostInfo.hostContext.applicationInfo.sourceDir).use { bridge ->
+            missing.forEach { (key, query) ->
+                val descriptor = bridge.findMethod(query as FindMethod).single().descriptor
+                DexKitCache.cacheMap["${TAG}->$key"] = descriptor
+            }
+        }
+        DexKitCache.saveCache()
+    }
 
     override fun onInit(): Boolean {
         if (!HostInfo.isQQ) return false
