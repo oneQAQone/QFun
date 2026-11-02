@@ -15,8 +15,8 @@ import me.yxp.qfun.ui.components.atoms.DialogTextField
 import me.yxp.qfun.ui.components.dialogs.CenterDialogContainer
 import me.yxp.qfun.ui.core.compatibility.QFunCenterDialog
 import me.yxp.qfun.utils.hook.hookReplace
+import me.yxp.qfun.utils.hook.hookBefore
 import me.yxp.qfun.utils.hook.invokeOriginal
-import me.yxp.qfun.utils.hook.returnConstant
 import me.yxp.qfun.utils.qq.QQCurrentEnv
 import me.yxp.qfun.utils.reflect.findMethod
 import me.yxp.qfun.utils.reflect.findMethodOrNull
@@ -54,7 +54,8 @@ object MultiPaiYiPai : BaseSwitchHookItem() {
 
     override fun onHook() {
 
-        check.returnConstant(this, true)
+        // Let the independent cooldown switch run when this feature is disabled.
+        check.hookBefore(this) { it.result = true }
 
         sendPai.hookReplace(this) {
             showDialog(it)
