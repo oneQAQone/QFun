@@ -12,6 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.yxp.qfun.BuildConfig
 import me.yxp.qfun.annotation.HookCategory
+import me.yxp.qfun.plugin.view.PluginEntryConfig
+import me.yxp.qfun.ui.pages.configs.ConfigUiRegistry
 import me.yxp.qfun.hook.MainHook
 import me.yxp.qfun.hook.base.BaseClickableHookItem
 import me.yxp.qfun.ui.pages.settings.CategoryData
@@ -88,6 +90,7 @@ class SettingViewModel : ViewModel() {
     }
 
     init {
+        ConfigUiRegistry.register(PluginEntryConfig.KEY, PluginEntryConfig::Content)
         refreshCategories()
         checkUpdate()
         fetchSocialConfig()
@@ -120,20 +123,25 @@ class SettingViewModel : ViewModel() {
     fun refreshCategories() {
         categories = HookCategory.ORDER.mapNotNull { category ->
             val itemsInCategory = allHookItems.filter { it.category == category }
-            if (itemsInCategory.isNotEmpty()) {
-                CategoryData(category, itemsInCategory.map { hookItem ->
-                    val isClickable = hookItem is BaseClickableHookItem<*>
-                    FunctionData(
-                        hookItem.name,
-                        hookItem.tag,
-                        hookItem.desc,
-                        hookItem.isEnable,
-                        hookItem.isAvailable,
-                        isClickable,
-                        if (isClickable) hookItem.name else null
-                    )
-                })
-            } else null
+            val items = itemsInCategory.map { hookItem ->
+                val isClickable = hookItem is BaseClickableHookItem<*>
+                FunctionData(
+                    hookItem.name,
+                    hookItem.tag,
+                    hookItem.desc,
+                    hookItem.isEnable,
+                    hookItem.isAvailable,
+                    isClickable,
+                    if (isClickable) hookItem.name else null
+                )
+            }.toMutableList()
+            if (category == HookCategory.OTHER) {
+                items += FunctionData(
+                    PluginEntryConfig.KEY, "脚本入口方式", "当前：${PluginEntryConfig.mode.title}",
+                    false, true, true, PluginEntryConfig.KEY, showSwitch = false
+                )
+            }
+            if (items.isNotEmpty()) CategoryData(category, items) else null
         }
         isRestartRequired = allHookItems.filter { it.isNeedRestart }.any { it.isEnable != initialRestart[it.name] }
     }
@@ -146,6 +154,10 @@ class SettingViewModel : ViewModel() {
     }
 
     fun handleFunctionClick(id: String) {
+        if (id == PluginEntryConfig.KEY) {
+            activeConfigKey = id
+            return
+        }
         allHookItems.find { it.name == id }?.let { item ->
             if (item is BaseClickableHookItem<*>) {
                 item.initData()
@@ -156,6 +168,7 @@ class SettingViewModel : ViewModel() {
 
     fun dismissDialog() {
         activeConfigKey = null
+        refreshCategories()
     }
 
     fun showDonate() {
