@@ -89,7 +89,7 @@ object FileUtils {
 
         return runCatching {
             ZipOutputStream(destZip.outputStream().buffered()).use { zos ->
-                val baseDir = if (src.isDirectory) src.parentFile else src.parentFile
+                val baseDir = src.parentFile
                 src.walkTopDown().forEach { file ->
                     if (file.isFile) {
                         val relativePath = file.relativeTo(baseDir ?: file).path

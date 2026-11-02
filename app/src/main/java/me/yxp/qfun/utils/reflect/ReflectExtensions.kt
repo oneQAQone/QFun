@@ -117,11 +117,7 @@ fun Class<*>.newInstanceWithArgs(vararg args: Any?): Any {
     }
         ?: throw NoSuchMethodException("No constructor found for ${this.name} with args: ${args.map { it?.javaClass?.simpleName ?: "null" }}")
 
-    return try {
-        constructor.newInstance(*args)
-    } catch (e: Exception) {
-        throw e
-    }
+    return constructor.newInstance(*args)
 }
 
 val Class<*>.instance: Any?

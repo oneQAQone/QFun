@@ -8,6 +8,14 @@ enum class Visibility {
     PUBLIC, PROTECTED, PRIVATE, PACKAGE
 }
 
+private fun Visibility.matches(modifiers: Int): Boolean = when (this) {
+    Visibility.PUBLIC -> Modifier.isPublic(modifiers)
+    Visibility.PROTECTED -> Modifier.isProtected(modifiers)
+    Visibility.PRIVATE -> Modifier.isPrivate(modifiers)
+    Visibility.PACKAGE -> !Modifier.isPublic(modifiers) &&
+        !Modifier.isProtected(modifiers) && !Modifier.isPrivate(modifiers)
+}
+
 class MethodSearcher(private val clazz: Class<*>) {
     var name: String? = null
     var returnType: Class<*>? = null
@@ -80,19 +88,7 @@ class MethodSearcher(private val clazz: Class<*>) {
 
         if (isStatic != null && Modifier.isStatic(method.modifiers) != isStatic) return false
 
-        if (visibility != null) {
-            val mod = method.modifiers
-            val isMatch = when (visibility!!) {
-                Visibility.PUBLIC -> Modifier.isPublic(mod)
-                Visibility.PROTECTED -> Modifier.isProtected(mod)
-                Visibility.PRIVATE -> Modifier.isPrivate(mod)
-                Visibility.PACKAGE -> !Modifier.isPublic(mod) && !Modifier.isProtected(mod) && !Modifier.isPrivate(
-                    mod
-                )
-            }
-            if (!isMatch) return false
-        }
-        return true
+        return visibility?.matches(method.modifiers) != false
     }
 }
 
@@ -201,17 +197,5 @@ private fun checkField(field: Field, searcher: FieldSearcher): Boolean {
     if (searcher.type != null && !searcher.type!!.isCompatibleWith(field.type)) return false
     if (searcher.isStatic != null && Modifier.isStatic(field.modifiers) != searcher.isStatic) return false
 
-    if (searcher.visibility != null) {
-        val mod = field.modifiers
-        val isMatch = when (searcher.visibility!!) {
-            Visibility.PUBLIC -> Modifier.isPublic(mod)
-            Visibility.PROTECTED -> Modifier.isProtected(mod)
-            Visibility.PRIVATE -> Modifier.isPrivate(mod)
-            Visibility.PACKAGE -> !Modifier.isPublic(mod) && !Modifier.isProtected(mod) && !Modifier.isPrivate(
-                mod
-            )
-        }
-        if (!isMatch) return false
-    }
-    return true
+    return searcher.visibility?.matches(field.modifiers) != false
 }

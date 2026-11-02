@@ -4,7 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.os.Build;
 
 import me.yxp.qfun.utils.qq.HostInfo;
 
@@ -13,7 +12,7 @@ public class CounterfeitActivityInfoFactory {
     public static ActivityInfo makeProxyActivityInfo(String className, long flags) {
         try {
             Context ctx = HostInfo.INSTANCE.getHostContext();
-            Class<?> cl = Class.forName(className);
+            Class.forName(className);
             String[] candidates = new String[]{"com.tencent.mobileqq.activity.QQSettingSettingActivity",
                     "com.tencent.mobileqq.activity.QPublicFragmentActivity"};
             PackageManager.NameNotFoundException last = null;
@@ -39,9 +38,7 @@ public class CounterfeitActivityInfoFactory {
         ai.taskAffinity = null;
         ai.descriptionRes = 0;
         ai.name = name;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ai.splitName = null;
-        }
+        ai.splitName = null;
         ai.configChanges |= ActivityInfo.CONFIG_UI_MODE;
         return ai;
     }

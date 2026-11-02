@@ -1,7 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.android.build.api.dsl.ApplicationExtension
-import java.io.FileInputStream
 import java.util.Properties
 import java.util.UUID
 
@@ -16,7 +15,7 @@ plugins {
 val keystorePropertiesFile = rootProject.file("local.properties")
 val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    keystorePropertiesFile.inputStream().use(keystoreProperties::load)
 }
 
 val modVersionCode = 26
@@ -25,7 +24,7 @@ val modVersionName = "1.3.4"
 val zygiskOutputDir = layout.buildDirectory.dir("generated/zygisk-resources")
 
 val processZygiskTemplate = tasks.register<Sync>("processZygiskTemplate") {
-    description = ""
+    description = "Prepare Zygisk module resources"
     from(file("src/main/zygisk-template"))
     into(zygiskOutputDir)
     filteringCharset = "UTF-8"
@@ -175,7 +174,6 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
-    implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
     implementation(libs.compose.activity)
     implementation(libs.compose.animation)
@@ -214,9 +212,8 @@ protobuf {
 
 val adb: String = androidComponents.sdkComponents.adb.get().asFile.absolutePath
 val packageName = "com.tencent.mobileqq"
-// adb shell am force-stop com.tencent.mobileqq
 val killQQ = tasks.register<Exec>("killQQ") {
-    description = ""
+    description = "Stop QQ on the connected device"
     group = "qfun"
     commandLine(adb, "shell", "am", "force-stop", packageName)
     isIgnoreExitValue = true
