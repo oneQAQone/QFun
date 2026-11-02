@@ -82,7 +82,8 @@ fun SwitchActionCard(
     subtitle: Any? = null,
     leadingIcon: Painter? = null,
     isAvailable: Boolean = true,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    showSwitch: Boolean = true
 ) {
     val displaySubtitle = when {
         !isAvailable && subtitle == null -> "当前环境不可用"
@@ -98,7 +99,7 @@ fun SwitchActionCard(
         isAvailable = isAvailable,
         onClick = onClick ?: { if (isAvailable) onCheckedChange(!isChecked) },
         trailingContent = {
-            QFunSwitch(isChecked, { if (isAvailable) onCheckedChange(it) }, enabled = isAvailable)
+            if (showSwitch) QFunSwitch(isChecked, { if (isAvailable) onCheckedChange(it) }, enabled = isAvailable)
         }
     )
 }

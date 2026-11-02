@@ -6,7 +6,10 @@ import me.yxp.qfun.annotation.HookItemAnnotation
 import me.yxp.qfun.common.ModuleScope
 import me.yxp.qfun.hook.base.BaseApiHookItem
 import me.yxp.qfun.hook.base.Listener
+import me.yxp.qfun.utils.dexkit.DexKitCache
 import me.yxp.qfun.utils.dexkit.DexKitTask
+import me.yxp.qfun.utils.reflect.TAG
+import org.luckypray.dexkit.DexKitBridge
 import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.hook.hookBefore
 import me.yxp.qfun.utils.log.LogUtils
@@ -41,6 +44,19 @@ object PluginPlusPanelEntry : BaseApiHookItem<Listener>(), DexKitTask {
             matcher { usingStrings("app_name", "red_point_type", "elementId") }
         }
     )
+
+    private fun resolveMissingQueries() {
+        val missing = getQueryMap().filterKeys { runCatching { requireClass(it) }.isFailure }
+        if (missing.isEmpty()) return
+        System.loadLibrary("dexkit")
+        DexKitBridge.create(HostInfo.hostContext.applicationInfo.sourceDir).use { bridge ->
+            missing.forEach { (key, query) ->
+                val descriptor = bridge.findClass(query as FindClass).single().descriptor
+                DexKitCache.cacheMap["${TAG}->$key"] = descriptor
+            }
+        }
+        DexKitCache.saveCache()
+    }
 
     override fun loadHook() {
         if (!HostInfo.isQQ) return

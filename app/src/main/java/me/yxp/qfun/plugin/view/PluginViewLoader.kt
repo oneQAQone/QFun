@@ -33,7 +33,6 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
     private var currentPluginView: PluginView? = null
     private var chatActivity = WeakReference<Activity>(null)
     private var aioDelegate: AIODelegate? = null
-    private val contactPattern = """(\w+)=([^,)]*)""".toRegex()
 
     val currentContact: PluginContact
         get() = aioDelegate?.let {
@@ -106,7 +105,8 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
     }
 
     private fun parseToPluginContact(input: String): PluginContact {
-        val map = contactPattern.findAll(input).associate {
+        val regex = """(\w+)=([^,)]*)""".toRegex()
+        val map = regex.findAll(input).associate {
             it.groupValues[1] to it.groupValues[2].trim('\'')
         }
 
