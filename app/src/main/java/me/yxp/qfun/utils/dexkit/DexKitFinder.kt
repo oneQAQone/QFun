@@ -19,6 +19,7 @@ import me.yxp.qfun.utils.hook.hookAfter
 import me.yxp.qfun.utils.json.MessageTool
 import me.yxp.qfun.utils.log.LogUtils
 import me.yxp.qfun.utils.qq.AppRestartUtils
+import me.yxp.qfun.utils.qq.HostInfo
 import me.yxp.qfun.utils.qq.MsgTool
 import me.yxp.qfun.utils.reflect.TAG
 import org.luckypray.dexkit.DexKitBridge
@@ -104,6 +105,34 @@ object DexKitFinder {
 interface DexKitTask {
 
     fun getQueryMap(): Map<String, BaseMatcher>
+
+    fun resolveMissingQueries() {
+        val missing = getQueryMap().filter { (key, query) ->
+            runCatching {
+                when (query) {
+                    is FindClass -> requireClass(key)
+                    is FindMethod -> requireMethod(key)
+                    else -> error("Unsupported DexKit query: $key")
+                }
+            }.isFailure
+        }
+        if (missing.isEmpty()) return
+        // A version-valid cache can still lack keys for newly added features.
+        System.loadLibrary("dexkit")
+        DexKitBridge.create(HostInfo.hostContext.applicationInfo.sourceDir).use { bridge ->
+            missing.forEach { (key, query) ->
+                val descriptor = when (query) {
+                    is FindClass -> bridge.findClass(query).singleOrNull()?.descriptor
+                    is FindMethod -> bridge.findMethod(query).singleOrNull()?.descriptor
+                    else -> error("Unsupported DexKit query: $key")
+                }
+                DexKitCache.cacheMap["${TAG}->$key"] = checkNotNull(descriptor) {
+                    "Cannot resolve DexKit query: ${TAG}->$key"
+                }
+            }
+        }
+        DexKitCache.saveCache()
+    }
 
     fun requireClass(name: String): Class<*> {
         return DexKitCache.getClass("${TAG}->$name")
