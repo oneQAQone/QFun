@@ -127,6 +127,7 @@ fun PluginScreen(
     onPluginUpload: (String) -> Unit,
     onPluginDownload: (String) -> Unit,
     onPickIcon: () -> Unit,
+    onEntrySettings: () -> Unit,
     showCreateDialog: Boolean,
     onDismissCreateDialog: () -> Unit,
     onConfirmCreatePlugin: (String, String, String, String) -> Unit,
@@ -236,7 +237,12 @@ fun PluginScreen(
                         onClick = onCreatePlugin
                     ),
                     TopBarMenuItem(
-                        title = "设置图标", 
+                        title = "入口方式",
+                        iconRes = R.drawable.ic_settings_gear,
+                        onClick = onEntrySettings
+                    ),
+                    TopBarMenuItem(
+                        title = "悬浮图标",
                         iconRes = R.drawable.ic_settings_gear, 
                         onClick = onPickIcon
                     ),

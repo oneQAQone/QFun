@@ -34,7 +34,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.widget.ImageViewCompat
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import me.yxp.qfun.R
 import me.yxp.qfun.common.ModuleScope
@@ -67,14 +66,6 @@ class PluginView(private val activity: Activity) {
     fun show() {
         ThemeHelper.applyTheme(activity)
         if (popupWindow != null) return
-        val currentContact = PluginViewLoader.currentContact
-        PluginManager.plugins.filter { it.isRunning }
-            .forEach {
-                it.compiler.callback.chatInterface(
-                    currentContact.chatType, currentContact.peerUin, currentContact.peerName
-                )
-            }
-
         val metrics = activity.resources.displayMetrics
         val savedX = prefs.getInt("plugin_float_x", -1)
         val savedY = prefs.getInt("plugin_float_y", -1)
@@ -102,7 +93,6 @@ class PluginView(private val activity: Activity) {
                 setImageResource(R.drawable.ic_float_ball)
                 val isNight = ThemeHelper.isNightMode()
                 val tintColor = if (isNight) Color.WHITE else Color.BLACK
-                ImageViewCompat.setImageTintList(this, ColorStateList.valueOf(tintColor))
                 imageTintList = ColorStateList.valueOf(tintColor)
             }
             layoutParams = ViewGroup.LayoutParams(size, size)
@@ -192,7 +182,8 @@ class PluginView(private val activity: Activity) {
         }
     }
 
-    private fun showMenu() {
+    fun showMenu() {
+        ThemeHelper.applyTheme(activity)
         val menuItems = mutableListOf<PluginMenuItem>()
         val currentContact = PluginViewLoader.currentContact
         PluginManager.plugins.filter { it.isRunning }.forEach { plugin ->

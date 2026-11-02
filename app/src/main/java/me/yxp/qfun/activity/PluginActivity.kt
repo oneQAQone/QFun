@@ -4,6 +4,16 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import me.yxp.qfun.plugin.view.PluginEntryConfig
+import me.yxp.qfun.plugin.view.PluginEntryMode
+import me.yxp.qfun.ui.components.dialogs.CenterDialog
+import me.yxp.qfun.ui.components.dialogs.BaseDialogSurface
+import me.yxp.qfun.ui.components.listitems.SelectionGroup
+import me.yxp.qfun.ui.components.listitems.SelectionItem
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.core.net.toUri
@@ -23,6 +33,8 @@ class PluginActivity : BaseComposeActivity() {
 
         setContent {
             val vm: PluginViewModel = viewModel()
+            var showEntrySettings by remember { mutableStateOf(false) }
+            var entryMode by remember { mutableStateOf(PluginEntryConfig.mode) }
             val appMetrics = applicationContext.resources.displayMetrics
             val stableDensity = Density(
                 density = appMetrics.density,
@@ -51,6 +63,7 @@ class PluginActivity : BaseComposeActivity() {
                         onPluginUpload = vm::showUploadConfirm,
                         onPluginDownload = vm::downloadPlugin,
                         onPickIcon = ::openPickIcon,
+                        onEntrySettings = { showEntrySettings = true },
                         showCreateDialog = vm.showCreateDialog,
                         onDismissCreateDialog = vm::dismissCreatePluginDialog,
                         onConfirmCreatePlugin = vm::createPlugin,
@@ -62,6 +75,25 @@ class PluginActivity : BaseComposeActivity() {
                         searchQuery = vm.searchQuery,
                         onQueryChange = { vm.searchQuery = it }
                     )
+
+                    CenterDialog(visible = showEntrySettings, onDismiss = { showEntrySettings = false }) {
+                        BaseDialogSurface(title = "入口方式") {
+                            SelectionGroup {
+                                PluginEntryMode.entries.forEach { mode ->
+                                    SelectionItem(
+                                        title = mode.title,
+                                        subtitle = mode.description,
+                                        isSelected = entryMode == mode,
+                                        onClick = {
+                                            entryMode = mode
+                                            PluginEntryConfig.mode = mode
+                                            showEntrySettings = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     ConfirmDialog(
                         visible = vm.showDeleteDialog,
