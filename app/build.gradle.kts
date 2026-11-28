@@ -19,8 +19,8 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
-val modVersionCode = 26
-val modVersionName = "1.3.4"
+val modVersionCode = 27
+val modVersionName = "1.3.5"
 
 val zygiskOutputDir = layout.buildDirectory.dir("generated/zygisk-resources")
 
