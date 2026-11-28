@@ -66,7 +66,8 @@ data class FunctionData(
     val isEnabled: Boolean,
     val isAvailable: Boolean,
     val isClickable: Boolean,
-    val configKey: String? = null
+    val configKey: String? = null,
+    val showSwitch: Boolean = true
 )
 
 @Composable
@@ -252,6 +253,7 @@ private fun SearchModeContent(
                 isChecked = item.isEnabled,
                 onCheckedChange = { onFunctionToggle(item.id, it) },
                 isAvailable = item.isAvailable,
+                showSwitch = item.showSwitch,
                 onClick = if (item.isClickable) { { onFunctionClick(item.id) } } else null
             )
         }
@@ -317,6 +319,7 @@ private fun DetailPage(
                     isChecked = item.isEnabled,
                     onCheckedChange = { onFunctionToggle(item.id, it) },
                     isAvailable = item.isAvailable,
+                    showSwitch = item.showSwitch,
                     onClick = if (item.isClickable) { { onFunctionClick(item.id) } } else null
                 )
             }

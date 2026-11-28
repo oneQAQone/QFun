@@ -67,13 +67,6 @@ class PluginView(private val activity: Activity) {
     fun show() {
         ThemeHelper.applyTheme(activity)
         if (popupWindow != null) return
-        val currentContact = PluginViewLoader.currentContact
-        PluginManager.plugins.filter { it.isRunning }
-            .forEach {
-                it.compiler.callback.chatInterface(
-                    currentContact.chatType, currentContact.peerUin, currentContact.peerName
-                )
-            }
 
         val metrics = activity.resources.displayMetrics
         val savedX = prefs.getInt("plugin_float_x", -1)
@@ -192,7 +185,8 @@ class PluginView(private val activity: Activity) {
         }
     }
 
-    private fun showMenu() {
+    fun showMenu() {
+        ThemeHelper.applyTheme(activity)
         val menuItems = mutableListOf<PluginMenuItem>()
         val currentContact = PluginViewLoader.currentContact
         PluginManager.plugins.filter { it.isRunning }.forEach { plugin ->
